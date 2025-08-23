@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Building2, CalendarCheck, Users, GraduationCap, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Building2, CalendarCheck, Users, GraduationCap, ArrowRight, CheckCircle2, Newspaper, Users2, BrainCircuit } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -203,6 +203,10 @@ export default function HomePage() {
                             <CheckCircle2 className="h-5 w-5 text-accent" />
                             <span>Automated notifications and alerts</span>
                         </li>
+                         <li className="flex items-center gap-2">
+                            <CheckCircle2 className="h-5 w-5 text-accent" />
+                            <span>AI-Powered Insights</span>
+                        </li>
                     </ul>
                 </div>
                 <div className="flex justify-center">
@@ -218,8 +222,45 @@ export default function HomePage() {
             </div>
         </section>
 
-        {/* Testimonials Section */}
+        {/* AI Feature Section */}
         <section className="w-full py-12 md:py-24 lg:py-32 bg-background">
+          <div className="container grid items-center justify-center gap-4 px-4 text-center md:px-6 lg:gap-10">
+            <div className="space-y-3">
+              <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm">AI-Powered</div>
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Intelligent Campus Management</h2>
+              <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                Leverage the power of AI to gain deeper insights and automate administrative tasks.
+              </p>
+            </div>
+            <div className="relative grid gap-6 md:grid-cols-3">
+               <div className="flex flex-col items-center gap-4">
+                  <BrainCircuit className="w-12 h-12 text-accent" />
+                  <div className="grid gap-1">
+                      <h3 className="text-lg font-bold">Predictive Analytics</h3>
+                      <p className="text-sm text-muted-foreground">Forecast student performance and identify at-risk students early.</p>
+                  </div>
+              </div>
+              <div className="flex flex-col items-center gap-4">
+                  <BrainCircuit className="w-12 h-12 text-accent" />
+                  <div className="grid gap-1">
+                      <h3 className="text-lg font-bold">Automated Reporting</h3>
+                      <p className="text-sm text-muted-foreground">Generate comprehensive reports on attendance and academic progress automatically.</p>
+                  </div>
+              </div>
+              <div className="flex flex-col items-center gap-4">
+                  <BrainCircuit className="w-12 h-12 text-accent" />
+                  <div className="grid gap-1">
+                      <h3 className="text-lg font-bold">Smart Resource Allocation</h3>
+                      <p className="text-sm text-muted-foreground">Optimize timetables and resource management based on data-driven suggestions.</p>
+                  </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+        {/* Testimonials Section */}
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
             <div className="container px-4 md:px-6">
                  <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
                     <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm">
@@ -242,7 +283,7 @@ export default function HomePage() {
                         <CardHeader>
                             <div className="flex items-center gap-4">
                                 <Avatar>
-                                    <AvatarImage src="https://placehold.co/40x40.png" />
+                                    <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="male portrait" />
                                     <AvatarFallback>AT</AvatarFallback>
                                 </Avatar>
                                 <div>
@@ -261,7 +302,7 @@ export default function HomePage() {
                          <CardHeader>
                             <div className="flex items-center gap-4">
                                 <Avatar>
-                                    <AvatarImage src="https://placehold.co/40x40.png" />
+                                    <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="female portrait" />
                                     <AvatarFallback>AJ</AvatarFallback>
                                 </Avatar>
                                 <div>
@@ -280,7 +321,7 @@ export default function HomePage() {
                          <CardHeader>
                             <div className="flex items-center gap-4">
                                 <Avatar>
-                                    <AvatarImage src="https://placehold.co/40x40.png" />
+                                    <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="person portrait" />
                                     <AvatarFallback>AU</AvatarFallback>
                                 </Avatar>
                                 <div>
@@ -294,8 +335,138 @@ export default function HomePage() {
             </div>
         </section>
 
-        {/* FAQ Section */}
+        {/* Latest News Section */}
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-background">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
+              <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm">
+                Latest News
+              </div>
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">
+                Stay Updated
+              </h2>
+              <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                Read our latest articles and discover new features.
+              </p>
+            </div>
+            <div className="mx-auto grid max-w-5xl gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+                <Image
+                  src="https://placehold.co/550x310.png"
+                  width="550"
+                  height="310"
+                  alt="News 1"
+                  className="aspect-video object-cover"
+                  data-ai-hint="education technology"
+                />
+                <CardHeader>
+                  <CardTitle>The Future of Campus Management</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">Discover how AI is shaping the future of education...</p>
+                  <Button variant="link" className="px-0 mt-4">Read More <ArrowRight className="ml-2 h-4 w-4" /></Button>
+                </CardContent>
+              </Card>
+              <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+                <Image
+                  src="https://placehold.co/550x310.png"
+                  width="550"
+                  height="310"
+                  alt="News 2"
+                  className="aspect-video object-cover"
+                  data-ai-hint="students collaborating"
+                />
+                <CardHeader>
+                  <CardTitle>New Feature: Parent Portal</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">We're excited to launch our new portal for parents...</p>
+                   <Button variant="link" className="px-0 mt-4">Read More <ArrowRight className="ml-2 h-4 w-4" /></Button>
+                </CardContent>
+              </Card>
+              <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+                <Image
+                  src="https://placehold.co/550x310.png"
+                  width="550"
+                  height="310"
+                  alt="News 3"
+                  className="aspect-video object-cover"
+                  data-ai-hint="graduation ceremony"
+                />
+                <CardHeader>
+                  <CardTitle>CampusConnect 2.0 is Here!</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">A completely redesigned experience with new features...</p>
+                   <Button variant="link" className="px-0 mt-4">Read More <ArrowRight className="ml-2 h-4 w-4" /></Button>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* Our Team Section */}
         <section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
+            <div className="container px-4 md:px-6">
+                 <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
+                    <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm">
+                        Our Team
+                    </div>
+                    <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">
+                        Meet the Innovators
+                    </h2>
+                    <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                        The passionate minds dedicated to improving education through technology.
+                    </p>
+                </div>
+                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+                    <Card className="text-center">
+                        <CardContent className="pt-6">
+                            <Avatar className="w-24 h-24 mx-auto mb-4">
+                                <AvatarImage src="https://placehold.co/100x100.png" data-ai-hint="man ceo" />
+                                <AvatarFallback>JD</AvatarFallback>
+                            </Avatar>
+                            <CardTitle className="text-lg">John Doe</CardTitle>
+                            <p className="text-sm text-muted-foreground">CEO & Founder</p>
+                        </CardContent>
+                    </Card>
+                     <Card className="text-center">
+                        <CardContent className="pt-6">
+                            <Avatar className="w-24 h-24 mx-auto mb-4">
+                                <AvatarImage src="https://placehold.co/100x100.png" data-ai-hint="woman developer" />
+                                <AvatarFallback>JS</AvatarFallback>
+                            </Avatar>
+                            <CardTitle className="text-lg">Jane Smith</CardTitle>
+                            <p className="text-sm text-muted-foreground">Lead Developer</p>
+                        </CardContent>
+                    </Card>
+                    <Card className="text-center">
+                        <CardContent className="pt-6">
+                            <Avatar className="w-24 h-24 mx-auto mb-4">
+                                <AvatarImage src="https://placehold.co/100x100.png" data-ai-hint="man designer" />
+                                <AvatarFallback>MB</AvatarFallback>
+                            </Avatar>
+                            <CardTitle className="text-lg">Mike Brown</CardTitle>
+                            <p className="text-sm text-muted-foreground">UX/UI Designer</p>
+                        </CardContent>
+                    </Card>
+                     <Card className="text-center">
+                        <CardContent className="pt-6">
+                            <Avatar className="w-24 h-24 mx-auto mb-4">
+                                <AvatarImage src="https://placehold.co/100x100.png" data-ai-hint="woman marketing" />
+                                <AvatarFallback>SW</AvatarFallback>
+                            </Avatar>
+                            <CardTitle className="text-lg">Sarah Wilson</CardTitle>
+                            <p className="text-sm text-muted-foreground">Marketing Head</p>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+        </section>
+
+
+        {/* FAQ Section */}
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-background">
             <div className="container px-4 md:px-6">
                  <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
                     <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
@@ -320,6 +491,12 @@ export default function HomePage() {
                             <AccordionTrigger>Can we integrate CampusConnect with our existing systems?</AccordionTrigger>
                             <AccordionContent>
                             Absolutely. We provide APIs and support for integrating with various Student Information Systems (SIS) and other campus software.
+                            </AccordionContent>
+                        </AccordionItem>
+                         <AccordionItem value="item-4">
+                            <AccordionTrigger>Is my data secure?</AccordionTrigger>
+                            <AccordionContent>
+                            Data security is our top priority. We use industry-standard encryption and security protocols to protect all your information.
                             </AccordionContent>
                         </AccordionItem>
                     </Accordion>
