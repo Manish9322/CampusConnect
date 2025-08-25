@@ -73,7 +73,7 @@ export function AttendanceTool() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Student ID</TableHead>
+                <TableHead>Roll No.</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead className="text-right">Status</TableHead>
               </TableRow>
@@ -81,7 +81,7 @@ export function AttendanceTool() {
             <TableBody>
               {studentsInCourse.map((student) => (
                 <TableRow key={student.id}>
-                  <TableCell>{student.studentId}</TableCell>
+                  <TableCell>{student.rollNo}</TableCell>
                   <TableCell className="font-medium">{student.name}</TableCell>
                   <TableCell className="text-right">
                     <RadioGroup
