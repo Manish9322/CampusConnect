@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, CalendarCheck, BarChart2, BookOpen, LogOut, User as UserIcon } from "lucide-react";
+import { Home, CalendarCheck, BarChart2, BookOpen, LogOut, User as UserIcon, Building2 } from "lucide-react";
 
 import {
   SidebarMenu,
@@ -13,6 +13,8 @@ import {
   useSidebar,
   SidebarFooter,
   SidebarSeparator,
+  SidebarHeader,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
@@ -39,6 +41,17 @@ export function StudentNav({ user }: StudentNavProps) {
 
   return (
     <>
+       <SidebarHeader>
+        <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" className="md:hidden" asChild>
+                <SidebarTrigger />
+            </Button>
+            <Link href="/" className="flex items-center gap-2 font-semibold text-primary-foreground">
+                <Building2 className="h-6 w-6" />
+                <span className="text-lg font-bold">CampusConnect</span>
+            </Link>
+        </div>
+      </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
           {menuItems.map((item) => (
