@@ -14,11 +14,10 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
-import { Button } from "../ui/button";
 
 export function AdminNav() {
   const pathname = usePathname();
-  const { state, toggleSidebar } = useSidebar();
+  const { state } = useSidebar();
 
   const menuItems = [
     { href: "/admin", label: "Dashboard", icon: Home },
@@ -39,14 +38,7 @@ export function AdminNav() {
             CampusConnect
             </span>
         </Link>
-         <Button 
-            variant="ghost" 
-            size="icon" 
-            className="md:hidden"
-            onClick={toggleSidebar}
-          >
-            <SidebarTrigger/>
-        </Button>
+         <SidebarTrigger className="md:hidden"/>
       </SidebarHeader>
       <Separator />
       <SidebarContent>
