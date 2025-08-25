@@ -6,11 +6,11 @@ import { mockClasses, mockStudents, mockTeachers } from "@/lib/mock-data";
 export default function ManageClassesPage() {
     const classesWithDetails = mockClasses.map(c => {
         const teacher = mockTeachers.find(t => t.courses.includes(c.name));
-        const students = mockStudents.filter(s => s.major === teacher?.department); // simple mapping for demo
+        const students = mockStudents.filter(s => s.major === c.name); 
         return {
             ...c,
             teacher: teacher?.name || 'N/A',
-            subjects: teacher?.courses || [],
+            subjects: teacher?.courses.filter(course => c.name.includes(course)) || [],
             studentCount: students.length,
         };
     });

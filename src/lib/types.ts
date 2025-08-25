@@ -57,5 +57,4 @@ export interface ClassWithDetails extends Class {
     teacher: string;
     subjects: string[];
     studentCount: number;
-    students: Student[];
 }

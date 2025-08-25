@@ -89,6 +89,12 @@ export function ClassesTable({ classes: initialClasses }: ClassesTableProps) {
       )
     );
   };
+  
+   const handleSaveClass = (classData: any) => {
+    // This is where you would handle saving the data, for now, we'll just update the local state
+    console.log("Saving class:", classData);
+    setAddDialogOpen(false);
+  };
 
   return (
     <>
@@ -188,7 +194,7 @@ export function ClassesTable({ classes: initialClasses }: ClassesTableProps) {
       <AddClassDialog
         open={isAddDialogOpen}
         onOpenChange={setAddDialogOpen}
-        onSave={() => {}}
+        onSave={handleSaveClass}
         classData={classToAction}
         allTeachers={mockTeachers}
       />
