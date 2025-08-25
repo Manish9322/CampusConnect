@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Users, UserCheck, CalendarCheck, BookCopy, PanelLeft } from "lucide-react";
+import { Home, Users, UserCheck, CalendarCheck, BookCopy, PanelLeft, Building2 } from "lucide-react";
 
 import {
   SidebarHeader,
@@ -12,13 +12,14 @@ import {
   SidebarMenuButton,
   SidebarContent,
   useSidebar,
+  SidebarGroup,
+  SidebarGroupLabel,
 } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
-import { Button } from "../ui/button";
 
 export function AdminNav() {
   const pathname = usePathname();
-  const { state, toggleSidebar } = useSidebar();
+  const { state } = useSidebar();
 
   const menuItems = [
     { href: "/admin", label: "Dashboard", icon: Home },
@@ -30,16 +31,13 @@ export function AdminNav() {
 
   return (
     <>
-      <SidebarHeader className="flex h-16 items-center justify-end p-4">
-         <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={toggleSidebar}
-        >
-            <PanelLeft />
-            <span className="sr-only">Toggle Sidebar</span>
-        </Button>
+      <SidebarHeader>
+        <div className="p-2 w-full flex items-center justify-between">
+           <div className="flex items-center gap-2">
+            <Building2 className="h-6 w-6 text-primary" />
+            {state === 'expanded' && <span className="text-xl font-bold">CampusConnect</span>}
+           </div>
+        </div>
       </SidebarHeader>
       <Separator />
       <SidebarContent>
