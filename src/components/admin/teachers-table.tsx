@@ -33,9 +33,15 @@ export function TeachersTable({ data }: TeachersTableProps) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+    setPage(0);
+  };
+
   const filteredTeachers = teachers.filter(teacher => 
     teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    teacher.email.toLowerCase().includes(searchTerm.toLowerCase())
+    teacher.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    teacher.department.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const totalPages = Math.ceil(filteredTeachers.length / rowsPerPage);
@@ -92,10 +98,10 @@ export function TeachersTable({ data }: TeachersTableProps) {
       <div className="flex items-center justify-between">
         <div className="flex flex-1 items-center space-x-2">
           <Input
-            placeholder="Filter by name or email..."
+            placeholder="Filter by name, email, or department..."
             value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-            className="h-10 w-full md:w-[250px]"
+            onChange={handleSearch}
+            className="h-10 w-full md:w-[300px]"
           />
         </div>
         <div className="flex items-center gap-2">
