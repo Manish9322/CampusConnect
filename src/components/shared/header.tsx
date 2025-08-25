@@ -12,8 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User as UserIcon, PanelLeft } from "lucide-react";
-import { useSidebar } from "../ui/sidebar";
+import { LogOut, User as UserIcon } from "lucide-react";
 
 interface HeaderProps {
   title: string;
@@ -22,19 +21,11 @@ interface HeaderProps {
     email: string;
     initials: string;
   };
-  showSidebarTrigger?: boolean;
 }
 
-export function Header({ title, user, showSidebarTrigger = false }: HeaderProps) {
-    const { toggleSidebar } = useSidebar();
+export function Header({ title, user }: HeaderProps) {
   return (
     <header className="flex h-16 shrink-0 items-center gap-4 border-b bg-background px-4 md:px-6">
-       {showSidebarTrigger && (
-        <Button variant="ghost" size="icon" className="md:hidden" onClick={toggleSidebar}>
-            <PanelLeft />
-            <span className="sr-only">Toggle Sidebar</span>
-        </Button>
-       )}
       <h1 className="text-xl font-semibold">{title}</h1>
       <div className="ml-auto flex items-center gap-4">
         <DropdownMenu>
