@@ -6,7 +6,7 @@ export default function AttendanceRecordsPage() {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Attendance Records</CardTitle>
+                <CardTitle>Attendance Management</CardTitle>
                 <CardDescription>
                     A comprehensive log of all student attendance records.
                 </CardDescription>

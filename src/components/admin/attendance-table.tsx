@@ -18,7 +18,7 @@ interface AttendanceTableProps {
   records: AttendanceRecord[];
 }
 
-const statusVariant: { [key in AttendanceStatus]: "default" | "destructive" | "secondary" } = {
+const statusVariant: { [key in AttendanceStatus]: "default" | "destructive" | "secondary" | "outline" } = {
     present: "default",
     absent: "destructive",
     late: "secondary",
@@ -69,7 +69,10 @@ export function AttendanceTable({ records }: AttendanceTableProps) {
                 <TableCell>
                   <Badge
                     variant={statusVariant[record.status]}
-                    className={cn(record.status === 'present' && 'bg-green-600 text-white')}
+                    className={cn(
+                        record.status === 'present' && 'bg-green-600 text-white hover:bg-green-700',
+                        record.status === 'late' && 'bg-yellow-500 text-white hover:bg-yellow-600'
+                    )}
                   >
                     {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
                   </Badge>
