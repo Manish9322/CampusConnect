@@ -1,3 +1,4 @@
+import { AddStudentDialog } from "@/components/admin/add-student-dialog";
 import { StudentsTable } from "@/components/admin/students-table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { mockStudents } from "@/lib/mock-data";

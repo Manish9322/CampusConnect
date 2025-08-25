@@ -8,10 +8,16 @@ export interface User {
   role: UserRole;
 }
 
+export type StudentStatus = 'active' | 'inactive';
+
+
 export interface Student extends User {
   role: 'student';
   studentId: string;
   major: string;
+  phone: string;
+  status: StudentStatus;
+  attendancePercentage: number;
 }
 
 export type TeacherStatus = 'active' | 'inactive';
