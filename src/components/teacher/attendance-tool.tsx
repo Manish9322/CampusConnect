@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { mockStudents } from "@/lib/mock-data";
 import { useToast } from "@/hooks/use-toast";
-import { Send } from "lucide-react";
+import { Send, ChevronLeft, ChevronRight } from "lucide-react";
 import { AttendanceStatus, Student } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -47,6 +47,8 @@ export function AttendanceTool() {
   const [selectedCourse, setSelectedCourse] = useState("CS101");
   const [attendance, setAttendance] = useState<AttendanceState>({});
   const { toast } = useToast();
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const studentsInCourse = mockStudents.filter(s => s.major === 'Computer Science');
 
@@ -61,6 +63,18 @@ export function AttendanceTool() {
   useState(() => {
     setAttendance(getInitialAttendance(studentsInCourse));
   });
+  
+  const totalPages = Math.ceil(studentsInCourse.length / rowsPerPage);
+  const paginatedStudents = studentsInCourse.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
+
+  const handleRowsPerPageChange = (value: string) => {
+    if (value === 'all') {
+        setRowsPerPage(studentsInCourse.length);
+    } else {
+        setRowsPerPage(Number(value));
+    }
+    setPage(0);
+  };
 
   const handleAttendanceChange = (studentId: string, status: AttendanceStatus) => {
     setAttendance((prev) => ({ ...prev, [studentId]: status }));
@@ -130,7 +144,7 @@ export function AttendanceTool() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {studentsInCourse.map((student) => (
+              {paginatedStudents.map((student) => (
                 <TableRow key={student.id}>
                   <TableCell>{student.rollNo}</TableCell>
                   <TableCell className="font-medium">{student.name}</TableCell>
@@ -145,8 +159,43 @@ export function AttendanceTool() {
             </TableBody>
           </Table>
         </div>
-        <div className="flex justify-end mt-6">
-            <Button onClick={handleSubmit} className="bg-accent hover:bg-accent/90 w-full sm:w-auto">
+         <div className="flex items-center justify-between mt-4 flex-wrap gap-4">
+            <div className="flex items-center space-x-2">
+                <span className="text-sm text-muted-foreground">Rows per page</span>
+                <Select onValueChange={handleRowsPerPageChange} defaultValue={`${rowsPerPage}`}>
+                    <SelectTrigger className="w-20">
+                        <SelectValue placeholder={`${rowsPerPage}`} />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="5">5</SelectItem>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="all">All</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+            <div className="flex items-center space-x-2">
+                <span className="text-sm text-muted-foreground">
+                    Page {page + 1} of {totalPages}
+                </span>
+                <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setPage(p => Math.max(0, p - 1))}
+                    disabled={page === 0}
+                >
+                    <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                    disabled={page >= totalPages - 1}
+                >
+                    <ChevronRight className="h-4 w-4" />
+                </Button>
+            </div>
+             <Button onClick={handleSubmit} className="bg-accent hover:bg-accent/90 w-full sm:w-auto">
                 <Send className="mr-2 h-4 w-4" />
                 Submit Attendance
             </Button>
