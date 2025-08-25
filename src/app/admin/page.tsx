@@ -1,9 +1,13 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, UserCheck, Percent, BarChart, ArrowUp, ArrowDown, Activity, BookOpen, UserPlus, FileText } from "lucide-react";
+import { Users, UserCheck, Percent, BookOpen, ArrowUp, ArrowDown } from "lucide-react";
 import { AttendanceChart } from "@/components/admin/attendance-chart";
 import { EnrollmentChart } from "@/components/admin/enrollment-chart";
 import { RecentAttendance } from "@/components/admin/recent-attendance";
 import { Badge } from "@/components/ui/badge";
+import { ClassSizeChart } from "@/components/admin/class-size-chart";
+import { TeacherStudentRatioChart } from "@/components/admin/teacher-student-ratio-chart";
+import { NewEnrollmentsChart } from "@/components/admin/new-enrollments-chart";
+import { CoursesInSessionChart } from "@/components/admin/courses-in-session-chart";
 
 export default function AdminDashboardPage() {
   return (
@@ -68,39 +72,10 @@ export default function AdminDashboardPage() {
       </div>
       
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Avg. Class Size</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-baseline gap-2">
-            <h3 className="text-3xl font-bold">28</h3>
-            <span className="text-sm text-muted-foreground">students</span>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Teacher:Student Ratio</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <h3 className="text-3xl font-bold">1:15</h3>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">New Enrollments</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <h3 className="text-3xl font-bold">+42</h3>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Courses in Session</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <h3 className="text-3xl font-bold">78</h3>
-          </CardContent>
-        </Card>
+        <ClassSizeChart />
+        <TeacherStudentRatioChart />
+        <NewEnrollmentsChart />
+        <CoursesInSessionChart />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -108,29 +83,33 @@ export default function AdminDashboardPage() {
           <RecentAttendance />
         </div>
         <div className="grid grid-cols-2 grid-rows-2 gap-6">
-            <Card className="col-span-1 row-span-1 flex flex-col justify-center items-center">
-              <CardHeader className="p-2">
-                <CardTitle className="text-sm font-medium text-center">Active Alerts</CardTitle>
+            <Card className="col-span-1 row-span-1 flex flex-col">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Active Alerts</CardTitle>
+                <CardDescription className="text-xs">Urgent issues needing attention</CardDescription>
               </CardHeader>
-              <CardContent className="flex-1 flex justify-center items-center p-2">
+              <CardContent className="flex-1 flex justify-center items-center">
                 <div className="text-4xl font-bold">3</div>
               </CardContent>
             </Card>
             <Card className="col-span-1 row-span-2 flex flex-col">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">Department Headcount</CardTitle>
+                 <CardDescription className="text-xs">Student distribution</CardDescription>
               </CardHeader>
-              <CardContent className="flex-1 text-sm">
-                <div className="flex justify-between"><span>CS</span><Badge variant="secondary">45</Badge></div>
-                <div className="flex justify-between mt-1"><span>Physics</span><Badge variant="secondary">22</Badge></div>
-                <div className="flex justify-between mt-1"><span>Math</span><Badge variant="secondary">15</Badge></div>
+              <CardContent className="flex-1 text-sm space-y-2">
+                <div className="flex justify-between items-center"><span>Computer Science</span><Badge variant="secondary">450</Badge></div>
+                <div className="flex justify-between items-center"><span>Physics</span><Badge variant="secondary">220</Badge></div>
+                <div className="flex justify-between items-center"><span>Mathematics</span><Badge variant="secondary">150</Badge></div>
+                 <div className="flex justify-between items-center"><span>Chemistry</span><Badge variant="secondary">180</Badge></div>
               </CardContent>
             </Card>
-             <Card className="col-span-1 row-span-1 flex flex-col justify-center items-center">
-              <CardHeader className="p-2">
-                <CardTitle className="text-sm font-medium text-center">Pending Approvals</CardTitle>
+             <Card className="col-span-1 row-span-1 flex flex-col">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Pending Approvals</CardTitle>
+                 <CardDescription className="text-xs">Requests awaiting action</CardDescription>
               </CardHeader>
-              <CardContent className="flex-1 flex justify-center items-center p-2">
+              <CardContent className="flex-1 flex justify-center items-center">
                 <div className="text-4xl font-bold">8</div>
               </CardContent>
             </Card>
