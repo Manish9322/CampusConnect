@@ -102,11 +102,9 @@ export function AttendanceTool() {
                 <CardTitle>Take Attendance</CardTitle>
                 <CardDescription>Select a course and mark student attendance for today.</CardDescription>
             </div>
-            <div className="flex items-center gap-2">
-                 <Button variant="outline" onClick={() => markAll('present')}>Mark All Present</Button>
-                 <Button variant="outline" onClick={() => markAll('absent')}>Mark All Absent</Button>
+            <div className="flex flex-col sm:flex-row items-center gap-2">
                  <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-                    <SelectTrigger className="w-full md:w-[200px]">
+                    <SelectTrigger className="w-full sm:w-[200px]">
                         <SelectValue placeholder="Select course" />
                     </SelectTrigger>
                     <SelectContent>
@@ -114,6 +112,10 @@ export function AttendanceTool() {
                         <SelectItem value="CS303">CS303 - Advanced Algorithms</SelectItem>
                     </SelectContent>
                 </Select>
+                 <div className="flex w-full sm:w-auto items-center gap-2">
+                    <Button variant="outline" className="w-full" onClick={() => markAll('present')}>All Present</Button>
+                    <Button variant="outline" className="w-full" onClick={() => markAll('absent')}>All Absent</Button>
+                 </div>
             </div>
         </div>
       </CardHeader>
@@ -144,7 +146,7 @@ export function AttendanceTool() {
           </Table>
         </div>
         <div className="flex justify-end mt-6">
-            <Button onClick={handleSubmit} className="bg-accent hover:bg-accent/90">
+            <Button onClick={handleSubmit} className="bg-accent hover:bg-accent/90 w-full sm:w-auto">
                 <Send className="mr-2 h-4 w-4" />
                 Submit Attendance
             </Button>
