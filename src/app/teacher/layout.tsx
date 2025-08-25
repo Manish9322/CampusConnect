@@ -1,7 +1,7 @@
 
 import { TeacherNav } from "@/components/teacher/teacher-nav";
 import { Header } from "@/components/shared/header";
-import { SidebarProvider, Sidebar, SidebarInset, SidebarHeader, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar";
 
 export default function TeacherLayout({
   children,
@@ -13,11 +13,6 @@ export default function TeacherLayout({
   return (
     <SidebarProvider>
        <Sidebar collapsible="icon">
-        <SidebarHeader>
-           <div className="p-2 flex items-center justify-center">
-            <SidebarTrigger />
-           </div>
-        </SidebarHeader>
         <TeacherNav />
       </Sidebar>
       <SidebarInset>

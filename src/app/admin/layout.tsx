@@ -1,8 +1,7 @@
 
 import { AdminNav } from "@/components/admin/admin-nav";
 import { Header } from "@/components/shared/header";
-import { SidebarProvider, Sidebar, SidebarInset, SidebarTrigger, SidebarHeader } from "@/components/ui/sidebar";
-import { Building2 } from "lucide-react";
+import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar";
 
 export default function AdminLayout({
   children,
@@ -14,11 +13,6 @@ export default function AdminLayout({
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon">
-        <SidebarHeader>
-           <div className="p-2 flex items-center justify-center">
-            <SidebarTrigger />
-           </div>
-        </SidebarHeader>
         <AdminNav />
       </Sidebar>
       <SidebarInset>

@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, User as UserIcon } from "lucide-react";
+import { useSidebar, SidebarTrigger } from "@/components/ui/sidebar";
 
 interface HeaderProps {
   title: string;
@@ -24,8 +25,11 @@ interface HeaderProps {
 }
 
 export function Header({ title, user }: HeaderProps) {
+  const { isMobile } = useSidebar();
+  
   return (
     <header className="flex h-16 shrink-0 items-center gap-4 border-b bg-background px-4 md:px-6">
+      {isMobile && <SidebarTrigger />}
       <h1 className="text-xl font-semibold">{title}</h1>
       <div className="ml-auto flex items-center gap-4">
         <DropdownMenu>
