@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -5,16 +6,42 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import { mockStudents } from "@/lib/mock-data";
-import { Student } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { Send } from "lucide-react";
+import { AttendanceStatus, Student } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 type AttendanceState = {
-  [studentId: string]: "present" | "absent" | "late";
+  [studentId: string]: AttendanceStatus;
 };
+
+const statusCycle: AttendanceStatus[] = ['present', 'late', 'absent'];
+
+const statusConfig: { [key in AttendanceStatus]: { text: string; className: string } } = {
+  present: { text: "Present", className: "bg-green-600 hover:bg-green-700 text-white border-green-600" },
+  late: { text: "Late", className: "bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500" },
+  absent: { text: "Absent", className: "bg-destructive hover:bg-destructive/90 text-destructive-foreground border-destructive" },
+};
+
+const ThreeStateToggle = ({ status, onChange }: { status: AttendanceStatus, onChange: (newStatus: AttendanceStatus) => void }) => {
+  const handleClick = () => {
+    const currentIndex = statusCycle.indexOf(status);
+    const nextIndex = (currentIndex + 1) % statusCycle.length;
+    onChange(statusCycle[nextIndex]);
+  };
+
+  return (
+    <Button
+      onClick={handleClick}
+      variant="outline"
+      className={cn("w-24 transition-colors duration-200", statusConfig[status].className)}
+    >
+      {statusConfig[status].text}
+    </Button>
+  );
+};
+
 
 export function AttendanceTool() {
   const [selectedCourse, setSelectedCourse] = useState("CS101");
@@ -23,7 +50,19 @@ export function AttendanceTool() {
 
   const studentsInCourse = mockStudents.filter(s => s.major === 'Computer Science');
 
-  const handleAttendanceChange = (studentId: string, status: "present" | "absent" | "late") => {
+  const getInitialAttendance = (students: Student[]): AttendanceState => {
+    const initialState: AttendanceState = {};
+    students.forEach(student => {
+      initialState[student.id] = 'present';
+    });
+    return initialState;
+  };
+
+  useState(() => {
+    setAttendance(getInitialAttendance(studentsInCourse));
+  });
+
+  const handleAttendanceChange = (studentId: string, status: AttendanceStatus) => {
     setAttendance((prev) => ({ ...prev, [studentId]: status }));
   };
 
@@ -44,19 +83,29 @@ export function AttendanceTool() {
         title: "Attendance Submitted",
         description: `Attendance for ${selectedCourse} has been successfully recorded.`,
     });
-    setAttendance({});
+    setAttendance(getInitialAttendance(studentsInCourse));
   };
+  
+  const markAll = (status: AttendanceStatus) => {
+    const newAttendance: AttendanceState = {};
+    studentsInCourse.forEach(student => {
+      newAttendance[student.id] = status;
+    });
+    setAttendance(newAttendance);
+  }
 
   return (
     <Card>
       <CardHeader>
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
                 <CardTitle>Take Attendance</CardTitle>
                 <CardDescription>Select a course and mark student attendance for today.</CardDescription>
             </div>
-            <div className="mt-4 md:mt-0">
-                <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+            <div className="flex items-center gap-2">
+                 <Button variant="outline" onClick={() => markAll('present')}>Mark All Present</Button>
+                 <Button variant="outline" onClick={() => markAll('absent')}>Mark All Absent</Button>
+                 <Select value={selectedCourse} onValueChange={setSelectedCourse}>
                     <SelectTrigger className="w-full md:w-[200px]">
                         <SelectValue placeholder="Select course" />
                     </SelectTrigger>
@@ -84,24 +133,10 @@ export function AttendanceTool() {
                   <TableCell>{student.rollNo}</TableCell>
                   <TableCell className="font-medium">{student.name}</TableCell>
                   <TableCell className="text-right">
-                    <RadioGroup
-                      value={attendance[student.id] || "present"}
-                      onValueChange={(value) => handleAttendanceChange(student.id, value as any)}
-                      className="flex justify-end gap-4"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="present" id={`present-${student.id}`} />
-                        <Label htmlFor={`present-${student.id}`}>Present</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="absent" id={`absent-${student.id}`} />
-                        <Label htmlFor={`absent-${student.id}`}>Absent</Label>
-                      </div>
-                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="late" id={`late-${student.id}`} />
-                        <Label htmlFor={`late-${student.id}`}>Late</Label>
-                      </div>
-                    </RadioGroup>
+                    <ThreeStateToggle 
+                        status={attendance[student.id] || 'present'}
+                        onChange={(newStatus) => handleAttendanceChange(student.id, newStatus)}
+                    />
                   </TableCell>
                 </TableRow>
               ))}
