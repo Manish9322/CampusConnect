@@ -1,3 +1,4 @@
+
 import { AttendanceCard } from "@/components/student/attendance-card";
 import { AttendanceHistory } from "@/components/student/attendance-history";
 

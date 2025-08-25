@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Users, UserCheck, CalendarCheck, Building2, BookCopy, PanelLeft } from "lucide-react";
+import { Home, Users, UserCheck, CalendarCheck, BookCopy, PanelLeft } from "lucide-react";
 
 import {
   SidebarHeader,
@@ -30,21 +30,11 @@ export function AdminNav() {
 
   return (
     <>
-      <SidebarHeader className="flex h-16 items-center justify-between p-4">
-        <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:w-full">
-            <Link href="/" className="flex items-center gap-2">
-                <Building2 className="size-8 text-primary" />
-                <span
-                className="text-lg font-semibold text-foreground group-data-[collapsible=icon]:hidden"
-                >
-                CampusConnect
-                </span>
-            </Link>
-        </div>
+      <SidebarHeader className="flex h-16 items-center justify-end p-4">
          <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 group-data-[collapsible=icon]:hidden"
+            className="h-8 w-8"
             onClick={toggleSidebar}
         >
             <PanelLeft />
