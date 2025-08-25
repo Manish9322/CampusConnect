@@ -31,7 +31,7 @@ export function StudentsTable({ students: initialStudents }: StudentsTableProps)
   const [isDeleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [studentToAction, setStudentToAction] = React.useState<Student | null>(null);
   const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
