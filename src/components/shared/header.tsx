@@ -27,7 +27,7 @@ interface HeaderProps {
 export function Header({ title, user, showSidebarTrigger = false }: HeaderProps) {
   return (
     <header className="flex h-16 shrink-0 items-center gap-4 border-b bg-background px-4 md:px-6">
-       {showSidebarTrigger && <SidebarTrigger />}
+       {showSidebarTrigger && <SidebarTrigger className="sm:hidden" />}
       <h1 className="text-xl font-semibold">{title}</h1>
       <div className="ml-auto flex items-center gap-4">
         <DropdownMenu>

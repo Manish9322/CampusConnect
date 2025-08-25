@@ -23,7 +23,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Teacher } from "@/lib/types";
@@ -44,14 +43,14 @@ const formSchema = z.object({
 interface AddTeacherDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddTeacher: (teacher: Omit<Teacher, "id" | "role" | "teacherId">) => void;
+  onSave: (teacher: Teacher) => void;
   teacher?: Teacher | null;
 }
 
 export function AddTeacherDialog({
   open,
   onOpenChange,
-  onAddTeacher,
+  onSave,
   teacher,
 }: AddTeacherDialogProps) {
   const { toast } = useToast();
@@ -79,11 +78,16 @@ export function AddTeacherDialog({
   }, [teacher, form]);
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    onAddTeacher({
-      ...values,
-      status: values.status ? 'active' : 'inactive',
-      courses: values.courses.split(',').map(c => c.trim()),
-    });
+    const newOrUpdatedTeacher: Teacher = {
+        id: teacher?.id || `T${Date.now()}`,
+        teacherId: teacher?.teacherId || `TID${Date.now()}`,
+        role: 'teacher',
+        ...values,
+        status: values.status ? 'active' : 'inactive',
+        courses: values.courses.split(',').map(c => c.trim()),
+    };
+
+    onSave(newOrUpdatedTeacher);
     toast({
       title: teacher ? "Teacher Updated" : "Teacher Added",
       description: `${values.name} has been successfully ${teacher ? 'updated' : 'added'}.`,
@@ -159,7 +163,7 @@ export function AddTeacherDialog({
               name="courses"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Courses Assigned</FormLabel>
+                  <FormLabel>Courses Assigned (comma-separated)</FormLabel>
                   <FormControl>
                     <Input placeholder="CS101, CS303" {...field} />
                   </FormControl>
