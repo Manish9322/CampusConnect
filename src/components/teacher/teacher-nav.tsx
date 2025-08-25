@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Users, BookCopy } from "lucide-react";
+import { Home, Users, BookCopy, CalendarCheck } from "lucide-react";
 
 import {
   SidebarMenu,
@@ -21,6 +21,7 @@ export function TeacherNav() {
     { href: "/teacher", label: "Dashboard", icon: Home },
     { href: "/teacher/classes", label: "My Classes", icon: BookCopy },
     { href: "/teacher/students", label: "Students", icon: Users },
+    { href: "/teacher/attendance", label: "Take Attendance", icon: CalendarCheck },
   ];
 
   return (
