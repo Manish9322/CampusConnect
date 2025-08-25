@@ -1,3 +1,4 @@
+
 import type { Student, Teacher, AttendanceRecord, Class } from './types';
 
 export const mockStudents: Student[] = [
@@ -6,6 +7,8 @@ export const mockStudents: Student[] = [
   { id: '3', studentId: 'S003', name: 'Charlie Brown', email: 'charlie@example.com', role: 'student', major: 'Mathematics' },
   { id: '4', studentId: 'S004', name: 'Diana Miller', email: 'diana@example.com', role: 'student', major: 'Computer Science' },
   { id: '5', studentId: 'S005', name: 'Eve Davis', email: 'eve@example.com', role: 'student', major: 'Chemistry' },
+  { id: '6', studentId: 'S006', name: 'Frank White', email: 'frank@example.com', role: 'student', major: 'Computer Science' },
+  { id: '7', studentId: 'S007', name: 'Grace Hall', email: 'grace@example.com', role: 'student', major: 'Physics' },
 ];
 
 export const mockTeachers: Teacher[] = [
@@ -24,7 +27,8 @@ export const mockAttendance: AttendanceRecord[] = [
 ];
 
 export const mockClasses: Class[] = [
-  { id: 'C01', name: 'CS101', year: 2024 },
-  { id: 'C02', name: 'PHY101', year: 2024 },
-  { id: 'C03', name: 'MATH201', year: 2024 },
+  { id: 'C01', name: 'CS101', year: 2024, status: 'active' },
+  { id: 'C02', name: 'PHY101', year: 2024, status: 'active' },
+  { id: 'C03', name: 'MATH201', year: 2024, status: 'inactive' },
+  { id: 'C04', name: 'CS303', year: 2024, status: 'active' },
 ];

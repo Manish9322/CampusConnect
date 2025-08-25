@@ -1,3 +1,4 @@
+
 export type UserRole = 'admin' | 'teacher' | 'student';
 
 export interface User {
@@ -36,8 +37,17 @@ export interface AttendanceRecord {
   recordedBy: string; // Teacher ID
 }
 
+export type ClassStatus = 'active' | 'inactive';
+
 export interface Class {
   id: string;
   name: string;
   year: number;
+  status: ClassStatus;
+}
+
+export interface ClassWithDetails extends Class {
+    teacher: string;
+    subjects: string[];
+    studentCount: number;
 }

@@ -1,8 +1,21 @@
+
 import { ClassesTable } from "@/components/admin/classes-table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { mockClasses } from "@/lib/mock-data";
+import { mockClasses, mockStudents, mockTeachers } from "@/lib/mock-data";
 
 export default function ManageClassesPage() {
+    const classesWithDetails = mockClasses.map(c => {
+        const teacher = mockTeachers.find(t => t.courses.includes(c.name));
+        const students = mockStudents.filter(s => s.major === teacher?.department); // simple mapping for demo
+        return {
+            ...c,
+            teacher: teacher?.name || 'N/A',
+            subjects: teacher?.courses || [],
+            studentCount: students.length,
+        };
+    });
+
+
     return (
         <Card>
             <CardHeader>
@@ -12,7 +25,7 @@ export default function ManageClassesPage() {
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <ClassesTable classes={mockClasses} />
+                <ClassesTable classes={classesWithDetails} />
             </CardContent>
         </Card>
     );
