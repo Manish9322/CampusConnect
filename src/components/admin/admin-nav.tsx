@@ -11,12 +11,14 @@ import {
   SidebarMenuButton,
   SidebarContent,
   useSidebar,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "../ui/button";
 
 export function AdminNav() {
   const pathname = usePathname();
-  const { state } = useSidebar();
+  const { state, toggleSidebar } = useSidebar();
 
   const menuItems = [
     { href: "/admin", label: "Dashboard", icon: Home },
@@ -27,15 +29,23 @@ export function AdminNav() {
 
   return (
     <>
-      <SidebarHeader>
-        <div className="flex items-center gap-2">
-            <Building2 className="size-8 text-sidebar-primary" />
+      <SidebarHeader className="flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2">
+            <Building2 className="size-8 text-primary" />
             <span
-            className="text-lg font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden"
+            className="text-lg font-semibold text-foreground group-data-[collapsible=icon]:hidden"
             >
             CampusConnect
             </span>
-        </div>
+        </Link>
+         <Button 
+            variant="ghost" 
+            size="icon" 
+            className="md:hidden"
+            onClick={toggleSidebar}
+          >
+            <SidebarTrigger/>
+        </Button>
       </SidebarHeader>
       <Separator />
       <SidebarContent>

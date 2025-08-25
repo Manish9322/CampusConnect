@@ -1,6 +1,6 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ChartContainer,
   ChartTooltip,
@@ -14,6 +14,8 @@ const chartData = [
   { day: "Wed", attendance: 95 },
   { day: "Thu", attendance: 93 },
   { day: "Fri", attendance: 85 },
+  { day: "Sat", attendance: 98 },
+  { day: "Sun", attendance: 97 },
 ];
 
 const chartConfig = {
@@ -23,15 +25,16 @@ const chartConfig = {
   },
 };
 
-export function AdminChart() {
+export function AttendanceChart() {
     return (
         <Card>
             <CardHeader>
                 <CardTitle>Weekly Attendance Trend</CardTitle>
+                <CardDescription>A look at student attendance over the past week.</CardDescription>
             </CardHeader>
             <CardContent>
                 <ChartContainer config={chartConfig} className="h-80 w-full">
-                <RechartsBarChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                <RechartsBarChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: -10 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="day" />
                     <YAxis domain={[70, 100]} tickFormatter={(tick) => `${tick}%`} />
