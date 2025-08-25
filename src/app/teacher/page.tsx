@@ -1,14 +1,14 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookCopy, Users } from "lucide-react";
+import { TeacherDashboardCards } from "@/components/teacher/teacher-dashboard-cards";
 
 export default function TeacherDashboardPage() {
     return (
         <div className="space-y-6">
-             <div className="text-center py-10">
-                <h2 className="text-2xl font-bold">Welcome, Dr. Alan Turing!</h2>
-                <p className="text-muted-foreground">Use the sidebar to navigate to your classes, students, or to take attendance.</p>
+            <div className="space-y-2">
+                 <h1 className="text-2xl font-bold">Welcome back, Dr. Alan Turing!</h1>
+                 <p className="text-muted-foreground">Here's your dashboard overview for today.</p>
             </div>
+            <TeacherDashboardCards />
         </div>
     );
 }
