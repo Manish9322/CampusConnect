@@ -114,6 +114,7 @@ export function StudentsTable({ students: initialStudents }: StudentsTableProps)
           <TableHeader>
             <TableRow>
               <TableHead>Student ID</TableHead>
+              <TableHead>Roll No.</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Phone</TableHead>
@@ -127,6 +128,7 @@ export function StudentsTable({ students: initialStudents }: StudentsTableProps)
             {paginatedStudents.map((student) => (
               <TableRow key={student.id}>
                 <TableCell>{student.studentId}</TableCell>
+                <TableCell>{student.rollNo}</TableCell>
                 <TableCell className="font-medium">{student.name}</TableCell>
                 <TableCell>{student.email}</TableCell>
                 <TableCell>{student.phone}</TableCell>

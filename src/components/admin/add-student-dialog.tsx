@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -36,6 +37,7 @@ const phoneRegex = new RegExp(
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
+  rollNo: z.string().min(1, "Roll number is required."),
   email: z.string().email("Please enter a valid email."),
   phone: z.string().regex(phoneRegex, "Invalid phone number format"),
   major: z.string().min(2, "Major is required."),
@@ -61,6 +63,7 @@ export function AddStudentDialog({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: studentData?.name || "",
+      rollNo: studentData?.rollNo || "",
       email: studentData?.email || "",
       phone: studentData?.phone || "",
       major: studentData?.major || "",
@@ -71,6 +74,7 @@ export function AddStudentDialog({
   React.useEffect(() => {
     form.reset({
         name: studentData?.name || "",
+        rollNo: studentData?.rollNo || "",
         email: studentData?.email || "",
         phone: studentData?.phone || "",
         major: studentData?.major || "",
@@ -106,6 +110,19 @@ export function AddStudentDialog({
                   <FormLabel>Full Name</FormLabel>
                   <FormControl>
                     <Input placeholder="John Doe" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="rollNo"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Roll Number</FormLabel>
+                  <FormControl>
+                    <Input placeholder="CS-001" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

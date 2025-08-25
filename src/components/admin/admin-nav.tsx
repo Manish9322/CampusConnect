@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from "next/link";
@@ -11,7 +12,6 @@ import {
   SidebarMenuButton,
   SidebarContent,
   useSidebar,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "../ui/button";
@@ -31,18 +31,20 @@ export function AdminNav() {
   return (
     <>
       <SidebarHeader className="flex h-16 items-center justify-between p-4">
-        <Link href="/" className="flex items-center gap-2">
-            <Building2 className="size-8 text-primary" />
-            <span
-            className="text-lg font-semibold text-foreground group-data-[collapsible=icon]:hidden"
-            >
-            CampusConnect
-            </span>
-        </Link>
+        <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:w-full">
+            <Link href="/" className="flex items-center gap-2">
+                <Building2 className="size-8 text-primary" />
+                <span
+                className="text-lg font-semibold text-foreground group-data-[collapsible=icon]:hidden"
+                >
+                CampusConnect
+                </span>
+            </Link>
+        </div>
          <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8"
+            className="h-8 w-8 group-data-[collapsible=icon]:hidden"
             onClick={toggleSidebar}
         >
             <PanelLeft />
