@@ -13,7 +13,7 @@ export default function StudentLayout({
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon">
-        <StudentNav />
+        <StudentNav user={user} />
       </Sidebar>
       <SidebarInset>
         <div className="flex h-full flex-col">

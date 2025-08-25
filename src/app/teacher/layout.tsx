@@ -13,7 +13,7 @@ export default function TeacherLayout({
   return (
     <SidebarProvider>
        <Sidebar collapsible="icon">
-        <TeacherNav />
+        <TeacherNav user={user} />
       </Sidebar>
       <SidebarInset>
         <div className="flex h-full flex-col">

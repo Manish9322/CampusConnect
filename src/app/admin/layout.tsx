@@ -13,7 +13,7 @@ export default function AdminLayout({
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon">
-        <AdminNav />
+        <AdminNav user={user}/>
       </Sidebar>
       <SidebarInset>
         <div className="flex h-full flex-col">
