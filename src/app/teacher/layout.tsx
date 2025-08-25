@@ -1,5 +1,7 @@
+
+import { TeacherNav } from "@/components/teacher/teacher-nav";
 import { Header } from "@/components/shared/header";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar";
 
 export default function TeacherLayout({
   children,
@@ -10,12 +12,17 @@ export default function TeacherLayout({
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full flex-col">
-        <Header title="Teacher Portal" user={user} />
-        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8 bg-muted/40">
-          {children}
-        </main>
-      </div>
+       <Sidebar collapsible="icon">
+        <TeacherNav />
+      </Sidebar>
+      <SidebarInset>
+        <div className="flex h-full flex-col">
+          <Header title="Teacher Portal" user={user} showSidebarTrigger={true} />
+          <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-muted/40">
+            {children}
+          </main>
+        </div>
+      </SidebarInset>
     </SidebarProvider>
   );
 }
