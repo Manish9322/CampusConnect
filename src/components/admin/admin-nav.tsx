@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Users, UserCheck, CalendarCheck, Building2 } from "lucide-react";
+import { Home, Users, UserCheck, CalendarCheck, Building2, BookCopy } from "lucide-react";
 
 import {
   SidebarHeader,
@@ -24,6 +24,7 @@ export function AdminNav() {
     { href: "/admin", label: "Dashboard", icon: Home },
     { href: "/admin/students", label: "Students", icon: Users },
     { href: "/admin/teachers", label: "Teachers", icon: UserCheck },
+    { href: "/admin/classes", label: "Classes", icon: BookCopy },
     { href: "/admin/attendance", label: "Attendance", icon: CalendarCheck },
   ];
 

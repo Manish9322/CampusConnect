@@ -31,7 +31,7 @@ export function ClassSizeChart() {
             <CardContent>
                  <div className="text-2xl font-bold">28</div>
                 <p className="text-xs text-muted-foreground">Across all courses</p>
-                <div className="h-20 mt-4">
+                <div className="h-32 mt-4">
                     <ChartContainer config={chartConfig} className="w-full h-full">
                         <RechartsBarChart data={chartData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                             <XAxis dataKey="class" hide />

@@ -33,7 +33,7 @@ export function NewEnrollmentsChart() {
             <CardContent>
                  <div className="text-2xl font-bold">+42</div>
                 <p className="text-xs text-muted-foreground">This week</p>
-                <div className="h-20 mt-4">
+                <div className="h-32 mt-4">
                     <ChartContainer config={chartConfig} className="w-full h-full">
                         <RechartsLineChart data={chartData} margin={{ top: 0, right: 5, bottom: 0, left: 5 }}>
                             <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />

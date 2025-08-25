@@ -12,7 +12,7 @@ export default function ManageTeachersPage() {
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <TeachersTable teachers={mockTeachers} />
+                <TeachersTable data={mockTeachers} />
             </CardContent>
         </Card>
     );

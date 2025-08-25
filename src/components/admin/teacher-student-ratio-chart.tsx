@@ -27,7 +27,7 @@ export function TeacherStudentRatioChart() {
             <CardContent className="pb-0">
                 <div className="text-2xl font-bold">1:15</div>
                 <p className="text-xs text-muted-foreground">Campus-wide average</p>
-                <div className="h-20 mt-4">
+                <div className="h-32 mt-4">
                     <ChartContainer config={{}} className="w-full h-full">
                          <DonutChart
                             data={data}
@@ -35,7 +35,7 @@ export function TeacherStudentRatioChart() {
                             index="name"
                             variant="pie"
                             colors={['hsl(var(--chart-1))', 'hsl(var(--chart-2))']}
-                            className="h-20"
+                            className="h-28"
                         />
                     </ChartContainer>
                 </div>

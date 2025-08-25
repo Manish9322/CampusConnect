@@ -16,7 +16,9 @@ export function CoursesInSessionChart() {
             <CardContent>
                 <div className="text-2xl font-bold">{coursesInSession}</div>
                 <p className="text-xs text-muted-foreground">{totalCourses - coursesInSession} courses starting soon</p>
-                <Progress value={progress} className="mt-4 h-2" />
+                <div className="h-32 mt-4 flex items-end">
+                  <Progress value={progress} className="h-2 w-full" />
+                </div>
             </CardContent>
         </Card>
     )
