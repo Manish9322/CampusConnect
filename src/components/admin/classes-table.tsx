@@ -32,7 +32,7 @@ export function ClassesTable({ classes: initialClasses }: ClassesTableProps) {
   const [isDeleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [classToAction, setClassToAction] = React.useState<ClassWithDetails | null>(null);
   const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
