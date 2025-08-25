@@ -13,12 +13,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ClassWithDetails } from "@/lib/types";
-import { Edit, PlusCircle, Trash2 } from "lucide-react";
+import { Edit, PlusCircle, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { AddClassDialog } from "./add-class-dialog";
 import { DeleteConfirmationDialog } from "../shared/delete-confirmation-dialog";
 import { Badge } from "../ui/badge";
 import { Switch } from "../ui/switch";
 import { mockTeachers } from "@/lib/mock-data";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 interface ClassesTableProps {
   classes: ClassWithDetails[];
@@ -30,9 +31,13 @@ export function ClassesTable({ classes: initialClasses }: ClassesTableProps) {
   const [isAddDialogOpen, setAddDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [classToAction, setClassToAction] = React.useState<ClassWithDetails | null>(null);
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
+    setPage(0);
   };
 
   const filteredClasses = classes.filter(
@@ -40,6 +45,19 @@ export function ClassesTable({ classes: initialClasses }: ClassesTableProps) {
       c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       c.teacher.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const totalPages = Math.ceil(filteredClasses.length / rowsPerPage);
+  const paginatedClasses = filteredClasses.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
+
+  const handleRowsPerPageChange = (value: string) => {
+    if (value === 'all') {
+        setRowsPerPage(filteredClasses.length);
+    } else {
+        setRowsPerPage(Number(value));
+    }
+    setPage(0);
+  };
+
 
   const handleEdit = (c: ClassWithDetails) => {
     setClassToAction(c);
@@ -98,7 +116,7 @@ export function ClassesTable({ classes: initialClasses }: ClassesTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredClasses.map((c) => (
+            {paginatedClasses.map((c) => (
               <TableRow key={c.id}>
                 <TableCell className="font-medium">{c.name}</TableCell>
                 <TableCell>{c.teacher}</TableCell>
@@ -129,6 +147,43 @@ export function ClassesTable({ classes: initialClasses }: ClassesTableProps) {
             ))}
           </TableBody>
         </Table>
+      </div>
+       <div className="flex items-center justify-between mt-4">
+        <div className="flex items-center space-x-2">
+            <span className="text-sm text-muted-foreground">Rows per page</span>
+            <Select onValueChange={handleRowsPerPageChange} defaultValue={`${rowsPerPage}`}>
+                <SelectTrigger className="w-20">
+                    <SelectValue placeholder={`${rowsPerPage}`} />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="5">5</SelectItem>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="all">All</SelectItem>
+                </SelectContent>
+            </Select>
+        </div>
+        <div className="flex items-center space-x-2">
+            <span className="text-sm text-muted-foreground">
+                Page {page + 1} of {totalPages}
+            </span>
+            <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setPage(p => Math.max(0, p - 1))}
+                disabled={page === 0}
+            >
+                <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                disabled={page >= totalPages - 1}
+            >
+                <ChevronRight className="h-4 w-4" />
+            </Button>
+        </div>
       </div>
       <AddClassDialog
         open={isAddDialogOpen}

@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -12,11 +13,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Student } from "@/lib/types";
-import { Edit, PlusCircle, Trash2 } from "lucide-react";
+import { Edit, PlusCircle, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { DeleteConfirmationDialog } from "../shared/delete-confirmation-dialog";
 import { AddStudentDialog } from "./add-student-dialog";
 import { Progress } from "../ui/progress";
 import { Switch } from "../ui/switch";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select";
 
 interface StudentsTableProps {
   students: Student[];
@@ -28,9 +30,12 @@ export function StudentsTable({ students: initialStudents }: StudentsTableProps)
   const [isAddDialogOpen, setAddDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [studentToAction, setStudentToAction] = React.useState<Student | null>(null);
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
+    setPage(0);
   };
 
   const filteredStudents = students.filter(
@@ -39,6 +44,18 @@ export function StudentsTable({ students: initialStudents }: StudentsTableProps)
       student.studentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const totalPages = Math.ceil(filteredStudents.length / rowsPerPage);
+  const paginatedStudents = filteredStudents.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
+
+  const handleRowsPerPageChange = (value: string) => {
+    if (value === 'all') {
+        setRowsPerPage(filteredStudents.length);
+    } else {
+        setRowsPerPage(Number(value));
+    }
+    setPage(0);
+  };
   
   const handleEdit = (student: Student) => {
     setStudentToAction(student);
@@ -107,7 +124,7 @@ export function StudentsTable({ students: initialStudents }: StudentsTableProps)
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredStudents.map((student) => (
+            {paginatedStudents.map((student) => (
               <TableRow key={student.id}>
                 <TableCell>{student.studentId}</TableCell>
                 <TableCell className="font-medium">{student.name}</TableCell>
@@ -143,6 +160,43 @@ export function StudentsTable({ students: initialStudents }: StudentsTableProps)
             ))}
           </TableBody>
         </Table>
+      </div>
+      <div className="flex items-center justify-between mt-4">
+        <div className="flex items-center space-x-2">
+            <span className="text-sm text-muted-foreground">Rows per page</span>
+            <Select onValueChange={handleRowsPerPageChange} defaultValue={`${rowsPerPage}`}>
+                <SelectTrigger className="w-20">
+                    <SelectValue placeholder={`${rowsPerPage}`} />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="5">5</SelectItem>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="all">All</SelectItem>
+                </SelectContent>
+            </Select>
+        </div>
+        <div className="flex items-center space-x-2">
+            <span className="text-sm text-muted-foreground">
+                Page {page + 1} of {totalPages}
+            </span>
+            <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setPage(p => Math.max(0, p - 1))}
+                disabled={page === 0}
+            >
+                <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                disabled={page >= totalPages - 1}
+            >
+                <ChevronRight className="h-4 w-4" />
+            </Button>
+        </div>
       </div>
        <AddStudentDialog
         open={isAddDialogOpen}
