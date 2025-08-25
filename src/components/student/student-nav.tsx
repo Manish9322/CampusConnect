@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, CalendarCheck, BarChart2, BookOpen, LogOut, User as UserIcon, Building2 } from "lucide-react";
+import { Home, CalendarCheck, BarChart2, BookOpen, LogOut, User as UserIcon, Building2, PanelLeft } from "lucide-react";
 
 import {
   SidebarMenu,
@@ -43,9 +43,11 @@ export function StudentNav({ user }: StudentNavProps) {
     <>
        <SidebarHeader>
         <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="md:hidden" asChild>
-                <SidebarTrigger />
-            </Button>
+            <SidebarTrigger asChild className="md:hidden">
+              <Button variant="ghost" size="icon">
+                <PanelLeft/>
+              </Button>
+            </SidebarTrigger>
             <Link href="/" className="flex items-center gap-2 font-semibold text-primary-foreground">
                 <Building2 className="h-6 w-6" />
                 <span className="text-lg font-bold">CampusConnect</span>
