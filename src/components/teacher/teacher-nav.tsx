@@ -34,9 +34,9 @@ export function TeacherNav({ user }: TeacherNavProps) {
 
   const menuItems = [
     { href: "/teacher", label: "Dashboard", icon: Home },
+    { href: "/teacher/attendance", label: "Take Attendance", icon: CalendarCheck },
     { href: "/teacher/classes", label: "My Classes", icon: BookCopy },
     { href: "/teacher/students", label: "Students", icon: Users },
-    { href: "/teacher/attendance", label: "Take Attendance", icon: CalendarCheck },
   ];
 
   return (

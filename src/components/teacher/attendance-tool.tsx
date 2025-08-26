@@ -6,11 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { mockStudents } from "@/lib/mock-data";
+import { mockClasses, mockStudents } from "@/lib/mock-data";
 import { useToast } from "@/hooks/use-toast";
-import { Send, ChevronLeft, ChevronRight } from "lucide-react";
+import { Send, ChevronLeft, ChevronRight, CalendarIcon } from "lucide-react";
 import { AttendanceStatus, Student } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Calendar } from "../ui/calendar";
+import { format } from "date-fns";
 
 type AttendanceState = {
   [studentId: string]: AttendanceStatus;
@@ -49,8 +52,16 @@ export function AttendanceTool() {
   const { toast } = useToast();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [date, setDate] = useState<Date | undefined>(new Date());
 
-  const studentsInCourse = mockStudents.filter(s => s.major === 'Computer Science');
+
+  const studentsInCourse = mockStudents.filter(s => {
+    if (selectedCourse === 'CS101' || selectedCourse === 'CS303') {
+        return s.major === 'Computer Science';
+    }
+    // Add logic for other courses if necessary
+    return false;
+  });
 
   const getInitialAttendance = (students: Student[]): AttendanceState => {
     const initialState: AttendanceState = {};
@@ -114,26 +125,49 @@ export function AttendanceTool() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
                 <CardTitle>Take Attendance</CardTitle>
-                <CardDescription>Select a course and mark student attendance for today.</CardDescription>
+                <CardDescription>Select a class and date, then mark student attendance.</CardDescription>
             </div>
-            <div className="flex flex-col sm:flex-row items-center gap-2">
+             <div className="flex flex-col sm:flex-row items-center gap-2">
                  <Select value={selectedCourse} onValueChange={setSelectedCourse}>
                     <SelectTrigger className="w-full sm:w-[200px]">
                         <SelectValue placeholder="Select course" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="CS101">CS101 - Intro to Programming</SelectItem>
-                        <SelectItem value="CS303">CS303 - Advanced Algorithms</SelectItem>
+                        {mockClasses.filter(c => c.status === 'active').map(c => (
+                             <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+                        ))}
                     </SelectContent>
                 </Select>
-                 <div className="flex w-full sm:w-auto items-center gap-2">
-                    <Button variant="outline" className="w-full" onClick={() => markAll('present')}>All Present</Button>
-                    <Button variant="outline" className="w-full" onClick={() => markAll('absent')}>All Absent</Button>
-                 </div>
+                 <Popover>
+                    <PopoverTrigger asChild>
+                        <Button
+                        variant={"outline"}
+                        className={cn(
+                            "w-full sm:w-[240px] justify-start text-left font-normal",
+                            !date && "text-muted-foreground"
+                        )}
+                        >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {date ? format(date, "PPP") : <span>Pick a date</span>}
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                        <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={setDate}
+                        initialFocus
+                        />
+                    </PopoverContent>
+                </Popover>
             </div>
         </div>
       </CardHeader>
       <CardContent>
+         <div className="flex w-full sm:w-auto items-center gap-2 mb-4">
+            <Button variant="outline" className="w-full" onClick={() => markAll('present')}>All Present</Button>
+            <Button variant="outline" className="w-full" onClick={() => markAll('absent')}>All Absent</Button>
+         </div>
         <div className="rounded-md border">
           <Table>
             <TableHeader>
