@@ -33,6 +33,7 @@ const formSchema = z.object({
   name: z.string().min(2, "Class name must be at least 2 characters."),
   teacherId: z.string().nonempty("A teacher must be assigned."),
   subjects: z.string().min(1, "At least one subject is required."),
+  studentCount: z.coerce.number().min(0, "Number of students cannot be negative."),
   status: z.boolean(),
 });
 
@@ -61,6 +62,7 @@ export function AddClassDialog({
       name: classData?.name || "",
       teacherId: defaultTeacher?.id || "",
       subjects: classData?.subjects.join(', ') || "",
+      studentCount: classData?.studentCount || 0,
       status: classData?.status === 'active',
     },
   });
@@ -71,6 +73,7 @@ export function AddClassDialog({
         name: classData?.name || "",
         teacherId: defaultTeacher?.id || "",
         subjects: classData?.subjects.join(', ') || "",
+        studentCount: classData?.studentCount || 0,
         status: classData?.status === 'active',
     });
   }, [classData, allTeachers, form]);
@@ -139,6 +142,19 @@ export function AddClassDialog({
                   <FormLabel>Subjects (comma-separated)</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., Math, Science" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="studentCount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Number of Students</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="e.g., 30" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

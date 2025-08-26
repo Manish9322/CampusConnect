@@ -18,7 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { mockStudents, mockTeachers } from "@/lib/mock-data";
+import { mockStudents, mockTeachers, mockClasses } from "@/lib/mock-data";
 import { Progress } from "../ui/progress";
 import {
   Select,
@@ -28,11 +28,14 @@ import {
   SelectItem,
 } from "../ui/select";
 import { Button } from "../ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, User } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
 import { EmptyState } from "../shared/empty-state";
 import { ErrorState } from "../shared/error-state";
 import { Student } from "@/lib/types";
+import { Switch } from "../ui/switch";
+import { Label } from "../ui/label";
+import { StudentProfileDialog } from "./student-profile-dialog";
 
 type LoadingState = "loading" | "error" | "timeout" | "success";
 
@@ -42,25 +45,28 @@ export function ViewStudents() {
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [students, setStudents] = React.useState<Student[]>([]);
   const [loadingState, setLoadingState] = React.useState<LoadingState>("loading");
+  const [selectedClass, setSelectedClass] = React.useState<string>("all");
+  const [showLowAttendance, setShowLowAttendance] = React.useState(false);
+  const [selectedStudent, setSelectedStudent] = React.useState<Student | null>(null);
+  const [isProfileOpen, setProfileOpen] = React.useState(false);
+
+
+  // Assuming the logged-in teacher is Dr. Alan Turing
+  const teacher = mockTeachers.find((t) => t.name === "Dr. Alan Turing");
+  const teacherClasses = teacher ? mockClasses.filter(c => teacher.courses.some(course => c.name.includes(course))) : [];
 
   const fetchStudents = React.useCallback(() => {
     setLoadingState("loading");
     // Simulate API call
     setTimeout(() => {
-        // Assuming the logged-in teacher is Dr. Alan Turing
-        const teacher = mockTeachers.find((t) => t.name === "Dr. Alan Turing");
         const studentsInTeacherCourses = teacher
             ? mockStudents.filter((s) => s.major === teacher.department)
             : [];
         
-        // To simulate error states, uncomment one of these lines
-        // setLoadingState("error");
-        // setLoadingState("timeout");
-        
         setStudents(studentsInTeacherCourses);
         setLoadingState("success");
     }, 1500);
-  }, []);
+  }, [teacher]);
 
   React.useEffect(() => {
     fetchStudents();
@@ -72,11 +78,20 @@ export function ViewStudents() {
     setPage(0);
   };
 
-  const filteredStudents = students.filter(
-    (student) =>
+  const filteredStudents = students
+    .filter((student) => {
+        if (selectedClass === 'all') return true;
+        // This is a simplified logic, in real-world you'd have a proper mapping
+        return student.major === teacher?.department && teacherClasses.some(c => c.name.includes(student.major));
+    })
+    .filter((student) =>
       student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.rollNo.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+    )
+    .filter((student) => {
+        if (!showLowAttendance) return true;
+        return student.attendancePercentage < 75;
+    });
 
   const totalPages = Math.ceil(filteredStudents.length / rowsPerPage);
   const paginatedStudents = filteredStudents.slice(
@@ -92,6 +107,11 @@ export function ViewStudents() {
     }
     setPage(0);
   };
+
+  const handleViewProfile = (student: Student) => {
+    setSelectedStudent(student);
+    setProfileOpen(true);
+  };
   
   const renderContent = () => {
     switch (loadingState) {
@@ -104,6 +124,7 @@ export function ViewStudents() {
                            <Skeleton className="h-6 w-32" />
                            <Skeleton className="h-6 w-24" />
                            <Skeleton className="h-6 flex-1" />
+                           <Skeleton className="h-8 w-8 rounded-full" />
                         </div>
                     ))}
                 </div>
@@ -125,6 +146,7 @@ export function ViewStudents() {
                             <TableHead>Name</TableHead>
                             <TableHead>Class</TableHead>
                             <TableHead>Attendance</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -142,6 +164,11 @@ export function ViewStudents() {
                                 <span>{student.attendancePercentage}%</span>
                                 </div>
                             </TableCell>
+                            <TableCell className="text-right">
+                                <Button variant="ghost" size="icon" onClick={() => handleViewProfile(student)}>
+                                    <Eye className="h-4 w-4" />
+                                </Button>
+                            </TableCell>
                             </TableRow>
                         ))}
                         </TableBody>
@@ -152,6 +179,7 @@ export function ViewStudents() {
   }
 
   return (
+    <>
     <Card>
       <CardHeader>
         <CardTitle>All Students</CardTitle>
@@ -160,13 +188,30 @@ export function ViewStudents() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center justify-between mb-4">
-          <Input
-            placeholder="Search by name or roll no..."
-            value={searchTerm}
-            onChange={handleSearch}
-            className="max-w-sm"
-          />
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
+          <div className="flex flex-col md:flex-row gap-4 w-full">
+            <Select value={selectedClass} onValueChange={setSelectedClass}>
+              <SelectTrigger className="w-full md:w-48">
+                <SelectValue placeholder="Select Class" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Classes</SelectItem>
+                {teacherClasses.map(c => (
+                  <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input
+              placeholder="Search by name or roll no..."
+              value={searchTerm}
+              onChange={handleSearch}
+              className="max-w-sm"
+            />
+          </div>
+          <div className="flex items-center space-x-2">
+            <Switch id="low-attendance" checked={showLowAttendance} onCheckedChange={setShowLowAttendance} />
+            <Label htmlFor="low-attendance">Show Low Attendance (&lt;75%)</Label>
+          </div>
         </div>
         {renderContent()}
         <div className="flex items-center justify-between mt-4">
@@ -213,5 +258,13 @@ export function ViewStudents() {
         </div>
       </CardContent>
     </Card>
+    {selectedStudent && (
+        <StudentProfileDialog
+            isOpen={isProfileOpen}
+            onOpenChange={setProfileOpen}
+            student={selectedStudent}
+        />
+    )}
+    </>
   );
 }
