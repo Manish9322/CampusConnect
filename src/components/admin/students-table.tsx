@@ -13,18 +13,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Student } from "@/lib/types";
-import { Edit, PlusCircle, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Edit, PlusCircle, Trash2, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { DeleteConfirmationDialog } from "../shared/delete-confirmation-dialog";
 import { AddStudentDialog } from "./add-student-dialog";
 import { Progress } from "../ui/progress";
 import { Switch } from "../ui/switch";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select";
+import { Badge } from "../ui/badge";
 
 interface StudentsTableProps {
   students: Student[];
+  majors: string[];
 }
 
-export function StudentsTable({ students: initialStudents }: StudentsTableProps) {
+export function StudentsTable({ students: initialStudents, majors }: StudentsTableProps) {
   const [students, setStudents] = React.useState(initialStudents);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [isAddDialogOpen, setAddDialogOpen] = React.useState(false);
@@ -32,6 +34,9 @@ export function StudentsTable({ students: initialStudents }: StudentsTableProps)
   const [studentToAction, setStudentToAction] = React.useState<Student | null>(null);
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [majorFilter, setMajorFilter] = React.useState<string>('all');
+  const [statusFilter, setStatusFilter] = React.useState<string>('all');
+
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -40,9 +45,11 @@ export function StudentsTable({ students: initialStudents }: StudentsTableProps)
 
   const filteredStudents = students.filter(
     (student) =>
-      student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.studentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.email.toLowerCase().includes(searchTerm.toLowerCase())
+      student.email.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (majorFilter === 'all' || student.major === majorFilter) &&
+      (statusFilter === 'all' || student.status === statusFilter)
   );
 
   const totalPages = Math.ceil(filteredStudents.length / rowsPerPage);
@@ -95,16 +102,48 @@ export function StudentsTable({ students: initialStudents }: StudentsTableProps)
     setAddDialogOpen(false);
   };
 
+  const isFiltered = majorFilter !== 'all' || statusFilter !== 'all';
+
+  const clearFilters = () => {
+    setMajorFilter('all');
+    setStatusFilter('all');
+    setSearchTerm('');
+  };
+
 
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
-        <Input
-          placeholder="Search students..."
-          value={searchTerm}
-          onChange={handleSearch}
-          className="max-w-sm"
-        />
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
+        <div className="flex flex-wrap items-center gap-4">
+            <Input
+              placeholder="Search students..."
+              value={searchTerm}
+              onChange={handleSearch}
+              className="max-w-sm"
+            />
+            <Select value={majorFilter} onValueChange={setMajorFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Filter by major" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Majors</SelectItem>
+                    {majors.map(major => (
+                        <SelectItem key={major} value={major}>{major}</SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+             <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+            </Select>
+            {isFiltered && <Button variant="ghost" onClick={clearFilters}><X className="mr-2 h-4 w-4" /> Clear Filters</Button>}
+        </div>
         <Button onClick={handleAdd}>
           <PlusCircle className="mr-2 h-4 w-4" /> Add Student
         </Button>
@@ -117,7 +156,6 @@ export function StudentsTable({ students: initialStudents }: StudentsTableProps)
               <TableHead>Roll No.</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Phone</TableHead>
               <TableHead>Major</TableHead>
               <TableHead>Attendance</TableHead>
               <TableHead>Status</TableHead>
@@ -131,8 +169,7 @@ export function StudentsTable({ students: initialStudents }: StudentsTableProps)
                 <TableCell>{student.rollNo}</TableCell>
                 <TableCell className="font-medium">{student.name}</TableCell>
                 <TableCell>{student.email}</TableCell>
-                <TableCell>{student.phone}</TableCell>
-                <TableCell>{student.major}</TableCell>
+                <TableCell><Badge variant="outline">{student.major}</Badge></TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <Progress value={student.attendancePercentage} className="h-2 w-20" />
