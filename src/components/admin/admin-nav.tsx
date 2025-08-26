@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Users, UserCheck, CalendarCheck, BookCopy, LogOut, User as UserIcon, Building2, PanelLeft } from "lucide-react";
+import { Home, Users, UserCheck, CalendarCheck, BookCopy, LogOut, User as UserIcon, Building2, PanelLeft, ClipboardCheck } from "lucide-react";
 
 import {
   SidebarMenu,
@@ -38,21 +38,21 @@ export function AdminNav({ user }: AdminNavProps) {
     { href: "/admin/teachers", label: "Teachers", icon: UserCheck },
     { href: "/admin/classes", label: "Classes", icon: BookCopy },
     { href: "/admin/attendance", label: "Attendance", icon: CalendarCheck },
+    { href: "/admin/attendance-requests", label: "Attendance Requests", icon: ClipboardCheck },
   ];
 
   return (
     <>
       <SidebarHeader>
-        <div className="flex items-center gap-2">
-            <SidebarTrigger asChild className="md:hidden">
+        <div className="flex items-center gap-2 px-2">
+            <SidebarTrigger asChild>
               <Button variant="ghost" size="icon">
                 <PanelLeft/>
               </Button>
             </SidebarTrigger>
-            <Link href="/" className="flex items-center gap-2 font-semibold text-primary-foreground">
-                <Building2 className="h-6 w-6" />
-                <span className="text-lg font-bold">CampusConnect</span>
-            </Link>
+            <div className="flex-1 overflow-hidden whitespace-nowrap">
+                <Link href="/" className="font-semibold text-lg">CampusConnect</Link>
+            </div>
         </div>
       </SidebarHeader>
       <SidebarContent>
