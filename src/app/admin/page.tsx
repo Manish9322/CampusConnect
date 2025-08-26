@@ -82,8 +82,8 @@ export default function AdminDashboardPage() {
         <div className="lg:col-span-2">
           <RecentAttendance />
         </div>
-        <div className="grid grid-cols-2 grid-rows-2 gap-6">
-            <Card className="col-span-1 row-span-1 flex flex-col">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <Card className="flex flex-col">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">Active Alerts</CardTitle>
                 <CardDescription className="text-xs">Urgent issues needing attention</CardDescription>
@@ -92,7 +92,7 @@ export default function AdminDashboardPage() {
                 <div className="text-4xl font-bold">3</div>
               </CardContent>
             </Card>
-            <Card className="col-span-1 row-span-2 flex flex-col">
+            <Card className="sm:col-span-2 flex flex-col">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">Department Headcount</CardTitle>
                  <CardDescription className="text-xs">Student distribution</CardDescription>
@@ -104,7 +104,7 @@ export default function AdminDashboardPage() {
                  <div className="flex justify-between items-center"><span>Chemistry</span><Badge variant="secondary">180</Badge></div>
               </CardContent>
             </Card>
-             <Card className="col-span-1 row-span-1 flex flex-col">
+             <Card className="flex flex-col">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">Pending Approvals</CardTitle>
                  <CardDescription className="text-xs">Requests awaiting action</CardDescription>
