@@ -90,7 +90,7 @@ export function AddClassDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{classData ? "Edit Class" : "Add New Class"}</DialogTitle>
           <DialogDescription>
@@ -99,67 +99,71 @@ export function AddClassDialog({
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Class Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., 10A" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="teacherId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Assign Teacher</FormLabel>
-                   <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <div className="grid md:grid-cols-2 gap-4">
+               <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Class Name</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a teacher" />
-                      </SelectTrigger>
+                      <Input placeholder="e.g., 10A" {...field} />
                     </FormControl>
-                    <SelectContent>
-                      {allTeachers.map(teacher => (
-                        <SelectItem key={teacher.id} value={teacher.id}>{teacher.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name="subjects"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Subjects (comma-separated)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Math, Science" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name="studentCount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Number of Students</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g., 30" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="teacherId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Assign Teacher</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a teacher" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {allTeachers.map(teacher => (
+                          <SelectItem key={teacher.id} value={teacher.id}>{teacher.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="grid md:grid-cols-2 gap-4">
+                <FormField
+                control={form.control}
+                name="subjects"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Subjects (comma-separated)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., Math, Science" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="studentCount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Number of Students</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="e.g., 30" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <FormField
               control={form.control}
               name="status"

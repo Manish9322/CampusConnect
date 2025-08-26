@@ -52,44 +52,46 @@ export function EditAttendanceDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Edit Attendance</DialogTitle>
           <DialogDescription>
             Update the attendance status for {record.studentName}.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Student</Label>
-            <span className="col-span-3 font-medium">{record.studentName}</span>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Course</Label>
-            <span className="col-span-3 font-medium">{record.course}</span>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Date</Label>
-            <span className="col-span-3 font-medium">{record.date}</span>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="status" className="text-right">
-              Status
-            </Label>
-            <Select
-              value={status}
-              onValueChange={(value) => setStatus(value as AttendanceStatus)}
-            >
-              <SelectTrigger id="status" className="col-span-3">
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="present">Present</SelectItem>
-                <SelectItem value="late">Late</SelectItem>
-                <SelectItem value="absent">Absent</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="space-y-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right col-span-1">Student</Label>
+                <span className="col-span-3 font-medium">{record.studentName}</span>
+            </div>
+             <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 items-center gap-2">
+                    <Label className="text-right">Course</Label>
+                    <span className="font-medium">{record.course}</span>
+                </div>
+                <div className="grid grid-cols-2 items-center gap-2">
+                    <Label className="text-right">Date</Label>
+                    <span className="font-medium">{record.date}</span>
+                </div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="status" className="text-right">
+                Status
+                </Label>
+                <Select
+                value={status}
+                onValueChange={(value) => setStatus(value as AttendanceStatus)}
+                >
+                <SelectTrigger id="status" className="col-span-3">
+                    <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="present">Present</SelectItem>
+                    <SelectItem value="late">Late</SelectItem>
+                    <SelectItem value="absent">Absent</SelectItem>
+                </SelectContent>
+                </Select>
+            </div>
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
