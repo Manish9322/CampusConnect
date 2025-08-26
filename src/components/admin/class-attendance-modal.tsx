@@ -153,7 +153,7 @@ export function ClassAttendanceModal({ isOpen, onOpenChange, classData }: ClassA
         </div>
         <div className="flex-1 relative">
             <ScrollArea className="absolute inset-0">
-                <Table stickyHeader>
+                <Table>
                     <TableHeader>
                     <TableRow>
                         <TableHead>Roll No.</TableHead>

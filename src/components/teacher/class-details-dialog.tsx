@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -26,7 +27,7 @@ export function ClassDetailsDialog({ isOpen, onOpenChange, classData }: ClassDet
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>{classData.name} - Class Details</DialogTitle>
           <DialogDescription>
@@ -52,9 +53,9 @@ export function ClassDetailsDialog({ isOpen, onOpenChange, classData }: ClassDet
                 </div>
             </div>
         </div>
-        <div>
+        <div className="flex-1 overflow-hidden">
             <h4 className="font-semibold my-4">Enrolled Students</h4>
-            <ScrollArea className="h-64">
+            <ScrollArea className="h-full">
                  <Table>
                     <TableHeader>
                         <TableRow>

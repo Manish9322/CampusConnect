@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -21,7 +22,7 @@ const statusVariant: { [key in AttendanceStatus]: "default" | "destructive" | "s
 };
 
 export function RecentAttendance() {
-  const recentRecords = mockAttendance.slice(0, 5);
+  const recentRecords = mockAttendance.slice(0, 8);
 
   return (
     <Card>
