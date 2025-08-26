@@ -1,6 +1,6 @@
 
 "use client"
-
+import * as React from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { mockStudents } from "@/lib/mock-data";
@@ -8,9 +8,70 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, BookCopy, CalendarCheck, Users } from "lucide-react";
 import Link from "next/link";
 import { UpcomingClassesCard } from "./upcoming-classes-card";
+import { Skeleton } from "../ui/skeleton";
+import { EmptyState } from "../shared/empty-state";
 
 export function TeacherDashboardCards() {
+    const [isLoading, setIsLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        const timer = setTimeout(() => setIsLoading(false), 1500);
+        return () => clearTimeout(timer);
+    }, []);
+    
     const recentlyAbsent = mockStudents.filter(s => s.attendancePercentage < 80).slice(0, 3);
+
+    if (isLoading) {
+        return (
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <Card className="lg:col-span-2">
+                    <CardHeader>
+                        <Skeleton className="h-6 w-3/4" />
+                        <Skeleton className="h-4 w-1/2" />
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <Skeleton className="h-32 w-full" />
+                        <Skeleton className="h-32 w-full" />
+                    </CardContent>
+                </Card>
+                <Card className="lg:col-span-2">
+                     <CardHeader>
+                        <Skeleton className="h-6 w-3/4" />
+                        <Skeleton className="h-4 w-1/2" />
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                    </CardContent>
+                </Card>
+                <Skeleton className="h-40 w-full" />
+                <Skeleton className="h-40 w-full" />
+                <Card className="lg:col-span-2">
+                     <CardHeader>
+                        <Skeleton className="h-6 w-3/4" />
+                        <Skeleton className="h-4 w-1/2" />
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                       {[...Array(3)].map((_, i) => (
+                         <div key={i} className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <Skeleton className="h-10 w-10 rounded-full" />
+                                <div>
+                                    <Skeleton className="h-4 w-24" />
+                                    <Skeleton className="h-3 w-16 mt-1" />
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <Skeleton className="h-4 w-12" />
+                            </div>
+                        </div>
+                       ))}
+                    </CardContent>
+                </Card>
+             </div>
+        )
+    }
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -93,7 +154,7 @@ export function TeacherDashboardCards() {
                     <CardDescription>Students with low recent attendance.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    {recentlyAbsent.map(student => (
+                    {recentlyAbsent.length > 0 ? recentlyAbsent.map(student => (
                          <div key={student.id} className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
                                 <Avatar>
@@ -110,7 +171,9 @@ export function TeacherDashboardCards() {
                                  <p className="text-xs text-muted-foreground">Attendance</p>
                             </div>
                         </div>
-                    ))}
+                    )) : (
+                        <EmptyState title="No Absences" description="All students have good attendance." className="py-4 border-none"/>
+                    )}
                 </CardContent>
             </Card>
         </div>

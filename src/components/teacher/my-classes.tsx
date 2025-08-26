@@ -12,12 +12,20 @@ import { ClassWithDetails, Student } from "@/lib/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Input } from "../ui/input";
 import { AddClassDialog } from "../admin/add-class-dialog";
+import { Skeleton } from "../ui/skeleton";
+import { EmptyState } from "../shared/empty-state";
 
 export function MyClasses() {
+    const [isLoading, setIsLoading] = React.useState(true);
     const [selectedClass, setSelectedClass] = React.useState<(ClassWithDetails & { students: Student[] }) | null>(null);
     const [isDetailsOpen, setDetailsOpen] = React.useState(false);
     const [isAddDialogOpen, setAddDialogOpen] = React.useState(false);
     const [searchTerm, setSearchTerm] = React.useState("");
+
+    React.useEffect(() => {
+        const timer = setTimeout(() => setIsLoading(false), 1500);
+        return () => clearTimeout(timer);
+    }, []);
 
     // Assuming the logged-in teacher is Dr. Alan Turing
     const teacher = mockTeachers.find(t => t.name === "Dr. Alan Turing");
@@ -54,39 +62,67 @@ export function MyClasses() {
         setAddDialogOpen(false);
     };
 
-    const renderClassGrid = (classes: (ClassWithDetails & { students: Student[] })[]) => (
-         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {classes.length > 0 ? classes.map(c => (
-                <Card key={c.id}>
-                    <CardHeader>
-                        <CardTitle>{c.name}</CardTitle>
-                        <CardDescription>Year: {c.year}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Users className="h-4 w-4" />
-                            <span>{c.studentCount} Students</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <BookOpen className="h-4 w-4" />
-                            <span>Subjects:</span>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                            {c.subjects.map(sub => (
-                                <Badge key={sub} variant="secondary">{sub}</Badge>
-                            ))}
-                        </div>
-                    </CardContent>
-                    <CardFooter>
-                        <Button className="w-full" onClick={() => handleViewDetails(c)}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            View Details
-                        </Button>
-                    </CardFooter>
-                </Card>
-            )) : <p className="text-muted-foreground col-span-full">No classes found.</p>}
-        </div>
-    );
+    const renderClassGrid = (classes: (ClassWithDetails & { students: Student[] })[]) => {
+        if (isLoading) {
+            return (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {[...Array(3)].map((_, i) => (
+                        <Card key={i}>
+                            <CardHeader>
+                                <Skeleton className="h-6 w-1/2" />
+                                <Skeleton className="h-4 w-1/4" />
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <Skeleton className="h-4 w-1/3" />
+                                <Skeleton className="h-4 w-1/2" />
+                            </CardContent>
+                            <CardFooter>
+                                <Skeleton className="h-10 w-full" />
+                            </CardFooter>
+                        </Card>
+                    ))}
+                </div>
+            );
+        }
+
+        if (classes.length === 0) {
+            return <EmptyState title="No Classes Found" description="You do not have any classes in this category." />;
+        }
+
+        return (
+             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {classes.map(c => (
+                    <Card key={c.id}>
+                        <CardHeader>
+                            <CardTitle>{c.name}</CardTitle>
+                            <CardDescription>Year: {c.year}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Users className="h-4 w-4" />
+                                <span>{c.studentCount} Students</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <BookOpen className="h-4 w-4" />
+                                <span>Subjects:</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {c.subjects.map(sub => (
+                                    <Badge key={sub} variant="secondary">{sub}</Badge>
+                                ))}
+                            </div>
+                        </CardContent>
+                        <CardFooter>
+                            <Button className="w-full" onClick={() => handleViewDetails(c)}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                View Details
+                            </Button>
+                        </CardFooter>
+                    </Card>
+                ))}
+            </div>
+        );
+    };
 
     return (
         <>
