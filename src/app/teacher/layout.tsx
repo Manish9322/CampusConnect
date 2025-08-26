@@ -2,13 +2,19 @@
 import { TeacherNav } from "@/components/teacher/teacher-nav";
 import { Header } from "@/components/shared/header";
 import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar";
+import { mockTeachers } from "@/lib/mock-data";
 
 export default function TeacherLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const user = { name: "Dr. Alan Turing", email: "turing@example.com", initials: "AT" };
+  const teacher = mockTeachers.find(t => t.id === '101') || mockTeachers[0];
+  const user = { 
+    name: `${teacher.designation || ''} ${teacher.name}`, 
+    email: teacher.email, 
+    initials: `${teacher.designation?.charAt(0) || ''}${teacher.name.charAt(0)}` 
+  };
 
   return (
     <SidebarProvider>

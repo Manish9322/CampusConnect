@@ -27,12 +27,20 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Teacher } from "@/lib/types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 const phoneRegex = new RegExp(
   /^([+]?[\s0-9]+)?(\d{3}|[(]\d{3}[)])?[\s-]?(\d{3})[\s-]?(\d{4})$/
 );
 
 const formSchema = z.object({
+  designation: z.string().optional(),
   name: z.string().min(2, "Name must be at least 2 characters."),
   email: z.string().email("Please enter a valid email."),
   phone: z.string().regex(phoneRegex, "Invalid phone number format"),
@@ -58,40 +66,44 @@ export function AddTeacherDialog({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      designation: teacher?.designation || "Dr.",
       name: teacher?.name || "",
       email: teacher?.email || "",
       phone: teacher?.phone || "",
       department: teacher?.department || "",
       courses: teacher?.courses.join(", ") || "",
-      status: teacher?.status === 'active',
+      status: teacher?.status === "active",
     },
   });
-  
+
   React.useEffect(() => {
     form.reset({
+      designation: teacher?.designation || "Dr.",
       name: teacher?.name || "",
       email: teacher?.email || "",
       phone: teacher?.phone || "",
       department: teacher?.department || "",
       courses: teacher?.courses.join(", ") || "",
-      status: teacher?.status === 'active',
-    })
+      status: teacher?.status === "active",
+    });
   }, [teacher, form]);
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     const newOrUpdatedTeacher: Teacher = {
-        id: teacher?.id || `T${Date.now()}`,
-        teacherId: teacher?.teacherId || `TID${Date.now()}`,
-        role: 'teacher',
-        ...values,
-        status: values.status ? 'active' : 'inactive',
-        courses: values.courses.split(',').map(c => c.trim()),
+      id: teacher?.id || `T${Date.now()}`,
+      teacherId: teacher?.teacherId || `TID${Date.now()}`,
+      role: "teacher",
+      ...values,
+      status: values.status ? "active" : "inactive",
+      courses: values.courses.split(",").map((c) => c.trim()),
     };
 
     onSave(newOrUpdatedTeacher);
     toast({
       title: teacher ? "Teacher Updated" : "Teacher Added",
-      description: `${values.name} has been successfully ${teacher ? 'updated' : 'added'}.`,
+      description: `${values.name} has been successfully ${
+        teacher ? "updated" : "added"
+      }.`,
     });
     onOpenChange(false);
   };
@@ -100,83 +112,115 @@ export function AddTeacherDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{teacher ? "Edit Teacher" : "Add New Teacher"}</DialogTitle>
+          <DialogTitle>
+            {teacher ? "Edit Teacher" : "Add New Teacher"}
+          </DialogTitle>
           <DialogDescription>
-            Fill in the details below to {teacher ? "update the" : "add a new"} teacher.
+            Fill in the details below to {teacher ? "update the" : "add a new"}{" "}
+            teacher.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-             <div className="grid md:grid-cols-2 gap-4">
-                <FormField
+            <div className="grid md:grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="designation"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Designation</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a title" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Mr.">Mr.</SelectItem>
+                        <SelectItem value="Mrs.">Mrs.</SelectItem>
+                        <SelectItem value="Miss">Miss</SelectItem>
+                        <SelectItem value="Dr.">Dr.</SelectItem>
+                        <SelectItem value="Prof.">Prof.</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
-                    <FormItem>
+                  <FormItem className="md:col-span-2">
                     <FormLabel>Full Name</FormLabel>
                     <FormControl>
-                        <Input placeholder="John Doe" {...field} />
+                      <Input placeholder="John Doe" {...field} />
                     </FormControl>
                     <FormMessage />
-                    </FormItem>
+                  </FormItem>
                 )}
-                />
-                <FormField
+              />
+            </div>
+            <div className="grid md:grid-cols-2 gap-4">
+              <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
-                    <FormItem>
+                  <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                        <Input placeholder="teacher@example.com" {...field} />
+                      <Input placeholder="teacher@example.com" {...field} />
                     </FormControl>
                     <FormMessage />
-                    </FormItem>
+                  </FormItem>
                 )}
-                />
-            </div>
-             <div className="grid md:grid-cols-2 gap-4">
-                <FormField
+              />
+              <FormField
                 control={form.control}
                 name="phone"
                 render={({ field }) => (
-                    <FormItem>
+                  <FormItem>
                     <FormLabel>Phone Number</FormLabel>
                     <FormControl>
-                        <Input placeholder="123-456-7890" {...field} />
+                      <Input placeholder="123-456-7890" {...field} />
                     </FormControl>
                     <FormMessage />
-                    </FormItem>
+                  </FormItem>
                 )}
-                />
-                <FormField
+              />
+            </div>
+            <div className="grid md:grid-cols-2 gap-4">
+              <FormField
                 control={form.control}
                 name="department"
                 render={({ field }) => (
-                    <FormItem>
+                  <FormItem>
                     <FormLabel>Department</FormLabel>
                     <FormControl>
-                        <Input placeholder="e.g., Computer Science" {...field} />
+                      <Input placeholder="e.g., Computer Science" {...field} />
                     </FormControl>
                     <FormMessage />
-                    </FormItem>
+                  </FormItem>
                 )}
-                />
+              />
+              <FormField
+                control={form.control}
+                name="courses"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Courses (comma-separated)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="CS101, CS303" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
             <FormField
-              control={form.control}
-              name="courses"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Courses Assigned (comma-separated)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="CS101, CS303" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
               control={form.control}
               name="status"
               render={({ field }) => (
@@ -194,7 +238,11 @@ export function AddTeacherDialog({
               )}
             />
             <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => onOpenChange(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit">Save</Button>

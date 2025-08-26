@@ -12,9 +12,9 @@ export const mockStudents: Student[] = [
 ];
 
 export const mockTeachers: Teacher[] = [
-  { id: '101', teacherId: 'T01', name: 'Dr. Alan Turing', email: 'turing@example.com', role: 'teacher', department: 'Computer Science', courses: ['CS101', 'CS303'], phone: '123-456-7890', status: 'active' },
-  { id: '102', teacherId: 'T02', name: 'Dr. Marie Curie', email: 'curie@example.com', role: 'teacher', department: 'Physics', courses: ['PHY101'], phone: '123-456-7891', status: 'active' },
-  { id: '103', teacherId: 'T03', name: 'Dr. Ada Lovelace', email: 'lovelace@example.com', role: 'teacher', department: 'Mathematics', courses: ['MATH201'], phone: '123-456-7892', status: 'inactive' },
+  { id: '101', teacherId: 'T01', designation: 'Dr.', name: 'Alan Turing', email: 'turing@example.com', role: 'teacher', department: 'Computer Science', courses: ['CS101', 'CS303'], phone: '123-456-7890', status: 'active' },
+  { id: '102', teacherId: 'T02', designation: 'Dr.', name: 'Marie Curie', email: 'curie@example.com', role: 'teacher', department: 'Physics', courses: ['PHY101'], phone: '123-456-7891', status: 'active' },
+  { id: '103', teacherId: 'T03', designation: 'Dr.', name: 'Ada Lovelace', email: 'lovelace@example.com', role: 'teacher', department: 'Mathematics', courses: ['MATH201'], phone: '123-456-7892', status: 'inactive' },
 ];
 
 export const mockAttendance: AttendanceRecord[] = [

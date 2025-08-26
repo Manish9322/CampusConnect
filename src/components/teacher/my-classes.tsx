@@ -8,7 +8,7 @@ import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { Users, BookOpen, Eye, PlusCircle } from "lucide-react";
 import { ClassDetailsDialog } from "./class-details-dialog";
-import { ClassWithDetails, Student } from "@/lib/types";
+import { ClassWithDetails, Student, Teacher } from "@/lib/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Input } from "../ui/input";
 import { AddClassDialog } from "../admin/add-class-dialog";
@@ -28,7 +28,7 @@ export function MyClasses() {
     }, []);
 
     // Assuming the logged-in teacher is Dr. Alan Turing
-    const teacher = mockTeachers.find(t => t.name === "Dr. Alan Turing");
+    const teacher = mockTeachers.find(t => t.name === "Alan Turing");
     if (!teacher) return <div>Teacher not found.</div>;
 
     const teacherClasses = mockClasses.filter(c => teacher.courses.some(course => c.name.includes(course)));
@@ -41,7 +41,7 @@ export function MyClasses() {
         const students = mockStudents.filter(s => c.name.includes(s.major)); // Simplified logic
         return {
             ...c,
-            teacher: teacher.name,
+            teacher: `${teacher.designation} ${teacher.name}`,
             studentCount: students.length,
             subjects: [c.name],
             students: students,

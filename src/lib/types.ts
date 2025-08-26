@@ -26,6 +26,7 @@ export type TeacherStatus = 'active' | 'inactive';
 export interface Teacher extends User {
   role: 'teacher';
   teacherId: string;
+  designation?: string;
   department: string;
   courses: string[];
   phone: string;
