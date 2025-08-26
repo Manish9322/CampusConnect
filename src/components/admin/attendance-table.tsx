@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -15,7 +16,8 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Edit } from "lucide-react";
+import { EditAttendanceDialog } from "./edit-attendance-dialog";
 
 interface AttendanceTableProps {
   records: AttendanceRecord[];
@@ -27,10 +29,13 @@ const statusVariant: { [key in AttendanceStatus]: "default" | "destructive" | "s
     late: "secondary",
 };
 
-export function AttendanceTable({ records }: AttendanceTableProps) {
+export function AttendanceTable({ records: initialRecords }: AttendanceTableProps) {
+  const [records, setRecords] = React.useState(initialRecords);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [isEditDialogOpen, setEditDialogOpen] = React.useState(false);
+  const [recordToEdit, setRecordToEdit] = React.useState<AttendanceRecord | null>(null);
 
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,7 +60,17 @@ export function AttendanceTable({ records }: AttendanceTableProps) {
         setRowsPerPage(Number(value));
     }
     setPage(0);
-  }
+  };
+
+  const handleEditClick = (record: AttendanceRecord) => {
+    setRecordToEdit(record);
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveAttendance = (updatedRecord: AttendanceRecord) => {
+    setRecords(records.map(r => r.id === updatedRecord.id ? updatedRecord : r));
+    setEditDialogOpen(false);
+  };
 
   return (
     <>
@@ -76,6 +91,7 @@ export function AttendanceTable({ records }: AttendanceTableProps) {
               <TableHead>Student Name</TableHead>
               <TableHead>Course</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -95,6 +111,11 @@ export function AttendanceTable({ records }: AttendanceTableProps) {
                   >
                     {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
                   </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button variant="ghost" size="icon" onClick={() => handleEditClick(record)}>
+                    <Edit className="h-4 w-4" />
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
@@ -138,6 +159,14 @@ export function AttendanceTable({ records }: AttendanceTableProps) {
             </Button>
         </div>
       </div>
+      {recordToEdit && (
+        <EditAttendanceDialog
+            open={isEditDialogOpen}
+            onOpenChange={setEditDialogOpen}
+            record={recordToEdit}
+            onSave={handleSaveAttendance}
+        />
+      )}
     </>
   );
 }
