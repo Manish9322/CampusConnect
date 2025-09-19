@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Building2, CalendarCheck, Users, GraduationCap, ArrowRight, CheckCircle2, Newspaper, Users2, BrainCircuit } from 'lucide-react';
+import { Building2, CalendarCheck, Users, GraduationCap, ArrowRight, CheckCircle2, Newspaper, Users2, BrainCircuit, BarChart, FileCheck, MessageSquare } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -66,6 +66,23 @@ export default function HomePage() {
                     <Link href="/contact">Request a Demo</Link>
                   </Button>
                 </div>
+                 <div className="flex items-center gap-4 pt-4">
+                    <div className="flex -space-x-2">
+                        <Avatar className="border-2 border-background">
+                            <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="male portrait" />
+                            <AvatarFallback>U1</AvatarFallback>
+                        </Avatar>
+                        <Avatar className="border-2 border-background">
+                            <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="female portrait" />
+                            <AvatarFallback>U2</AvatarFallback>
+                        </Avatar>
+                         <Avatar className="border-2 border-background">
+                            <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="person portrait" />
+                            <AvatarFallback>U3</AvatarFallback>
+                        </Avatar>
+                    </div>
+                    <p className="text-sm text-muted-foreground font-medium">Trusted by over 10,000+ students and faculty.</p>
+                </div>
               </div>
                <Image
                 src="https://placehold.co/600x400.png"
@@ -75,6 +92,24 @@ export default function HomePage() {
                 className="mx-auto aspect-video overflow-hidden rounded-xl object-cover sm:w-full lg:order-last"
                 data-ai-hint="university campus"
               />
+            </div>
+             <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                <div className="flex flex-col items-center gap-2">
+                    <CalendarCheck className="w-8 h-8 text-accent" />
+                    <p className="font-semibold">Attendance Tracking</p>
+                </div>
+                 <div className="flex flex-col items-center gap-2">
+                    <FileCheck className="w-8 h-8 text-accent" />
+                    <p className="font-semibold">Grade Management</p>
+                </div>
+                 <div className="flex flex-col items-center gap-2">
+                    <BarChart className="w-8 h-8 text-accent" />
+                    <p className="font-semibold">Insightful Analytics</p>
+                </div>
+                 <div className="flex flex-col items-center gap-2">
+                    <MessageSquare className="w-8 h-8 text-accent" />
+                    <p className="font-semibold">Seamless Communication</p>
+                </div>
             </div>
           </div>
         </section>
