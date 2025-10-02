@@ -1,6 +1,7 @@
-import { Building2 } from 'lucide-react';
+import { Building2, User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 export default function AboutPage() {
   return (
@@ -11,25 +12,25 @@ export default function AboutPage() {
             <Building2 className="h-6 w-6" />
             <span className="text-xl font-bold">CampusConnect</span>
           </Link>
-          <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
+          <nav className="flex items-center gap-6 text-sm font-medium">
             <Link
               href="/about"
-              className="font-bold"
+              className="hidden md:block font-bold"
             >
               About
             </Link>
             <Link
               href="/contact"
-              className="transition-colors hover:text-primary-foreground/80"
+              className="hidden md:block transition-colors hover:text-primary-foreground/80"
             >
               Contact
             </Link>
-             <Link
-              href="/login"
-              className="transition-colors hover:text-primary-foreground/80"
-            >
-              Login
-            </Link>
+             <Button variant="ghost" size="icon" asChild>
+                <Link href="/login">
+                  <User className="h-5 w-5" />
+                  <span className="sr-only">Login</span>
+                </Link>
+              </Button>
           </nav>
         </div>
       </header>

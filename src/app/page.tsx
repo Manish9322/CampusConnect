@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Building2, CalendarCheck, Users, GraduationCap, ArrowRight, CheckCircle2, Newspaper, Users2, BrainCircuit, BarChart, FileCheck, MessageSquare } from 'lucide-react';
+import { Building2, CalendarCheck, Users, GraduationCap, ArrowRight, CheckCircle2, Newspaper, Users2, BrainCircuit, BarChart, FileCheck, MessageSquare, User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -15,31 +15,26 @@ export default function HomePage() {
             <Building2 className="h-6 w-6" />
             <span className="text-xl font-bold">CampusConnect</span>
           </Link>
-          <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
+          <nav className="flex items-center gap-6 text-sm font-medium">
             <Link
               href="/about"
-              className="transition-colors hover:text-primary-foreground/80"
+              className="hidden md:block transition-colors hover:text-primary-foreground/80"
             >
               About
             </Link>
             <Link
               href="/contact"
-              className="transition-colors hover:text-primary-foreground/80"
+              className="hidden md:block transition-colors hover:text-primary-foreground/80"
             >
               Contact
             </Link>
-             <Link
-              href="/login"
-              className="transition-colors hover:text-primary-foreground/80"
-            >
-              Login
-            </Link>
+             <Button variant="ghost" size="icon" asChild>
+                <Link href="/login">
+                  <User className="h-5 w-5" />
+                  <span className="sr-only">Login</span>
+                </Link>
+              </Button>
           </nav>
-          <Button className="md:hidden" variant="ghost" size="icon" asChild>
-            <Link href="/login">
-                <Users className="h-6 w-6" />
-            </Link>
-          </Button>
         </div>
       </header>
 

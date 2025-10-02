@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Building2 } from 'lucide-react';
+import { Building2, User } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ContactPage() {
@@ -14,25 +14,25 @@ export default function ContactPage() {
             <Building2 className="h-6 w-6" />
             <span className="text-xl font-bold">CampusConnect</span>
           </Link>
-          <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
+          <nav className="flex items-center gap-6 text-sm font-medium">
             <Link
               href="/about"
-              className="transition-colors hover:text-primary-foreground/80"
+              className="hidden md:block transition-colors hover:text-primary-foreground/80"
             >
               About
             </Link>
             <Link
               href="/contact"
-               className="font-bold"
+               className="hidden md:block font-bold"
             >
               Contact
             </Link>
-             <Link
-              href="/login"
-              className="transition-colors hover:text-primary-foreground/80"
-            >
-              Login
-            </Link>
+             <Button variant="ghost" size="icon" asChild>
+                <Link href="/login">
+                  <User className="h-5 w-5" />
+                  <span className="sr-only">Login</span>
+                </Link>
+              </Button>
           </nav>
         </div>
       </header>
