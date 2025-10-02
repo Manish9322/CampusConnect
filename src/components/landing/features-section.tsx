@@ -1,7 +1,24 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, GraduationCap, CalendarCheck } from 'lucide-react';
 
 export function FeaturesSection() {
+  const features = [
+    {
+      icon: <Users className="h-10 w-10 text-primary" />,
+      title: 'For Students',
+      description: 'Easily check your attendance, view grades, access class schedules, and communicate with teachers all in one place.',
+    },
+    {
+      icon: <GraduationCap className="h-10 w-10 text-primary" />,
+      title: 'For Teachers',
+      description: 'Take attendance with a single click, manage your classes, post assignments, and communicate with students and parents effortlessly.',
+    },
+    {
+      icon: <CalendarCheck className="h-10 w-10 text-primary" />,
+      title: 'For Admins',
+      description: 'Oversee all school operations, manage student and teacher data, view real-time analytics, and generate insightful reports.',
+    },
+  ];
+
   return (
     <section className="w-full py-12 md:py-24 lg:py-32 bg-background">
       <div className="container px-4 md:px-6">
@@ -19,49 +36,25 @@ export function FeaturesSection() {
             </p>
           </div>
         </div>
-        <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:grid-cols-3 lg:max-w-none mt-12">
-          <Card className="bg-background hover:bg-accent/10 transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
-            <CardHeader className="flex flex-col items-center text-center p-8">
-              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-4">
-                <Users className="h-8 w-8" />
+        <div className="mx-auto grid max-w-5xl items-center gap-12 mt-16">
+          {features.map((feature, index) => (
+            <div
+              key={feature.title}
+              className="grid gap-6 md:grid-cols-2 md:items-center md:gap-12"
+            >
+              <div className={`flex justify-center ${index % 2 === 1 ? 'md:order-last' : ''}`}>
+                 <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary/10">
+                  {feature.icon}
+                </div>
               </div>
-              <CardTitle className="text-xl">For Students</CardTitle>
-            </CardHeader>
-            <CardContent className="text-center px-8 pb-8">
-              <p className="text-muted-foreground">
-                Easily check your attendance, view grades, access class schedules, and communicate
-                with teachers all in one place.
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="bg-background hover:bg-accent/10 transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
-            <CardHeader className="flex flex-col items-center text-center p-8">
-              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-4">
-                <GraduationCap className="h-8 w-8" />
+              <div className={`space-y-4 ${index % 2 === 1 ? 'md:text-right' : ''}`}>
+                <h3 className="text-2xl font-bold">{feature.title}</h3>
+                <p className="text-muted-foreground md:text-lg">
+                  {feature.description}
+                </p>
               </div>
-              <CardTitle className="text-xl">For Teachers</CardTitle>
-            </CardHeader>
-            <CardContent className="text-center px-8 pb-8">
-              <p className="text-muted-foreground">
-                Take attendance with a single click, manage your classes, post assignments,
-                and communicate with students and parents effortlessly.
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="bg-background hover:bg-accent/10 transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
-            <CardHeader className="flex flex-col items-center text-center p-8">
-              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-4">
-                <CalendarCheck className="h-8 w-8" />
-              </div>
-              <CardTitle className="text-xl">For Admins</CardTitle>
-            </CardHeader>
-            <CardContent className="text-center px-8 pb-8">
-              <p className="text-muted-foreground">
-                Oversee all school operations, manage student and teacher
-                data, view real-time analytics, and generate insightful reports.
-              </p>
-            </CardContent>
-          </Card>
+            </div>
+          ))}
         </div>
       </div>
     </section>
