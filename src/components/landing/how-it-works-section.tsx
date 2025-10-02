@@ -3,17 +3,17 @@ import { UserPlus, LogIn, LayoutDashboard } from 'lucide-react';
 export function HowItWorksSection() {
   const steps = [
     {
-      icon: <UserPlus className="h-8 w-8" />,
+      icon: <UserPlus className="h-10 w-10 text-primary" />,
       title: '1. Create Your Account',
       description: 'Sign up in minutes. Select your role as a student, teacher, or administrator and get instant access to your portal.',
     },
     {
-      icon: <LogIn className="h-8 w-8" />,
+      icon: <LogIn className="h-10 w-10 text-primary" />,
       title: '2. Access Your Dashboard',
       description: 'Log in to your personalized dashboard, where all your tools, classes, and information are waiting for you.',
     },
     {
-      icon: <LayoutDashboard className="h-8 w-8" />,
+      icon: <LayoutDashboard className="h-10 w-10 text-primary" />,
       title: '3. Manage & Collaborate',
       description: 'Take attendance, track progress, communicate, and engage with your entire campus community effortlessly.',
     },
@@ -33,20 +33,22 @@ export function HowItWorksSection() {
             Our platform is designed for a simple, intuitive, and powerful user experience. Here's how you get started.
           </p>
         </div>
-        <div className="relative mx-auto max-w-2xl">
+        <div className="mx-auto grid max-w-5xl items-center gap-12 mt-16">
           {steps.map((step, index) => (
-            <div key={index} className="relative flex items-start gap-8 animate-in fade-in slide-in-from-bottom-5 duration-500" style={{ animationDelay: `${index * 200}ms` }}>
-              <div className="flex flex-col items-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground ring-8 ring-muted">
+            <div
+              key={step.title}
+              className="grid gap-6 md:grid-cols-2 md:items-center md:gap-12"
+            >
+              <div className={`flex justify-center ${index % 2 === 1 ? 'md:order-last' : ''}`}>
+                 <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary/10">
                   {step.icon}
                 </div>
-                {index < steps.length - 1 && (
-                  <div className="w-0.5 h-24 bg-border mt-4"></div>
-                )}
               </div>
-              <div className="pt-4 flex-1">
-                <h3 className="text-2xl font-bold text-primary">{step.title}</h3>
-                <p className="mt-2 text-muted-foreground">{step.description}</p>
+              <div className={`space-y-4 ${index % 2 === 1 ? 'md:text-right' : ''}`}>
+                <h3 className="text-2xl font-bold">{step.title}</h3>
+                <p className="text-muted-foreground md:text-lg">
+                  {step.description}
+                </p>
               </div>
             </div>
           ))}
