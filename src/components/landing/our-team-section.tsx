@@ -1,12 +1,13 @@
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Linkedin, Github } from 'lucide-react';
 
 export function OurTeamSection() {
   const teamMembers = [
-    { name: 'John Doe', role: 'CEO & Founder', initials: 'JD', aiHint: 'man ceo' },
-    { name: 'Jane Smith', role: 'Lead Developer', initials: 'JS', aiHint: 'woman developer' },
-    { name: 'Mike Brown', role: 'UX/UI Designer', initials: 'MB', aiHint: 'man designer' },
-    { name: 'Sarah Wilson', role: 'Marketing Head', initials: 'SW', aiHint: 'woman marketing' },
+    { name: 'John Doe', role: 'CEO & Founder', initials: 'JD', aiHint: 'man ceo', linkedin: '#', github: '#' },
+    { name: 'Jane Smith', role: 'Lead Developer', initials: 'JS', aiHint: 'woman developer', linkedin: '#', github: '#' },
+    { name: 'Mike Brown', role: 'UX/UI Designer', initials: 'MB', aiHint: 'man designer', linkedin: '#', github: '#' },
+    { name: 'Sarah Wilson', role: 'Marketing Head', initials: 'SW', aiHint: 'woman marketing', linkedin: '#', github: '#' },
   ];
 
   return (
@@ -31,10 +32,19 @@ export function OurTeamSection() {
                   <AvatarImage src={`https://placehold.co/128x128.png`} data-ai-hint={member.aiHint} />
                   <AvatarFallback>{member.initials}</AvatarFallback>
                 </Avatar>
+                <div className="absolute inset-0 rounded-full border-2 border-transparent transition-all duration-300 group-hover:border-primary"></div>
               </div>
               <div className="mt-4">
                 <h3 className="text-lg font-bold text-primary">{member.name}</h3>
                 <p className="text-sm font-medium text-muted-foreground">{member.role}</p>
+                <div className="mt-2 flex justify-center gap-4">
+                  <a href={member.linkedin} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                    <Linkedin className="h-5 w-5" />
+                  </a>
+                  <a href={member.github} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                    <Github className="h-5 w-5" />
+                  </a>
+                </div>
               </div>
             </div>
           ))}
