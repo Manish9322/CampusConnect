@@ -1,11 +1,30 @@
+
+'use client';
 import Image from 'next/image';
+import { useInView } from 'react-intersection-observer';
+import { cn } from '@/lib/utils';
 
 export function VisionSection() {
+  const { ref, inView } = useInView({
+    triggerOnce: true,
+    threshold: 0.2,
+  });
+
   return (
-    <section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
+    <section
+      ref={ref}
+      className="w-full py-12 md:py-24 lg:py-32 bg-muted overflow-hidden"
+    >
       <div className="container px-4 md:px-6">
-        <div className="grid items-center gap-6 lg:grid-cols-2 lg:gap-12">
-          <div className="space-y-4 lg:order-last">
+        <div className="grid items-center gap-6 lg:grid-cols-2 lg:gap-16">
+          <div
+            className={cn(
+              'space-y-6 transition-all duration-700 ease-out',
+              inView
+                ? 'opacity-100 translate-x-0'
+                : 'opacity-0 -translate-x-12'
+            )}
+          >
             <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm">
               Our Vision
             </div>
@@ -13,19 +32,32 @@ export function VisionSection() {
               Shaping the Future of Learning.
             </h2>
             <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              Our vision is to create a globally connected educational ecosystem where technology
-              and human potential converge. We aim to break down barriers, foster lifelong learning,
-              and equip the next generation with the tools they need to build a better future.
+              Our vision is to create a globally connected educational
+              ecosystem where{' '}
+              <span className="text-accent font-semibold">technology</span> and
+              human potential converge. We aim to break down barriers, foster{' '}
+              <span className="text-accent font-semibold">
+                lifelong learning
+              </span>
+              , and equip the next generation with the tools they need to build
+              a better future.
             </p>
           </div>
-          <div className="flex justify-center">
+          <div
+            className={cn(
+              'flex justify-center transition-all duration-700 ease-out delay-200',
+              inView
+                ? 'opacity-100 translate-x-0'
+                : 'opacity-0 translate-x-12'
+            )}
+          >
             <Image
-              src="https://picsum.photos/seed/vision-image/550/400"
-              width="550"
-              height="400"
+              src="https://picsum.photos/seed/vision-v2/600/600"
+              width="600"
+              height="600"
               alt="Our Vision"
               className="mx-auto overflow-hidden rounded-xl object-cover"
-              data-ai-hint="futuristic cityscape"
+              data-ai-hint="futuristic abstract illustration"
             />
           </div>
         </div>
