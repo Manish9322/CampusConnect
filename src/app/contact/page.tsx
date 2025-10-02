@@ -1,45 +1,18 @@
+import { PublicHeader } from '@/components/shared/public-header';
+import { PublicFooter } from '@/components/shared/public-footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Building2, User } from 'lucide-react';
-import Link from 'next/link';
 
 export default function ContactPage() {
   return (
     <div className="flex flex-col min-h-screen">
-        <header className="bg-primary text-primary-foreground">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-          <Link href="/" className="flex items-center gap-2 font-semibold">
-            <Building2 className="h-6 w-6" />
-            <span className="text-xl font-bold">CampusConnect</span>
-          </Link>
-          <nav className="flex items-center gap-6 text-sm font-medium">
-            <Link
-              href="/about"
-              className="hidden md:block transition-colors hover:text-primary-foreground/80"
-            >
-              About
-            </Link>
-            <Link
-              href="/contact"
-               className="hidden md:block font-bold"
-            >
-              Contact
-            </Link>
-             <Button variant="ghost" size="icon" asChild>
-                <Link href="/login">
-                  <User className="h-5 w-5" />
-                  <span className="sr-only">Login</span>
-                </Link>
-              </Button>
-          </nav>
-        </div>
-      </header>
+      <PublicHeader active="contact" />
       <main className="flex-1">
         <section className="w-full py-12 md:py-24 lg:py-32">
-          <div className="container grid gap-12 px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center animate-in fade-in slide-in-from-bottom-8 duration-700">
               <div className="space-y-2">
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl">
                   Get in Touch
@@ -49,7 +22,7 @@ export default function ContactPage() {
                 </p>
               </div>
             </div>
-            <div className="mx-auto w-full max-w-sm space-y-4">
+            <div className="mx-auto mt-12 w-full max-w-sm space-y-4 animate-in fade-in slide-in-from-bottom-12 duration-700 delay-200">
               <div className="grid gap-2">
                 <Label htmlFor="name">Name</Label>
                 <Input id="name" placeholder="Enter your name" />
@@ -60,7 +33,7 @@ export default function ContactPage() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="message">Message</Label>
-                <Textarea id="message" placeholder="Enter your message" className="min-h-[100px]" />
+                <Textarea id="message" placeholder="Enter your message" className="min-h-[120px]" />
               </div>
               <Button type="submit" className="w-full">
                 Send Message
@@ -69,11 +42,7 @@ export default function ContactPage() {
           </div>
         </section>
       </main>
-       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
-        <p className="text-xs text-muted-foreground">
-          &copy; 2024 CampusConnect. All rights reserved.
-        </p>
-      </footer>
+      <PublicFooter />
     </div>
   );
 }
