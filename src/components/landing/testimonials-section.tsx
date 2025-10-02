@@ -44,6 +44,22 @@ export function TestimonialsSection() {
       avatar: "https://placehold.co/40x40.png",
       aiHint: "female scientist",
       initials: "MC"
+    },
+    {
+        quote: "The integration with our existing SIS was seamless. The support team was fantastic.",
+        name: "John von Neumann",
+        role: "IT Director",
+        avatar: "https://placehold.co/40x40.png",
+        aiHint: "male professional",
+        initials: "JVN"
+    },
+    {
+        quote: "I love the mobile app. It's so convenient to check my schedule and get notifications on the go.",
+        name: "Grace Hopper",
+        role: "Engineering Student",
+        avatar: "https://placehold.co/40x40.png",
+        aiHint: "female student",
+        initials: "GH"
     }
   ];
 
@@ -66,11 +82,11 @@ export function TestimonialsSection() {
             align: "start",
             loop: true,
           }}
-          className="w-full max-w-4xl mx-auto"
+          className="w-full max-w-6xl mx-auto"
         >
           <CarouselContent>
             {testimonials.map((testimonial, index) => (
-              <CarouselItem key={index} className="md:basis-1/2">
+              <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
                 <div className="p-8 h-full">
                   <blockquote className="text-lg font-semibold leading-snug lg:text-xl lg:leading-normal">
                     “{testimonial.quote}”
