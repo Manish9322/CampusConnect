@@ -8,6 +8,7 @@ import { StorySection } from '@/components/about/story-section';
 import { PublicFooter } from '@/components/shared/public-footer';
 import { OurTeamSection } from '@/components/landing/our-team-section';
 import { AchievementsSection } from '@/components/about/achievements-section';
+import { PartnersSection } from '@/components/about/partners-section';
 
 export default function AboutPage() {
   return (
@@ -22,6 +23,7 @@ export default function AboutPage() {
         <CoreValuesSection />
         <StorySection />
         <OurTeamSection />
+        <PartnersSection />
       </main>
       <PublicFooter />
     </div>
