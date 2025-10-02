@@ -33,20 +33,20 @@ export function HowItWorksSection() {
             Our platform is designed for a simple, intuitive, and powerful user experience. Here's how you get started.
           </p>
         </div>
-        <div className="relative mx-auto max-w-5xl">
-          <div className="absolute left-1/2 top-0 h-full w-0.5 -translate-x-1/2 bg-border"></div>
+        <div className="relative mx-auto max-w-2xl">
           {steps.map((step, index) => (
-            <div key={index} className="relative flex items-center justify-center mb-16 last:mb-0">
-              <div className={`flex w-full items-center ${index % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
-                <div className={`w-1/2 ${index % 2 === 0 ? 'pr-8 text-right' : 'pl-8 text-left'}`}>
-                  <h3 className="text-2xl font-bold text-primary">{step.title}</h3>
-                  <p className="mt-2 text-muted-foreground">{step.description}</p>
-                </div>
-              </div>
-              <div className="absolute left-1/2 -translate-x-1/2 transform">
+            <div key={index} className="relative flex items-start gap-8 animate-in fade-in slide-in-from-bottom-5 duration-500" style={{ animationDelay: `${index * 200}ms` }}>
+              <div className="flex flex-col items-center">
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground ring-8 ring-muted">
                   {step.icon}
                 </div>
+                {index < steps.length - 1 && (
+                  <div className="w-0.5 h-24 bg-border mt-4"></div>
+                )}
+              </div>
+              <div className="pt-4 flex-1">
+                <h3 className="text-2xl font-bold text-primary">{step.title}</h3>
+                <p className="mt-2 text-muted-foreground">{step.description}</p>
               </div>
             </div>
           ))}
