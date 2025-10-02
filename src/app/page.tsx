@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Building2, CalendarCheck, Users, GraduationCap, ArrowRight, CheckCircle2, Newspaper, Users2, BrainCircuit, BarChart, FileCheck, MessageSquare, User } from 'lucide-react';
+import { Building2, CalendarCheck, Users, GraduationCap, ArrowRight, CheckCircle2, Newspaper, Users2, BrainCircuit, BarChart, FileCheck, MessageSquare, User, Briefcase, School } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -40,71 +40,80 @@ export default function HomePage() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="w-full py-20 md:py-32 lg:py-40 bg-background">
+        <section className="w-full py-20 md:py-32 lg:py-40 bg-gradient-to-br from-background to-muted/50">
           <div className="container px-4 md:px-6">
             <div className="grid gap-6 lg:grid-cols-[1fr_500px] lg:gap-12 xl:grid-cols-[1fr_600px]">
               <div className="flex flex-col justify-center space-y-6">
                 <div className="space-y-4">
+                   <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm font-medium text-primary">
+                    The Future of Education Management
+                  </div>
                   <h1 className="text-4xl font-bold tracking-tighter text-primary sm:text-5xl xl:text-6xl/none">
-                    Welcome to CampusConnect
+                    Empowering Educational Institutions with AI
                   </h1>
                   <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                    The all-in-one platform for managing your campus life.
-                    Seamlessly connect students, teachers, and administrators.
+                    CampusConnect is an all-in-one, AI-driven platform that seamlessly connects students, teachers, and administrators to create a more efficient and engaging learning environment.
                   </p>
                 </div>
                 <div className="flex flex-col gap-4 min-[400px]:flex-row">
-                  <Button asChild size="lg" className="bg-accent hover:bg-accent/90">
+                  <Button asChild size="lg" className="bg-accent hover:bg-accent/90 shadow-lg">
                     <Link href="/login">Get Started <ArrowRight className="ml-2 h-5 w-5" /></Link>
                   </Button>
-                  <Button asChild size="lg" variant="outline">
+                  <Button asChild size="lg" variant="outline" className="shadow-sm">
                     <Link href="/contact">Request a Demo</Link>
                   </Button>
                 </div>
-                 <div className="flex items-center gap-4 pt-4">
-                    <div className="flex -space-x-2">
-                        <Avatar className="border-2 border-background">
-                            <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="male portrait" />
-                            <AvatarFallback>U1</AvatarFallback>
-                        </Avatar>
-                        <Avatar className="border-2 border-background">
-                            <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="female portrait" />
-                            <AvatarFallback>U2</AvatarFallback>
-                        </Avatar>
-                         <Avatar className="border-2 border-background">
-                            <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="person portrait" />
-                            <AvatarFallback>U3</AvatarFallback>
-                        </Avatar>
+                 <div className="grid grid-cols-3 gap-4 pt-6">
+                    <div className="flex flex-col items-start gap-1">
+                        <div className="flex items-center gap-2">
+                           <School className="w-5 h-5 text-accent" />
+                           <span className="text-2xl font-bold">50+</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">Institutions</p>
                     </div>
-                    <p className="text-sm text-muted-foreground font-medium">Trusted by over 10,000+ students and faculty.</p>
+                     <div className="flex flex-col items-start gap-1">
+                        <div className="flex items-center gap-2">
+                            <Users2 className="w-5 h-5 text-accent" />
+                            <span className="text-2xl font-bold">10k+</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">Users</p>
+                    </div>
+                     <div className="flex flex-col items-start gap-1">
+                         <div className="flex items-center gap-2">
+                            <Briefcase className="w-5 h-5 text-accent" />
+                            <span className="text-2xl font-bold">1k+</span>
+                         </div>
+                        <p className="text-sm text-muted-foreground">Classes Managed</p>
+                    </div>
                 </div>
               </div>
-               <Image
-                src="https://placehold.co/600x400.png"
-                width="600"
-                height="400"
-                alt="Campus"
-                className="mx-auto aspect-video overflow-hidden rounded-xl object-cover sm:w-full lg:order-last"
-                data-ai-hint="university campus"
-              />
-            </div>
-             <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-                <div className="flex flex-col items-center gap-2">
-                    <CalendarCheck className="w-8 h-8 text-accent" />
-                    <p className="font-semibold">Attendance Tracking</p>
-                </div>
-                 <div className="flex flex-col items-center gap-2">
-                    <FileCheck className="w-8 h-8 text-accent" />
-                    <p className="font-semibold">Grade Management</p>
-                </div>
-                 <div className="flex flex-col items-center gap-2">
-                    <BarChart className="w-8 h-8 text-accent" />
-                    <p className="font-semibold">Insightful Analytics</p>
-                </div>
-                 <div className="flex flex-col items-center gap-2">
-                    <MessageSquare className="w-8 h-8 text-accent" />
-                    <p className="font-semibold">Seamless Communication</p>
-                </div>
+               <div className="relative">
+                  <Image
+                    src="https://placehold.co/600x600.png"
+                    width="600"
+                    height="600"
+                    alt="Campus"
+                    className="mx-auto aspect-square overflow-hidden rounded-xl object-cover sm:w-full lg:order-last animate-in fade-in zoom-in-95 duration-500"
+                    data-ai-hint="university students collaborating"
+                  />
+                  <div className="absolute -bottom-8 -right-8 w-48 hidden md:block">
+                     <div className="bg-background/80 backdrop-blur-sm p-4 rounded-lg shadow-xl border">
+                        <div className="flex items-center gap-4">
+                            <div className="flex -space-x-2">
+                                <Avatar className="border-2 border-background h-10 w-10">
+                                    <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="male portrait" />
+                                    <AvatarFallback>U1</AvatarFallback>
+                                </Avatar>
+                                <Avatar className="border-2 border-background h-10 w-10">
+                                    <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="female portrait" />
+                                    <AvatarFallback>U2</AvatarFallback>
+                                </Avatar>
+                            </div>
+                            <p className="text-xs text-muted-foreground font-medium">Trusted by leading educators worldwide.</p>
+                        </div>
+                    </div>
+                  </div>
+               </div>
             </div>
           </div>
         </section>
