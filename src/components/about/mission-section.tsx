@@ -1,38 +1,31 @@
 
 'use client';
-import Image from 'next/image';
 
 export function MissionSection() {
   return (
-    <section className="w-full py-12 md:py-24 lg:py-32 bg-background overflow-hidden">
-      <div className="container px-4 md:px-6">
-        <div className="grid items-center gap-6 lg:grid-cols-2 lg:gap-16">
-          <div className="animate-in fade-in slide-in-from-left-12 duration-700">
-            <Image
-              src="https://picsum.photos/seed/mission-v2/600/600"
-              width="600"
-              height="600"
-              alt="Our Mission"
-              className="mx-auto overflow-hidden rounded-xl object-cover"
-              data-ai-hint="abstract geometric shapes"
-            />
+    <section className="relative w-full overflow-hidden bg-muted/50 py-12 md:py-24 lg:py-32">
+      <div
+        className="absolute inset-0 bg-repeat opacity-5"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        }}
+      ></div>
+      <div className="container relative px-4 md:px-6">
+        <div className="flex flex-col items-center justify-center space-y-6 text-center">
+          <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm font-medium">
+            Our Mission
           </div>
-          <div className="space-y-6 animate-in fade-in slide-in-from-right-12 duration-700 delay-200">
-            <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm">
-              Our Mission
-            </div>
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-              Empowering Education, Together.
-            </h2>
-            <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              Our mission is to empower students, teachers, and administrators with{' '}
-              <span className="text-accent font-semibold">intuitive tools</span> that foster{' '}
-              <span className="text-accent font-semibold">collaboration</span>, enhance learning, and simplify
-              campus management. We believe in the power of{' '}
-              <span className="text-accent font-semibold">technology</span> to create
-              a more connected and efficient educational environment.
-            </p>
-          </div>
+          <h2 className="max-w-3xl text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+            Empowering Education, Together.
+          </h2>
+          <p className="mx-auto max-w-3xl text-muted-foreground md:text-xl/relaxed">
+            Our mission is to empower students, teachers, and administrators with{' '}
+            <span className="text-accent font-semibold">intuitive tools</span> that foster{' '}
+            <span className="text-accent font-semibold">collaboration</span>, enhance learning, and simplify
+            campus management. We believe in the power of{' '}
+            <span className="text-accent font-semibold">technology</span> to create
+            a more connected and efficient educational environment for everyone.
+          </p>
         </div>
       </div>
     </section>
