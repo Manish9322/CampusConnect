@@ -1,8 +1,9 @@
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Building2, CalendarCheck, Users, GraduationCap, ArrowRight, CheckCircle2, Newspaper, Users2, BrainCircuit, BarChart, FileCheck, MessageSquare, User, Briefcase, School, UserPlus, LogIn, LayoutDashboard } from 'lucide-react';
+import { Building2, CalendarCheck, Users, GraduationCap, ArrowRight, CheckCircle2, Newspaper, Users2, BrainCircuit, BarChart, FileCheck, MessageSquare, User, Briefcase, School, UserPlus, LogIn, LayoutDashboard, MonitorSmartphone, DatabaseZap, BellRing, LineChart } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -240,47 +241,74 @@ export default function HomePage() {
           </div>
         </section>
         
-        {/* Detailed Features */}
+        {/* Powerful Tools Section */}
         <section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
-            <div className="container grid items-center gap-6 px-4 md:px-6 lg:grid-cols-2 lg:gap-10">
-                <div className="space-y-4">
+            <div className="container px-4 md:px-6">
+                <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
                     <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm">
                         Powerful Tools
                     </div>
                     <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">
                         Streamline Campus Operations
                     </h2>
-                    <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                    <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                         From attendance tracking to data analytics, CampusConnect provides a comprehensive suite of tools to enhance efficiency and collaboration.
                     </p>
-                    <ul className="grid gap-4">
-                        <li className="flex items-center gap-2">
-                            <CheckCircle2 className="h-5 w-5 text-accent" />
-                            <span>Real-time attendance monitoring</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                            <CheckCircle2 className="h-5 w-5 text-accent" />
-                            <span>Centralized student & teacher database</span>
-                        </li>
-                         <li className="flex items-center gap-2">
-                            <CheckCircle2 className="h-5 w-5 text-accent" />
-                            <span>Automated notifications and alerts</span>
-                        </li>
-                         <li className="flex items-center gap-2">
-                            <CheckCircle2 className="h-5 w-5 text-accent" />
-                            <span>AI-Powered Insights</span>
-                        </li>
-                    </ul>
                 </div>
-                <div className="flex justify-center">
-                    <Image
-                        src="https://placehold.co/550x310.png"
-                        width="550"
-                        height="310"
-                        alt="Feature"
-                        className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full"
-                        data-ai-hint="dashboard analytics"
-                    />
+
+                <div className="mx-auto grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                    <Card className="group bg-background/50 hover:bg-background transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                        <CardHeader className="flex flex-row items-center gap-4">
+                            <div className="bg-primary/10 p-3 rounded-full">
+                                <MonitorSmartphone className="h-6 w-6 text-primary" />
+                            </div>
+                            <CardTitle className="text-lg">Real-time Attendance</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-sm text-muted-foreground">
+                                Monitor student attendance instantly with our cross-platform attendance system.
+                            </p>
+                        </CardContent>
+                    </Card>
+                    <Card className="group bg-background/50 hover:bg-background transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                        <CardHeader className="flex flex-row items-center gap-4">
+                             <div className="bg-primary/10 p-3 rounded-full">
+                                <DatabaseZap className="h-6 w-6 text-primary" />
+                            </div>
+                            <CardTitle className="text-lg">Centralized Database</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-sm text-muted-foreground">
+                                A single source of truth for all student, teacher, and class information.
+                            </p>
+                        </CardContent>
+                    </Card>
+                    <Card className="group bg-background/50 hover:bg-background transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                        <CardHeader className="flex flex-row items-center gap-4">
+                             <div className="bg-primary/10 p-3 rounded-full">
+                                <BellRing className="h-6 w-6 text-primary" />
+                            </div>
+                            <CardTitle className="text-lg">Automated Alerts</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-sm text-muted-foreground">
+                                Set up automated notifications for low attendance, important announcements, and more.
+                            </p>
+                        </CardContent>
+                    </Card>
+                    <Card className="group bg-background/50 hover:bg-background transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                        <CardHeader className="flex flex-row items-center gap-4">
+                            <div className="bg-primary/10 p-3 rounded-full">
+                                <LineChart className="h-6 w-6 text-primary" />
+                            </div>
+                            <CardTitle className="text-lg">AI-Powered Insights</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-sm text-muted-foreground">
+                                Gain actionable insights into campus trends and student performance with AI analytics.
+                            </p>
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
         </section>
