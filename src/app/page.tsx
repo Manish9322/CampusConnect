@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Building2, CalendarCheck, Users, GraduationCap, ArrowRight, CheckCircle2, Newspaper, Users2, BrainCircuit, BarChart, FileCheck, MessageSquare, User, Briefcase, School } from 'lucide-react';
+import { Building2, CalendarCheck, Users, GraduationCap, ArrowRight, CheckCircle2, Newspaper, Users2, BrainCircuit, BarChart, FileCheck, MessageSquare, User, Briefcase, School, UserPlus, LogIn, LayoutDashboard } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -40,7 +40,7 @@ export default function HomePage() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-br from-background to-muted/50">
+        <section className="w-full py-12 md:py-20 lg:py-24 bg-gradient-to-br from-background to-muted/50">
           <div className="container px-4 md:px-6">
             <div className="grid gap-6 lg:grid-cols-[1fr_500px] lg:gap-12 xl:grid-cols-[1fr_600px]">
               <div className="flex flex-col justify-center space-y-6">
@@ -126,34 +126,52 @@ export default function HomePage() {
                         How It Works
                     </div>
                     <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">
-                        Get Started in 3 Easy Steps
+                        A Seamless, Connected Experience
                     </h2>
                     <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                        Our platform is designed to be intuitive and easy to use.
+                        Our platform is designed for a simple, intuitive, and powerful user experience. Here's how you get started.
                     </p>
                 </div>
-                <div className="grid gap-8 md:grid-cols-3">
-                    <div className="flex flex-col items-center text-center">
-                        <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground mb-4">
-                            <span className="text-2xl font-bold">1</span>
-                        </div>
-                        <h3 className="text-xl font-bold mb-2">Sign Up</h3>
-                        <p className="text-muted-foreground">Create an account as a student, teacher, or administrator.</p>
-                    </div>
-                    <div className="flex flex-col items-center text-center">
-                        <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground mb-4">
-                           <span className="text-2xl font-bold">2</span>
-                        </div>
-                        <h3 className="text-xl font-bold mb-2">Login to Your Portal</h3>
-                        <p className="text-muted-foreground">Access your personalized dashboard with all the tools you need.</p>
-                    </div>
-                    <div className="flex flex-col items-center text-center">
-                        <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground mb-4">
-                           <span className="text-2xl font-bold">3</span>
-                        </div>
-                        <h3 className="text-xl font-bold mb-2">Manage & Connect</h3>
-                        <p className="text-muted-foreground">Engage with your campus community effortlessly.</p>
-                    </div>
+                <div className="mx-auto grid gap-8 md:grid-cols-3">
+                     <Card className="text-center">
+                        <CardHeader>
+                            <div className="flex justify-center mb-4">
+                                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary">
+                                    <UserPlus className="w-8 h-8" />
+                                </div>
+                            </div>
+                            <CardTitle>1. Create Your Account</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-muted-foreground">Sign up in minutes. Select your role as a student, teacher, or administrator and get instant access to your portal.</p>
+                        </CardContent>
+                    </Card>
+                    <Card className="text-center">
+                         <CardHeader>
+                            <div className="flex justify-center mb-4">
+                                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary">
+                                    <LogIn className="w-8 h-8" />
+                                </div>
+                            </div>
+                            <CardTitle>2. Access Your Dashboard</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                           <p className="text-muted-foreground">Log in to your personalized dashboard, where all your tools, classes, and information are waiting for you.</p>
+                        </CardContent>
+                    </Card>
+                    <Card className="text-center">
+                         <CardHeader>
+                            <div className="flex justify-center mb-4">
+                                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary">
+                                    <LayoutDashboard className="w-8 h-8" />
+                                </div>
+                            </div>
+                            <CardTitle>3. Manage & Collaborate</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-muted-foreground">Take attendance, track progress, communicate, and engage with your entire campus community effortlessly.</p>
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
         </section>
