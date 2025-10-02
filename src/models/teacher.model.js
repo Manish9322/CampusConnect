@@ -2,10 +2,13 @@
 // This file was created to define a data schema as requested.
 // The standard architecture for this project uses TypeScript interfaces (see src/lib/types.ts)
 // and Firebase for data modeling, not Mongoose-style schemas. This file is not
-// currently integrated with the rest of the application.
+// currently integrated with the rest of the application and will not function
+// without a connection to a MongoDB database.
 
-// Mongoose-like schema definition for a Teacher
-const teacherSchema = {
+import mongoose from 'mongoose';
+
+// Mongoose schema definition for a Teacher
+const teacherSchema = new mongoose.Schema({
   teacherId: {
     type: String,
     required: true,
@@ -44,12 +47,8 @@ const teacherSchema = {
     type: String,
     default: 'teacher',
   },
-};
+}, { timestamps: true });
 
-// In a Mongoose setup, you would create a model like this:
-// import mongoose from 'mongoose';
-// const schema = new mongoose.Schema(teacherSchema, { timestamps: true });
-// export const Teacher = mongoose.models.Teacher || mongoose.model('Teacher', schema);
-
-// For the purpose of this file, we'll just export the schema object.
-module.exports = teacherSchema;
+// In a Mongoose setup, you would create and export a model like this.
+// This line will cause an error if a MongoDB connection is not established.
+export const Teacher = mongoose.models.Teacher || mongoose.model('Teacher', teacherSchema);
