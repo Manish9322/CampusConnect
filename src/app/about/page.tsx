@@ -1,6 +1,7 @@
 import { PublicHeader } from '@/components/shared/public-header';
 import { AboutHero } from '@/components/about/about-hero';
 import { MissionSection } from '@/components/about/mission-section';
+import { VisionSection } from '@/components/about/vision-section';
 import { PublicFooter } from '@/components/shared/public-footer';
 
 export default function AboutPage() {
@@ -10,6 +11,7 @@ export default function AboutPage() {
       <main className="flex-1">
         <AboutHero />
         <MissionSection />
+        <VisionSection />
       </main>
       <PublicFooter />
     </div>
