@@ -2,6 +2,13 @@ import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export function OurTeamSection() {
+  const teamMembers = [
+    { name: 'John Doe', role: 'CEO & Founder', initials: 'JD', aiHint: 'man ceo' },
+    { name: 'Jane Smith', role: 'Lead Developer', initials: 'JS', aiHint: 'woman developer' },
+    { name: 'Mike Brown', role: 'UX/UI Designer', initials: 'MB', aiHint: 'man designer' },
+    { name: 'Sarah Wilson', role: 'Marketing Head', initials: 'SW', aiHint: 'woman marketing' },
+  ];
+
   return (
     <section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
       <div className="container px-4 md:px-6">
@@ -16,47 +23,21 @@ export function OurTeamSection() {
             The passionate minds dedicated to improving education through technology.
           </p>
         </div>
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <Avatar className="w-24 h-24 mx-auto mb-4">
-                <AvatarImage src="https://placehold.co/100x100.png" data-ai-hint="man ceo" />
-                <AvatarFallback>JD</AvatarFallback>
-              </Avatar>
-              <CardTitle className="text-lg">John Doe</CardTitle>
-              <p className="text-sm text-muted-foreground">CEO & Founder</p>
-            </CardContent>
-          </Card>
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <Avatar className="w-24 h-24 mx-auto mb-4">
-                <AvatarImage src="https://placehold.co/100x100.png" data-ai-hint="woman developer" />
-                <AvatarFallback>JS</AvatarFallback>
-              </Avatar>
-              <CardTitle className="text-lg">Jane Smith</CardTitle>
-              <p className="text-sm text-muted-foreground">Lead Developer</p>
-            </CardContent>
-          </Card>
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <Avatar className="w-24 h-24 mx-auto mb-4">
-                <AvatarImage src="https://placehold.co/100x100.png" data-ai-hint="man designer" />
-                <AvatarFallback>MB</AvatarFallback>
-              </Avatar>
-              <CardTitle className="text-lg">Mike Brown</CardTitle>
-              <p className="text-sm text-muted-foreground">UX/UI Designer</p>
-            </CardContent>
-          </Card>
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <Avatar className="w-24 h-24 mx-auto mb-4">
-                <AvatarImage src="https://placehold.co/100x100.png" data-ai-hint="woman marketing" />
-                <AvatarFallback>SW</AvatarFallback>
-              </Avatar>
-              <CardTitle className="text-lg">Sarah Wilson</CardTitle>
-              <p className="text-sm text-muted-foreground">Marketing Head</p>
-            </CardContent>
-          </Card>
+        <div className="mx-auto grid max-w-5xl grid-cols-2 gap-y-10 gap-x-6 sm:grid-cols-2 md:grid-cols-4 lg:gap-x-8">
+          {teamMembers.map((member) => (
+            <div key={member.name} className="flex flex-col items-center text-center group">
+              <div className="relative">
+                <Avatar className="w-24 h-24 md:w-32 md:h-32 transition-transform duration-300 ease-in-out group-hover:scale-105">
+                  <AvatarImage src={`https://placehold.co/128x128.png`} data-ai-hint={member.aiHint} />
+                  <AvatarFallback>{member.initials}</AvatarFallback>
+                </Avatar>
+              </div>
+              <div className="mt-4">
+                <h3 className="text-lg font-bold text-primary">{member.name}</h3>
+                <p className="text-sm font-medium text-muted-foreground">{member.role}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
