@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MonitorSmartphone, DatabaseZap, BellRing, LineChart } from 'lucide-react';
 
 export function PowerfulToolsSection() {
@@ -17,59 +16,51 @@ export function PowerfulToolsSection() {
           </p>
         </div>
 
-        <div className="mx-auto grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          <Card className="group bg-background/50 hover:bg-background transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-            <CardHeader className="flex flex-row items-center gap-4">
-              <div className="bg-primary/10 p-3 rounded-full">
-                <MonitorSmartphone className="h-6 w-6 text-primary" />
-              </div>
-              <CardTitle className="text-lg">Real-time Attendance</CardTitle>
-            </CardHeader>
-            <CardContent>
+        <div className="mx-auto grid max-w-5xl gap-10 sm:grid-cols-2 md:gap-12 lg:grid-cols-4">
+          <div className="flex flex-col items-center text-center gap-4 group">
+            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+              <MonitorSmartphone className="h-8 w-8" />
+            </div>
+            <div className="grid gap-1">
+              <h3 className="text-lg font-bold">Real-time Attendance</h3>
               <p className="text-sm text-muted-foreground">
                 Monitor student attendance instantly with our cross-platform attendance system.
               </p>
-            </CardContent>
-          </Card>
-          <Card className="group bg-background/50 hover:bg-background transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-            <CardHeader className="flex flex-row items-center gap-4">
-              <div className="bg-primary/10 p-3 rounded-full">
-                <DatabaseZap className="h-6 w-6 text-primary" />
-              </div>
-              <CardTitle className="text-lg">Centralized Database</CardTitle>
-            </CardHeader>
-            <CardContent>
+            </div>
+          </div>
+          <div className="flex flex-col items-center text-center gap-4 group">
+            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+              <DatabaseZap className="h-8 w-8" />
+            </div>
+            <div className="grid gap-1">
+              <h3 className="text-lg font-bold">Centralized Database</h3>
               <p className="text-sm text-muted-foreground">
                 A single source of truth for all student, teacher, and class information.
               </p>
-            </CardContent>
-          </Card>
-          <Card className="group bg-background/50 hover:bg-background transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-            <CardHeader className="flex flex-row items-center gap-4">
-              <div className="bg-primary/10 p-3 rounded-full">
-                <BellRing className="h-6 w-6 text-primary" />
-              </div>
-              <CardTitle className="text-lg">Automated Alerts</CardTitle>
-            </CardHeader>
-            <CardContent>
+            </div>
+          </div>
+          <div className="flex flex-col items-center text-center gap-4 group">
+             <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+              <BellRing className="h-8 w-8" />
+            </div>
+            <div className="grid gap-1">
+              <h3 className="text-lg font-bold">Automated Alerts</h3>
               <p className="text-sm text-muted-foreground">
                 Set up automated notifications for low attendance, important announcements, and more.
               </p>
-            </CardContent>
-          </Card>
-          <Card className="group bg-background/50 hover:bg-background transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-            <CardHeader className="flex flex-row items-center gap-4">
-              <div className="bg-primary/10 p-3 rounded-full">
-                <LineChart className="h-6 w-6 text-primary" />
-              </div>
-              <CardTitle className="text-lg">AI-Powered Insights</CardTitle>
-            </CardHeader>
-            <CardContent>
+            </div>
+          </div>
+          <div className="flex flex-col items-center text-center gap-4 group">
+            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+              <LineChart className="h-8 w-8" />
+            </div>
+            <div className="grid gap-1">
+              <h3 className="text-lg font-bold">AI-Powered Insights</h3>
               <p className="text-sm text-muted-foreground">
                 Gain actionable insights into campus trends and student performance with AI analytics.
               </p>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
     </section>
