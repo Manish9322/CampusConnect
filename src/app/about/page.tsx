@@ -7,6 +7,7 @@ import { CoreValuesSection } from '@/components/about/core-values-section';
 import { StorySection } from '@/components/about/story-section';
 import { PublicFooter } from '@/components/shared/public-footer';
 import { OurTeamSection } from '@/components/landing/our-team-section';
+import { AchievementsSection } from '@/components/about/achievements-section';
 
 export default function AboutPage() {
   return (
@@ -16,6 +17,7 @@ export default function AboutPage() {
         <AboutHero />
         <MissionSection />
         <VisionSection />
+        <AchievementsSection />
         <WhyChooseUsSection />
         <CoreValuesSection />
         <StorySection />
