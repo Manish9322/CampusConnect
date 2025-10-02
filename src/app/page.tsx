@@ -133,7 +133,7 @@ export default function HomePage() {
                     </p>
                 </div>
                 <div className="mx-auto grid gap-8 md:grid-cols-3">
-                     <Card className="text-center">
+                     <Card className="text-center bg-background/50 hover:bg-background transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
                         <CardHeader>
                             <div className="flex justify-center mb-4">
                                 <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary">
@@ -146,7 +146,7 @@ export default function HomePage() {
                             <p className="text-muted-foreground">Sign up in minutes. Select your role as a student, teacher, or administrator and get instant access to your portal.</p>
                         </CardContent>
                     </Card>
-                    <Card className="text-center">
+                    <Card className="text-center bg-background/50 hover:bg-background transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
                          <CardHeader>
                             <div className="flex justify-center mb-4">
                                 <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary">
@@ -159,7 +159,7 @@ export default function HomePage() {
                            <p className="text-muted-foreground">Log in to your personalized dashboard, where all your tools, classes, and information are waiting for you.</p>
                         </CardContent>
                     </Card>
-                    <Card className="text-center">
+                    <Card className="text-center bg-background/50 hover:bg-background transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
                          <CardHeader>
                             <div className="flex justify-center mb-4">
                                 <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary">
