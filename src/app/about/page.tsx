@@ -35,13 +35,14 @@ export default function AboutPage() {
         </div>
       </header>
       <main className="flex-1">
-        <section className="w-full py-12 md:py-24 lg:py-32">
-          <div className="container px-4 md:px-6">
+        <section className="relative w-full py-20 md:py-32 lg:py-40 bg-cover bg-center" style={{ backgroundImage: "url('https://picsum.photos/seed/about-hero/1200/600')" }}>
+          <div className="absolute inset-0 bg-primary/80" />
+          <div className="relative container px-4 md:px-6">
             <div className="flex flex-col items-center space-y-4 text-center">
-              <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-                About CampusConnect
+              <h1 className="text-4xl font-bold tracking-tighter text-primary-foreground sm:text-5xl md:text-6xl">
+                Connecting the Future of Education
               </h1>
-              <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
+              <p className="mx-auto max-w-[700px] text-primary-foreground/80 md:text-xl">
                 We are dedicated to revolutionizing the educational experience by providing a seamless, unified platform for academic institutions.
               </p>
             </div>
@@ -59,7 +60,7 @@ export default function AboutPage() {
             </div>
             <div className="flex justify-center">
               <Image
-                src="https://placehold.co/550x310.png"
+                src="https://picsum.photos/seed/1/550/310"
                 width="550"
                 height="310"
                 alt="Our Mission"
