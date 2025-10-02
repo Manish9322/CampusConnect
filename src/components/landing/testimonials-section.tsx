@@ -1,7 +1,52 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+"use client"
+
+import * as React from "react"
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
 
 export function TestimonialsSection() {
+  const testimonials = [
+    {
+      quote: "CampusConnect has revolutionized how we manage attendance. It's saved us countless hours.",
+      name: "Dr. Alan Turing",
+      role: "Head of Computer Science",
+      avatar: "https://placehold.co/40x40.png",
+      aiHint: "male portrait",
+      initials: "AT"
+    },
+    {
+      quote: "As a student, it's so easy to keep track of my classes and grades. Everything is in one place!",
+      name: "Alice Johnson",
+      role: "Computer Science Student",
+      avatar: "https://placehold.co/40x40.png",
+      aiHint: "female portrait",
+      initials: "AJ"
+    },
+    {
+      quote: "The admin dashboard gives us a complete overview of the entire institution at a glance. It's incredibly powerful.",
+      name: "Admin User",
+      role: "University Administrator",
+      avatar: "https://placehold.co/40x40.png",
+      aiHint: "person portrait",
+      initials: "AU"
+    },
+    {
+      quote: "The AI-powered analytics help us identify at-risk students before it's too late. A game-changer for student success.",
+      name: "Prof. Marie Curie",
+      role: "Dean of Academic Affairs",
+      avatar: "https://placehold.co/40x40.png",
+      aiHint: "female scientist",
+      initials: "MC"
+    }
+  ];
+
   return (
     <section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
       <div className="container px-4 md:px-6">
@@ -16,65 +61,37 @@ export function TestimonialsSection() {
             Hear from educators and students who have transformed their campus experience.
           </p>
         </div>
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          <Card>
-            <CardContent className="pt-6">
-              <blockquote className="text-lg">
-                "CampusConnect has revolutionized how we manage attendance. It's saved us countless hours."
-              </blockquote>
-            </CardContent>
-            <CardHeader>
-              <div className="flex items-center gap-4">
-                <Avatar>
-                  <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="male portrait" />
-                  <AvatarFallback>AT</AvatarFallback>
-                </Avatar>
-                <div>
-                  <CardTitle className="text-base">Dr. Alan Turing</CardTitle>
-                  <p className="text-sm text-muted-foreground">Head of Computer Science</p>
+        <Carousel
+          opts={{
+            align: "start",
+            loop: true,
+          }}
+          className="w-full max-w-4xl mx-auto"
+        >
+          <CarouselContent>
+            {testimonials.map((testimonial, index) => (
+              <CarouselItem key={index} className="md:basis-1/2">
+                <div className="p-8 h-full">
+                  <blockquote className="text-lg font-semibold leading-snug lg:text-xl lg:leading-normal">
+                    “{testimonial.quote}”
+                  </blockquote>
+                  <div className="mt-6 flex items-center gap-4">
+                    <Avatar>
+                      <AvatarImage src={testimonial.avatar} data-ai-hint={testimonial.aiHint} />
+                      <AvatarFallback>{testimonial.initials}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-semibold text-primary">{testimonial.name}</p>
+                      <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <blockquote className="text-lg">
-                "As a student, it's so easy to keep track of my classes and grades. Everything is in one place!"
-              </blockquote>
-            </CardContent>
-            <CardHeader>
-              <div className="flex items-center gap-4">
-                <Avatar>
-                  <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="female portrait" />
-                  <AvatarFallback>AJ</AvatarFallback>
-                </Avatar>
-                <div>
-                  <CardTitle className="text-base">Alice Johnson</CardTitle>
-                  <p className="text-sm text-muted-foreground">Computer Science Student</p>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <blockquote className="text-lg">
-                "The admin dashboard gives us a complete overview of the entire institution at a glance. It's incredibly powerful."
-              </blockquote>
-            </CardContent>
-            <CardHeader>
-              <div className="flex items-center gap-4">
-                <Avatar>
-                  <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="person portrait" />
-                  <AvatarFallback>AU</AvatarFallback>
-                </Avatar>
-                <div>
-                  <CardTitle className="text-base">Admin User</CardTitle>
-                  <p className="text-sm text-muted-foreground">University Administrator</p>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
-        </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="hidden md:flex" />
+          <CarouselNext className="hidden md:flex" />
+        </Carousel>
       </div>
     </section>
   );
