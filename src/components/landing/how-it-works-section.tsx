@@ -1,7 +1,24 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { UserPlus, LogIn, LayoutDashboard } from 'lucide-react';
 
 export function HowItWorksSection() {
+  const steps = [
+    {
+      icon: <UserPlus className="h-8 w-8" />,
+      title: '1. Create Your Account',
+      description: 'Sign up in minutes. Select your role as a student, teacher, or administrator and get instant access to your portal.',
+    },
+    {
+      icon: <LogIn className="h-8 w-8" />,
+      title: '2. Access Your Dashboard',
+      description: 'Log in to your personalized dashboard, where all your tools, classes, and information are waiting for you.',
+    },
+    {
+      icon: <LayoutDashboard className="h-8 w-8" />,
+      title: '3. Manage & Collaborate',
+      description: 'Take attendance, track progress, communicate, and engage with your entire campus community effortlessly.',
+    },
+  ];
+
   return (
     <section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
       <div className="container px-4 md:px-6">
@@ -16,46 +33,28 @@ export function HowItWorksSection() {
             Our platform is designed for a simple, intuitive, and powerful user experience. Here's how you get started.
           </p>
         </div>
-        <div className="mx-auto grid gap-8 md:grid-cols-3">
-          <Card className="text-center bg-background/50 hover:bg-background transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
-            <CardHeader>
-              <div className="flex justify-center mb-4">
-                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary">
-                  <UserPlus className="w-8 h-8" />
+        <div className="relative mx-auto max-w-3xl">
+          {/* Vertical line */}
+          <div className="absolute left-1/2 top-0 h-full w-0.5 -translate-x-1/2 bg-border"></div>
+
+          <div className="space-y-16">
+            {steps.map((step, index) => (
+              <div
+                key={step.title}
+                className="relative flex items-center odd:flex-row-reverse"
+              >
+                <div className="absolute left-1/2 -translate-x-1/2">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary ring-8 ring-muted">
+                    {step.icon}
+                  </div>
+                </div>
+                <div className="flex-1 px-8 py-6 odd:text-right">
+                  <h3 className="text-2xl font-bold">{step.title}</h3>
+                  <p className="mt-2 text-muted-foreground">{step.description}</p>
                 </div>
               </div>
-              <CardTitle>1. Create Your Account</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Sign up in minutes. Select your role as a student, teacher, or administrator and get instant access to your portal.</p>
-            </CardContent>
-          </Card>
-          <Card className="text-center bg-background/50 hover:bg-background transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
-            <CardHeader>
-              <div className="flex justify-center mb-4">
-                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary">
-                  <LogIn className="w-8 h-8" />
-                </div>
-              </div>
-              <CardTitle>2. Access Your Dashboard</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Log in to your personalized dashboard, where all your tools, classes, and information are waiting for you.</p>
-            </CardContent>
-          </Card>
-          <Card className="text-center bg-background/50 hover:bg-background transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
-            <CardHeader>
-              <div className="flex justify-center mb-4">
-                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary">
-                  <LayoutDashboard className="w-8 h-8" />
-                </div>
-              </div>
-              <CardTitle>3. Manage & Collaborate</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Take attendance, track progress, communicate, and engage with your entire campus community effortlessly.</p>
-            </CardContent>
-          </Card>
+            ))}
+          </div>
         </div>
       </div>
     </section>
