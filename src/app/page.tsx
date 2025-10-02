@@ -194,39 +194,45 @@ export default function HomePage() {
               </div>
             </div>
             <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:grid-cols-3 lg:max-w-none mt-12">
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader className="flex flex-col items-center text-center">
-                  <Users className="h-10 w-10 mb-4 text-accent" />
-                  <CardTitle>For Students</CardTitle>
+              <Card className="bg-background hover:bg-accent/10 transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
+                <CardHeader className="flex flex-col items-center text-center p-8">
+                  <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-4">
+                    <Users className="h-8 w-8" />
+                  </div>
+                  <CardTitle className="text-xl">For Students</CardTitle>
                 </CardHeader>
-                <CardContent className="text-center">
-                  <p>
-                    Easily check your attendance, view grades, and communicate
-                    with teachers.
+                <CardContent className="text-center px-8 pb-8">
+                  <p className="text-muted-foreground">
+                    Easily check your attendance, view grades, access class schedules, and communicate
+                    with teachers all in one place.
                   </p>
                 </CardContent>
               </Card>
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader className="flex flex-col items-center text-center">
-                  <GraduationCap className="h-10 w-10 mb-4 text-accent" />
-                  <CardTitle>For Teachers</CardTitle>
+              <Card className="bg-background hover:bg-accent/10 transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
+                <CardHeader className="flex flex-col items-center text-center p-8">
+                  <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-4">
+                    <GraduationCap className="h-8 w-8" />
+                  </div>
+                  <CardTitle className="text-xl">For Teachers</CardTitle>
                 </CardHeader>
-                <CardContent className="text-center">
-                  <p>
-                    Take attendance, manage your classes, and post assignments
-                    all in one place.
+                <CardContent className="text-center px-8 pb-8">
+                  <p className="text-muted-foreground">
+                    Take attendance with a single click, manage your classes, post assignments,
+                    and communicate with students and parents effortlessly.
                   </p>
                 </CardContent>
               </Card>
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader className="flex flex-col items-center text-center">
-                   <CalendarCheck className="h-10 w-10 mb-4 text-accent" />
-                  <CardTitle>For Admins</CardTitle>
+              <Card className="bg-background hover:bg-accent/10 transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
+                <CardHeader className="flex flex-col items-center text-center p-8">
+                  <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-4">
+                   <CalendarCheck className="h-8 w-8" />
+                  </div>
+                  <CardTitle className="text-xl">For Admins</CardTitle>
                 </CardHeader>
-                <CardContent className="text-center">
-                  <p>
+                <CardContent className="text-center px-8 pb-8">
+                  <p className="text-muted-foreground">
                     Oversee all school operations, manage student and teacher
-                    data, and view analytics.
+                    data, view real-time analytics, and generate insightful reports.
                   </p>
                 </CardContent>
               </Card>
