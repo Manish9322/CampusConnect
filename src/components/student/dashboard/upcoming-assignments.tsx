@@ -16,9 +16,9 @@ const assignments = [
 ];
 
 const courseColors: { [key: string]: string } = {
-    'PHY101': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-    'MTH201': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-    'CS303': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
+    'PHY101': 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200',
+    'MTH201': 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-200',
+    'CS303': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-200',
 };
 
 

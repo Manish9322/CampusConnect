@@ -67,11 +67,11 @@ export function RecentAttendance() {
                     variant={statusVariant[record.status]}
                     className={cn(
                       record.status === "present" &&
-                        "bg-green-600 text-white hover:bg-green-700",
+                        "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200",
                       record.status === "late" &&
-                        "bg-yellow-500 text-white hover:bg-yellow-600",
+                        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-200",
                       record.status === "absent" &&
-                        "bg-red-600 text-white hover:bg-red-700"
+                        "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200"
                     )}
                   >
                     {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
