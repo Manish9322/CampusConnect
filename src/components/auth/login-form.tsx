@@ -70,7 +70,7 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="border-0 lg:border shadow-none lg:shadow-sm">
+    <Card className="border-border/50 shadow-lg">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl font-bold tracking-tight">Login to your account</CardTitle>
         <CardDescription>
@@ -188,7 +188,7 @@ export function LoginForm() {
       <CardFooter className="flex-col gap-4">
         <div className="relative w-full">
             <Separator />
-            <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2 text-xs text-muted-foreground">OR</span>
+            <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">OR</span>
         </div>
         <p className="text-sm text-muted-foreground">Continue with</p>
          <div className="grid grid-cols-2 gap-4 w-full">
