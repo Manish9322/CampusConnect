@@ -8,7 +8,7 @@ import { mockAttendance } from "@/lib/mock-data";
 import { AttendanceStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Check, X } from "lucide-react";
 import { AttendanceCard } from "./attendance-card";
 
 const studentRecords = mockAttendance.filter(record => record.studentId === 'S001');
@@ -48,8 +48,9 @@ export function StudentDashboard() {
              <div className="lg:col-span-2 space-y-6 order-2 lg:order-1">
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     <Card>
-                        <CardHeader>
-                            <CardTitle>Overall Attendance</CardTitle>
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium">Overall Attendance</CardTitle>
+                            <span className="text-sm text-muted-foreground">{presentDays}/{totalClasses}</span>
                         </CardHeader>
                         <CardContent className="flex flex-col items-center justify-center">
                             <div className="relative h-28 w-28">
@@ -63,16 +64,27 @@ export function StudentDashboard() {
                                     <span className="text-center text-2xl font-bold text-gray-800 dark:text-white">{attendancePercentage}%</span>
                                 </div>
                             </div>
-                             <p className="text-xs text-muted-foreground mt-2">{presentDays} of {totalClasses} classes attended</p>
                         </CardContent>
                     </Card>
                      <Card>
-                        <CardHeader><CardTitle>Days Present</CardTitle><CardDescription>This Semester</CardDescription></CardHeader>
-                        <CardContent><p className="text-4xl font-bold text-green-600">{presentDays}</p></CardContent>
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium">Days Present</CardTitle>
+                            <Check className="h-4 w-4 text-green-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-4xl font-bold text-green-600">{presentDays}</div>
+                            <p className="text-xs text-muted-foreground">This Semester</p>
+                        </CardContent>
                     </Card>
                     <Card>
-                        <CardHeader><CardTitle>Days Absent</CardTitle><CardDescription>Keep an eye on this</CardDescription></CardHeader>
-                        <CardContent><p className="text-4xl font-bold text-red-600">{absentDays}</p></CardContent>
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium">Days Absent</CardTitle>
+                            <X className="h-4 w-4 text-red-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-4xl font-bold text-red-600">{absentDays}</div>
+                            <p className="text-xs text-muted-foreground">Keep an eye on this</p>
+                        </CardContent>
                     </Card>
                 </div>
 
