@@ -5,6 +5,7 @@ import { UpcomingClasses } from "@/components/student/dashboard/upcoming-classes
 import { RecentAttendance } from "@/components/student/dashboard/recent-attendance";
 import { QuickLinks } from "@/components/student/dashboard/quick-links";
 import { UpcomingAssignments } from "@/components/student/dashboard/upcoming-assignments";
+import { MarkAttendanceCard } from "@/components/student/dashboard/mark-attendance-card";
 
 export default function StudentDashboardPage() {
   const user = { name: "Alice Johnson" };
@@ -19,6 +20,7 @@ export default function StudentDashboardPage() {
             <RecentAttendance />
         </div>
         <div className="lg:col-span-1 space-y-6">
+            <MarkAttendanceCard />
             <UpcomingAssignments />
             <QuickLinks />
         </div>
