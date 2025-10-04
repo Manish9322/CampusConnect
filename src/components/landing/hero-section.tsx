@@ -62,7 +62,7 @@ export function HeroSection() {
               className="mx-auto aspect-square overflow-hidden rounded-xl object-cover sm:w-full lg:order-last animate-in fade-in zoom-in-95 duration-500"
               data-ai-hint="university students collaborating"
             />
-            <div className="absolute -bottom-8 -right-8 w-48 hidden md:block">
+            <div className="absolute -bottom-8 -right-4 w-48 hidden md:block">
               <div className="bg-background/80 backdrop-blur-sm p-4 rounded-lg shadow-xl border">
                 <div className="flex items-center gap-4">
                   <div className="flex -space-x-2">
