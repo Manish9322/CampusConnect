@@ -2,7 +2,6 @@
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { mockAttendance } from "@/lib/mock-data";
@@ -25,7 +24,6 @@ export function StudentDashboard() {
   const totalClasses = 20;
   const presentDays = 19;
   const absentDays = 1;
-  const lowestAttendanceSubject = "Physics";
 
   return (
     <div className="space-y-6">
