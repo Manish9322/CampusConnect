@@ -52,7 +52,10 @@ export function StorySection() {
         </div>
 
         <div className="relative max-w-3xl mx-auto">
-          <div className="absolute left-1/2 -translate-x-1/2 h-full w-0.5 bg-border" aria-hidden="true"></div>
+          <div className="absolute left-1/2 -translate-x-1/2 h-full w-0.5 bg-border" aria-hidden="true">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-primary"></div>
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-3 h-3 rounded-full bg-primary"></div>
+          </div>
           <div className="space-y-16">
             {history.map((item, index) => (
               <div
@@ -71,10 +74,10 @@ export function StorySection() {
                   <div
                     className={cn(
                       'p-4 rounded-lg bg-muted space-y-2',
-                      index % 2 === 0 ? 'text-left' : 'text-right'
+                       index % 2 === 0 ? 'text-left' : 'text-right'
                     )}
                   >
-                    <div className={cn("inline-block px-3 py-1 text-sm rounded-full bg-secondary text-secondary-foreground font-semibold mb-2")}>
+                     <div className={cn("inline-block px-2 py-0.5 text-xs rounded-full bg-secondary text-secondary-foreground font-semibold mb-2")}>
                       {item.year}
                     </div>
                     <h3 className="text-xl font-bold">{item.title}</h3>
