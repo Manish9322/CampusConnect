@@ -15,16 +15,19 @@ export function MissionSection() {
     {
       icon: <Users className="h-8 w-8 text-primary" />,
       title: 'Empower Users',
+      subtitle: 'Tools for Everyone',
       description: 'Provide intuitive tools for students, teachers, and admins.',
     },
     {
       icon: <BookOpen className="h-8 w-8 text-primary" />,
       title: 'Enhance Learning',
+      subtitle: 'Fostering Growth',
       description: 'Foster collaboration and simplify academic management.',
     },
     {
       icon: <BrainCircuit className="h-8 w-8 text-primary" />,
       title: 'Drive Efficiency',
+      subtitle: 'Smart & Connected',
       description: 'Leverage technology to create a connected and efficient ecosystem.',
     },
   ];
@@ -65,7 +68,7 @@ export function MissionSection() {
                 <div
                   key={index}
                   className={cn(
-                    'flex flex-col items-center gap-4 rounded-xl border bg-background p-6 shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl',
+                    'flex flex-col items-center gap-4 rounded-xl border bg-background p-6 text-center shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl',
                     `delay-${150 * (index + 1)}`
                   )}
                   style={{ animationDelay: `${150 * (index + 1)}ms` }}
@@ -73,8 +76,11 @@ export function MissionSection() {
                   <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
                     {point.icon}
                   </div>
-                  <h3 className="text-lg font-bold">{point.title}</h3>
-                  <p className="text-sm text-muted-foreground">{point.description}</p>
+                  <div className="space-y-1">
+                    <h3 className="text-lg font-bold">{point.title}</h3>
+                    <p className="text-sm font-medium text-accent">{point.subtitle}</p>
+                    <p className="text-sm text-muted-foreground pt-1">{point.description}</p>
+                  </div>
                 </div>
               ))}
             </div>
