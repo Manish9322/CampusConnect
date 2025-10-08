@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Building2, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from './theme-toggle';
 
 interface PublicHeaderProps {
   active?: 'about' | 'contact';
@@ -15,11 +16,11 @@ export function PublicHeader({ active }: PublicHeaderProps) {
           <Building2 className="h-6 w-6" />
           <span className="text-xl font-bold">CampusConnect</span>
         </Link>
-        <nav className="flex items-center gap-6 text-sm font-medium">
+        <nav className="flex items-center gap-2 text-sm font-medium">
           <Link
             href="/about"
             className={cn(
-              'hidden md:block transition-colors hover:text-primary-foreground/80',
+              'hidden md:block transition-colors hover:text-primary-foreground/80 px-4',
               active === 'about' && 'font-bold'
             )}
           >
@@ -28,12 +29,13 @@ export function PublicHeader({ active }: PublicHeaderProps) {
           <Link
             href="/contact"
             className={cn(
-              'hidden md:block transition-colors hover:text-primary-foreground/80',
+              'hidden md:block transition-colors hover:text-primary-foreground/80 px-4',
               active === 'contact' && 'font-bold'
             )}
           >
             Contact
           </Link>
+          <ThemeToggle />
           <Button variant="ghost" size="icon" asChild>
             <Link href="/login">
               <User className="h-5 w-5" />
