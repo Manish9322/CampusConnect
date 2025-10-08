@@ -1,3 +1,4 @@
+
 import { Briefcase, Building, Milestone, Rocket, Users } from 'lucide-react';
 
 export function StorySection() {
@@ -53,32 +54,25 @@ export function StorySection() {
           <div className="absolute left-1/2 -translate-x-1/2 h-full w-0.5 bg-border" aria-hidden="true"></div>
           <div className="space-y-16">
             {history.map((item, index) => (
-              <div key={index} className="relative flex items-center">
-                <div className="w-1/2 pr-8 text-right">
-                  {index % 2 === 0 && (
-                    <div className="space-y-2">
-                      <h3 className="text-xl font-bold">{item.title}</h3>
-                      <p className="text-muted-foreground">{item.description}</p>
-                    </div>
-                  )}
+              <div key={index} className="relative flex items-center group">
+                <div className={`w-1/2 ${index % 2 === 0 ? 'pr-8 text-right' : 'pl-8 text-left'}`}>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-bold">{item.title}</h3>
+                    <p className="text-muted-foreground">{item.description}</p>
+                  </div>
                 </div>
                 
-                <div className="absolute left-1/2 -translate-x-1/2 z-10">
+                <div className={`absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-y-2 z-10`}>
                   <div className="flex items-center justify-center w-24 h-12 rounded-full bg-secondary">
                     <span className="font-bold text-secondary-foreground">{item.year}</span>
                   </div>
-                   <div className="absolute left-1/2 -translate-x-1/2 top-10 flex items-center justify-center w-12 h-12 bg-background rounded-full border-2 border-border">
+                  <div className="flex items-center justify-center w-12 h-12 bg-background rounded-full border-2 border-border">
                     {item.icon}
                   </div>
                 </div>
 
-                <div className="w-1/2 pl-8 text-left">
-                  {index % 2 !== 0 && (
-                     <div className="space-y-2">
-                      <h3 className="text-xl font-bold">{item.title}</h3>
-                      <p className="text-muted-foreground">{item.description}</p>
-                    </div>
-                  )}
+                <div className={`w-1/2 ${index % 2 === 0 ? 'pl-8 text-left' : 'pr-8 text-right'}`}>
+                  {/* This is empty for alignment */}
                 </div>
               </div>
             ))}
