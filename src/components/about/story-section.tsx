@@ -54,15 +54,20 @@ export function StorySection() {
           <div className="absolute left-1/2 -translate-x-1/2 h-full w-0.5 bg-border" aria-hidden="true"></div>
           <div className="space-y-16">
             {history.map((item, index) => (
-              <div key={index} className="relative flex items-center justify-between">
-                <div className={`w-[calc(50%-4rem)] ${index % 2 !== 0 ? 'order-3 text-left' : 'order-1 text-right'}`}>
+              <div
+                key={index}
+                className={`relative flex items-center ${index % 2 === 0 ? 'justify-start' : 'justify-end'}`}
+              >
+                {/* Timeline Content */}
+                <div className={`w-1/2 ${index % 2 === 0 ? 'pr-8 text-right' : 'pl-8 text-left'}`}>
                   <div className="space-y-2">
                     <h3 className="text-xl font-bold">{item.title}</h3>
                     <p className="text-muted-foreground">{item.description}</p>
                   </div>
                 </div>
-                
-                <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-y-2 z-10">
+
+                {/* Timeline Center Point */}
+                <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center z-10">
                   <div className="flex items-center justify-center w-24 h-12 rounded-full bg-secondary">
                     <span className="font-bold text-secondary-foreground">{item.year}</span>
                   </div>
@@ -70,6 +75,9 @@ export function StorySection() {
                     {item.icon}
                   </div>
                 </div>
+
+                {/* Spacer for the other side */}
+                <div className={`w-1/2 ${index % 2 === 0 ? 'pl-8' : 'pr-8'}`}></div>
               </div>
             ))}
           </div>
