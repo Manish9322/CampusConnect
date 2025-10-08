@@ -53,9 +53,9 @@ export function VisionSection() {
             )}
           >
             <Image
-              src="https://picsum.photos/seed/vision-img/600/600"
-              width={600}
-              height={600}
+              src="https://picsum.photos/seed/vision-img/500/500"
+              width={500}
+              height={500}
               alt="Our Vision"
               className="overflow-hidden rounded-xl object-cover"
               data-ai-hint="futuristic education"
