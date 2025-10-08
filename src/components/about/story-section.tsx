@@ -54,7 +54,7 @@ export function StorySection() {
           <div className="absolute left-1/2 -translate-x-1/2 h-full w-0.5 bg-border" aria-hidden="true"></div>
           <div className="space-y-16">
             {history.map((item, index) => (
-              <div key={index} className="relative flex items-center group">
+              <div key={index} className={`relative flex items-center group ${index % 2 !== 0 ? 'flex-row-reverse' : ''}`}>
                 <div className={`w-1/2 ${index % 2 === 0 ? 'pr-8 text-right' : 'pl-8 text-left'}`}>
                   <div className="space-y-2">
                     <h3 className="text-xl font-bold">{item.title}</h3>
@@ -71,8 +71,8 @@ export function StorySection() {
                   </div>
                 </div>
 
-                <div className={`w-1/2 ${index % 2 === 0 ? 'pl-8 text-left' : 'pr-8 text-right'}`}>
-                  {/* This is empty for alignment */}
+                <div className="w-1/2">
+                  {/* This is an empty div for alignment purposes */}
                 </div>
               </div>
             ))}
