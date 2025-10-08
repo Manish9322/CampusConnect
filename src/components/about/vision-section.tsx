@@ -20,11 +20,21 @@ export function VisionSection() {
       )}
     >
       <div className="container px-4 md:px-6">
-        <div className="flex flex-col items-center gap-10 lg:gap-16">
+        <div className="flex flex-col items-center gap-10 lg:gap-12 text-center">
+           <div
+            className={cn(
+              'space-y-6 text-center transition-all duration-700 ease-out',
+              inView ? 'opacity-100 -translate-y-0' : 'opacity-0 translate-y-12'
+            )}
+          >
+            <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm font-medium">
+              Our Vision
+            </div>
+          </div>
           <div
             className={cn(
               'flex justify-center transition-all duration-700 ease-out delay-200',
-              inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+              inView ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
             )}
           >
             <Image
@@ -38,16 +48,10 @@ export function VisionSection() {
           </div>
           <div
             className={cn(
-              'space-y-6 text-center transition-all duration-700 ease-out',
-              inView ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-12'
+              'space-y-6 text-center transition-all duration-700 ease-out delay-100',
+              inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
             )}
           >
-            <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm font-medium">
-              Our Vision
-            </div>
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-              Shaping the Future of Learning.
-            </h2>
             <p className="max-w-[600px] mx-auto text-muted-foreground md:text-xl/relaxed">
               Our vision is to create a globally connected educational
               ecosystem where{' '}
@@ -59,6 +63,9 @@ export function VisionSection() {
               , and equip the next generation with the tools they need to build
               a better future.
             </p>
+             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+              Shaping the Future of Learning.
+            </h2>
           </div>
         </div>
       </div>
