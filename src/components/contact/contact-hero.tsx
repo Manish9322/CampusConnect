@@ -3,7 +3,7 @@
 
 export function ContactHero() {
   return (
-    <section className="relative w-full py-20 md:py-32 lg:py-40 bg-muted">
+    <section className="relative w-full py-20 md:py-24 lg:py-32 bg-muted">
        <div
         className="absolute inset-0 bg-repeat opacity-5"
         style={{
@@ -12,11 +12,14 @@ export function ContactHero() {
       ></div>
       <div className="relative container px-4 md:px-6">
         <div className="flex flex-col items-center space-y-4 text-center animate-in fade-in slide-in-from-bottom-12 duration-700">
+          <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm font-medium">
+            Contact Us
+          </div>
           <h1 className="text-4xl font-bold tracking-tighter text-primary sm:text-5xl md:text-6xl">
-            Get in Touch
+            We're Here to Help
           </h1>
           <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-            We&apos;re here to help and answer any question you might have. We look forward to hearing from you.
+            Have questions? We'd love to hear from you. Reach out and we'll get back to you shortly.
           </p>
         </div>
       </div>

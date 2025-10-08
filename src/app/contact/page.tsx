@@ -5,6 +5,8 @@ import { ContactForm } from '@/components/contact/contact-form';
 import { ContactInfo } from '@/components/contact/contact-info';
 import { MapSection } from '@/components/contact/map-section';
 import { FaqSection } from '@/components/landing/faq-section';
+import { BusinessHours } from '@/components/contact/business-hours';
+import { CustomerSupportCard } from '@/components/contact/customer-support-card';
 
 export default function ContactPage() {
   return (
@@ -15,8 +17,14 @@ export default function ContactPage() {
         <section className="w-full py-12 md:py-24 lg:py-32">
           <div className="container px-4 md:px-6">
             <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
-              <ContactForm />
-              <ContactInfo />
+              <div className="space-y-8">
+                <ContactForm />
+                <CustomerSupportCard />
+              </div>
+              <div className="space-y-8">
+                <ContactInfo />
+                <BusinessHours />
+              </div>
             </div>
           </div>
         </section>
