@@ -58,29 +58,32 @@ export function StorySection() {
               <div
                 key={index}
                 className={cn(
-                  'relative flex items-center justify-between w-full',
-                  index % 2 !== 0 && 'flex-row-reverse'
+                  'relative flex items-center',
+                  index % 2 === 0 ? 'justify-start' : 'justify-end'
                 )}
               >
-                <div className="w-[calc(50%-2.5rem)]">
+                <div
+                  className={cn(
+                    'w-1/2',
+                    index % 2 === 0 ? 'pr-8' : 'pl-8'
+                  )}
+                >
                   <div
                     className={cn(
-                      'space-y-2',
+                      'p-4 rounded-lg bg-muted space-y-2',
                       index % 2 === 0 ? 'text-left' : 'text-right'
                     )}
                   >
+                    <div className={cn("inline-block px-3 py-1 text-sm rounded-full bg-secondary text-secondary-foreground font-semibold mb-2")}>
+                      {item.year}
+                    </div>
                     <h3 className="text-xl font-bold">{item.title}</h3>
                     <p className="text-muted-foreground">{item.description}</p>
                   </div>
                 </div>
 
-                <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center z-10">
-                  <div className="flex items-center justify-center w-24 h-12 rounded-full bg-secondary">
-                    <span className="font-bold text-secondary-foreground">{item.year}</span>
-                  </div>
-                  <div className="flex items-center justify-center w-12 h-12 bg-background rounded-full border-2 border-border">
-                    {item.icon}
-                  </div>
+                <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center w-12 h-12 bg-background rounded-full border-2 border-border z-10">
+                  {item.icon}
                 </div>
               </div>
             ))}
