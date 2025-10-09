@@ -4,57 +4,69 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
 import {
-  BookOpen,
-  CalendarClock,
-  GraduationCap,
-  User,
-  ArrowUp,
-  ArrowDown,
+  Percent,
+  CheckCircle,
+  XCircle,
+  TrendingUp,
 } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
+import { mockAttendance, mockStudents } from "@/lib/mock-data";
 
 export function StudentStatCards() {
+
+  const student = mockStudents.find(s => s.id === '1');
+  const studentRecords = mockAttendance.filter(r => r.studentId === student?.studentId);
+  const attendedClasses = studentRecords.filter(r => r.status === 'present' || r.status === 'late').length;
+  const missedClasses = studentRecords.filter(r => r.status === 'absent').length;
+
+  const subjectAttendance: {[key: string]: {present: number, total: number}} = {};
+  studentRecords.forEach(record => {
+    if (!subjectAttendance[record.course]) {
+      subjectAttendance[record.course] = { present: 0, total: 0 };
+    }
+    if (record.status === 'present' || record.status === 'late') {
+      subjectAttendance[record.course].present++;
+    }
+    subjectAttendance[record.course].total++;
+  });
+
+  let bestSubject = 'N/A';
+  let bestAttendance = 0;
+
+  for (const subject in subjectAttendance) {
+    const rate = (subjectAttendance[subject].present / subjectAttendance[subject].total) * 100;
+    if (rate > bestAttendance) {
+      bestAttendance = rate;
+      bestSubject = subject;
+    }
+  }
+
+
   const stats = [
     {
       title: "Overall Attendance",
-      value: "92%",
-      icon: User,
-      description: (
-        <span className="flex items-center">
-          <ArrowUp className="h-3 w-3 mr-1 text-green-500" />
-          +2% from last month
-        </span>
-      ),
-      progress: 92,
+      value: `${student?.attendancePercentage}%`,
+      icon: Percent,
+      description: "Across all subjects",
     },
     {
-      title: "Courses Enrolled",
-      value: "4",
-      icon: BookOpen,
-      description: (
-        <div className="flex flex-wrap gap-1 mt-1">
-          <Badge variant="secondary">CS101</Badge>
-          <Badge variant="secondary">PHY101</Badge>
-          <Badge variant="secondary">MTH201</Badge>
-          <Badge variant="secondary">CS303</Badge>
-        </div>
-      ),
+      title: "Classes Attended",
+      value: attendedClasses,
+      icon: CheckCircle,
+      description: "Total classes marked present/late",
     },
     {
-      title: "Upcoming Deadlines",
-      value: "3",
-      icon: CalendarClock,
-      description: "In the next 7 days",
+      title: "Classes Missed",
+      value: missedClasses,
+      icon: XCircle,
+      description: "Total classes marked absent",
     },
     {
-      title: "Overall Grade",
-      value: "A-",
-      icon: GraduationCap,
-      description: "Excellent standing",
+      title: "Best Subject",
+      value: bestSubject,
+      icon: TrendingUp,
+      description: `With ${Math.round(bestAttendance)}% attendance`,
     },
   ];
 
@@ -68,10 +80,7 @@ export function StudentStatCards() {
           </CardHeader>
           <CardContent>
             <div className={`text-2xl font-bold`}>{stat.value}</div>
-            {stat.progress !== undefined && (
-              <Progress value={stat.progress} className="mt-2 h-1.5" />
-            )}
-             {stat.description && (
+            {stat.description && (
                 <p className="text-xs text-muted-foreground pt-1">{stat.description}</p>
             )}
           </CardContent>
