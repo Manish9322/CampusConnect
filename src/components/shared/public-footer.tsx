@@ -7,11 +7,11 @@ export function PublicFooter() {
         &copy; 2024 CampusConnect. All rights reserved.
       </p>
       <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-        <Link href="#" className="text-xs hover:underline underline-offset-4">
+        <Link href="/terms" className="text-xs hover:underline underline-offset-4">
           Terms of Service
         </Link>
-        <Link href="#" className="text-xs hover:underline underline-offset-4">
-          Privacy
+        <Link href="/privacy" className="text-xs hover:underline underline-offset-4">
+          Privacy Policy
         </Link>
       </nav>
     </footer>
