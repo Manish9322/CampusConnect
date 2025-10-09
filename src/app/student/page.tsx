@@ -18,11 +18,11 @@ export default function StudentDashboardPage() {
       <StudentDashboardHeader name={user.name} />
       <StudentStatCards />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="grid gap-6 lg:col-span-2">
-          <StudentAttendanceChart />
-        </div>
-        <div className="grid gap-6 lg:col-span-1">
+        <div className="lg:order-2 lg:col-span-1">
             <MarkAttendanceCard />
+        </div>
+        <div className="lg:order-1 lg:col-span-2">
+          <StudentAttendanceChart />
         </div>
       </div>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
