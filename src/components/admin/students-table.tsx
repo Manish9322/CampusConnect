@@ -114,12 +114,12 @@ export function StudentsTable({ students: initialStudents, majors }: StudentsTab
   return (
     <>
       <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex flex-col sm:flex-row flex-wrap items-center gap-4 w-full sm:w-auto">
             <Input
               placeholder="Search students..."
               value={searchTerm}
               onChange={handleSearch}
-              className="max-w-sm"
+              className="w-full sm:max-w-xs"
             />
             <Select value={majorFilter} onValueChange={setMajorFilter}>
                 <SelectTrigger className="w-full sm:w-[180px]">
@@ -144,7 +144,7 @@ export function StudentsTable({ students: initialStudents, majors }: StudentsTab
             </Select>
             {isFiltered && <Button variant="ghost" onClick={clearFilters}><X className="mr-2 h-4 w-4" /> Clear Filters</Button>}
         </div>
-        <Button onClick={handleAdd}>
+        <Button onClick={handleAdd} className="w-full sm:w-auto">
           <PlusCircle className="mr-2 h-4 w-4" /> Add Student
         </Button>
       </div>
