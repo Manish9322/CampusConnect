@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import { Building2, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,12 @@ export function Header() {
           <span className="text-xl font-bold">CampusConnect</span>
         </Link>
         <nav className="flex items-center gap-2 text-sm font-medium">
+          <Link
+            href="/announcements"
+            className="hidden md:block transition-colors hover:text-primary-foreground/80 px-4"
+          >
+            Announcements
+          </Link>
           <Link
             href="/about"
             className="hidden md:block transition-colors hover:text-primary-foreground/80 px-4"

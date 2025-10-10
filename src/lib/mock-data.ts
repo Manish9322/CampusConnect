@@ -1,5 +1,5 @@
 
-import type { Student, Teacher, AttendanceRecord, Class } from './types';
+import type { Student, Teacher, AttendanceRecord, Class, Announcement } from './types';
 
 export const mockStudents: Student[] = [
   { id: '1', studentId: 'S001', rollNo: 'CS-001', name: 'Alice Johnson', email: 'alice@example.com', role: 'student', major: 'Computer Science', phone: '202-555-0182', status: 'active', attendancePercentage: 95 },
@@ -31,4 +31,43 @@ export const mockClasses: Class[] = [
   { id: 'C02', name: 'PHY101', year: 2024, status: 'active' },
   { id: 'C03', name: 'MATH201', year: 2024, status: 'inactive' },
   { id: 'C04', name: 'CS303', year: 2024, status: 'active' },
+];
+
+export const mockAnnouncements: Announcement[] = [
+    {
+        id: 'AN001',
+        title: 'Mid-Term Examinations Schedule',
+        content: 'The schedule for the upcoming mid-term examinations has been published. Please check the student portal for details.',
+        author: 'Admin User',
+        createdAt: '2024-05-15',
+        category: 'Academic',
+        isPublished: true,
+    },
+    {
+        id: 'AN002',
+        title: 'Annual Sports Day 2024',
+        content: 'Get ready for the Annual Sports Day on June 10th! Registrations for events are now open. Contact the sports committee for more information.',
+        author: 'Admin User',
+        createdAt: '2024-05-14',
+        category: 'Event',
+        isPublished: true,
+    },
+    {
+        id: 'AN003',
+        title: 'Library Closure for Maintenance',
+        content: 'The central library will be closed from May 20th to May 22nd for annual maintenance. E-resources will remain available.',
+        author: 'Admin User',
+        createdAt: '2024-05-12',
+        category: 'General',
+        isPublished: true,
+    },
+    {
+        id: 'AN004',
+        title: 'Campus Wi-Fi Network Upgrade',
+        content: 'Please be advised that the campus Wi-Fi network will undergo a scheduled upgrade this weekend. Intermittent connectivity issues may occur.',
+        author: 'Admin User',
+        createdAt: '2024-05-10',
+        category: 'Urgent',
+        isPublished: false,
+    }
 ];
