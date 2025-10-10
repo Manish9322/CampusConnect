@@ -1,5 +1,4 @@
 
-
 export type UserRole = 'admin' | 'teacher' | 'student';
 
 export interface User {
@@ -98,4 +97,30 @@ export interface FeeRecord {
   status: FeeStatus;
   components: FeeComponent[];
   paymentHistory: PaymentHistory[];
+}
+
+export type AssignmentType = 'Assignment' | 'Quiz' | 'Exam';
+
+export interface Assignment {
+  id: string;
+  courseId: string;
+  courseName: string;
+  title: string;
+  description: string;
+  type: AssignmentType;
+  dueDate: string;
+  totalMarks: number;
+  attachments?: { name: string; url: string }[];
+}
+
+export type SubmissionStatus = 'Submitted' | 'Late' | 'Pending';
+
+export interface Grade {
+    studentId: string;
+    assignmentId: string;
+    marks: number | null;
+    status: SubmissionStatus;
+    submittedAt: string | null;
+    feedback?: string;
+    submissionUrl?: string;
 }

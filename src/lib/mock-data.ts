@@ -1,6 +1,6 @@
 
 
-import type { Student, Teacher, AttendanceRecord, Class, Announcement, FeeRecord } from './types';
+import type { Student, Teacher, AttendanceRecord, Class, Announcement, FeeRecord, Assignment, Grade } from './types';
 
 export const mockStudents: Student[] = [
   { id: '1', studentId: 'S001', rollNo: 'CS-001', name: 'Alice Johnson', email: 'alice@example.com', role: 'student', major: 'Computer Science', phone: '202-555-0182', status: 'active', attendancePercentage: 95 },
@@ -141,4 +141,29 @@ export const mockFeeRecords: FeeRecord[] = [
       { id: 'P003', date: '2024-07-25', amount: 3500, method: 'Net Banking', transactionId: 'TXN12347' },
     ],
   },
+];
+
+export const mockAssignments: Assignment[] = [
+  { id: 'ASG01', courseId: 'C01', courseName: 'CS101', title: 'Data Structures Fundamentals', description: 'Implement a linked list and a binary search tree.', type: 'Assignment', dueDate: '2024-08-15', totalMarks: 100 },
+  { id: 'ASG02', courseId: 'C01', courseName: 'CS101', title: 'Mid-Term Quiz', description: 'Quiz covering all topics from week 1 to 6.', type: 'Quiz', dueDate: '2024-08-20', totalMarks: 50 },
+  { id: 'ASG03', courseId: 'C02', courseName: 'PHY101', title: 'Lab Report: Projectile Motion', description: 'Submit a detailed report of the projectile motion experiment.', type: 'Assignment', dueDate: '2024-08-18', totalMarks: 100 },
+  { id: 'ASG04', courseId: 'C04', courseName: 'CS303', title: 'Final Project Proposal', description: 'Submit a proposal for your final year project.', type: 'Exam', dueDate: '2024-09-01', totalMarks: 200 },
+];
+
+export const mockGrades: Grade[] = [
+    // Alice Johnson (S001)
+    { studentId: '1', assignmentId: 'ASG01', marks: 85, status: 'Submitted', submittedAt: '2024-08-14', feedback: 'Good work on the BST implementation.' },
+    { studentId: '1', assignmentId: 'ASG02', marks: 45, status: 'Submitted', submittedAt: '2024-08-20', feedback: 'Excellent score!' },
+    { studentId: '1', assignmentId: 'ASG03', marks: null, status: 'Pending', submittedAt: null },
+    { studentId: '1', assignmentId: 'ASG04', marks: 180, status: 'Submitted', submittedAt: '2024-08-30' },
+    
+    // Diana Miller (S004)
+    { studentId: '4', assignmentId: 'ASG01', marks: 92, status: 'Submitted', submittedAt: '2024-08-13' },
+    { studentId: '4', assignmentId: 'ASG02', marks: 48, status: 'Submitted', submittedAt: '2024-08-19' },
+    { studentId: '4', assignmentId: 'ASG04', marks: null, status: 'Late', submittedAt: '2024-09-02' },
+
+    // Frank White (S006)
+    { studentId: '6', assignmentId: 'ASG01', marks: 70, status: 'Late', submittedAt: '2024-08-16' },
+    { studentId: '6', assignmentId: 'ASG02', marks: 35, status: 'Submitted', submittedAt: '2024-08-20' },
+    { studentId: '6', assignmentId: 'ASG04', marks: null, status: 'Pending', submittedAt: null },
 ];

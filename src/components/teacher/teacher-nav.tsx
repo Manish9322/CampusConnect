@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Home, Users, BookCopy, CalendarCheck, LogOut, User as UserIcon, PanelLeft } from "lucide-react";
+import { Home, Users, BookCopy, CalendarCheck, LogOut, User as UserIcon, PanelLeft, FileText, BookCheck } from "lucide-react";
 import * as React from "react";
 
 import {
@@ -51,11 +51,11 @@ export function TeacherNav({ user }: TeacherNavProps) {
     { href: "/teacher/attendance", label: "Take Attendance", icon: CalendarCheck },
     { href: "/teacher/classes", label: "My Classes", icon: BookCopy },
     { href: "/teacher/students", label: "Students", icon: Users },
+    { href: "/teacher/assignments", label: "Assignments", icon: FileText },
+    { href: "/teacher/gradebook", label: "Gradebook", icon: BookCheck },
   ];
 
   const handleLogout = () => {
-    // In a real app, you would handle the logout logic here.
-    // For this demo, we'll just redirect to the home page.
     router.push('/');
   };
 
@@ -79,10 +79,10 @@ export function TeacherNav({ user }: TeacherNavProps) {
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.href}>
               <SidebarMenuButton
-                asChild
                 isActive={pathname.startsWith(item.href) && (item.href !== '/teacher' || pathname === '/teacher')}
                 tooltip={item.label}
                 className="w-full"
+                asChild
               >
                 <Link href={item.href}>
                   <item.icon />
