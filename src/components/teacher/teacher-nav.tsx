@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import Link from "next/link";
@@ -68,11 +69,9 @@ export function TeacherNav({ user }: TeacherNavProps) {
                 <PanelLeft/>
               </Button>
             </SidebarTrigger>
-            {state === 'expanded' && (
-              <div className="flex-1 overflow-hidden whitespace-nowrap">
-                  <Link href="/" className="font-semibold text-lg">CampusConnect</Link>
-              </div>
-            )}
+            <div className="flex-1 overflow-hidden whitespace-nowrap">
+                <Link href="/" className="font-semibold text-lg">CampusConnect</Link>
+            </div>
         </div>
       </SidebarHeader>
       <SidebarContent>

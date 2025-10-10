@@ -3,8 +3,9 @@
 "use client"
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Home, Users, UserCheck, CalendarCheck, BookCopy, LogOut, User as UserIcon, PanelLeft, ClipboardCheck, Settings, Megaphone, DollarSign } from "lucide-react";
+import * as React from "react";
 
 import {
   SidebarMenu,
@@ -18,8 +19,18 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface AdminNavProps {
     user: {
@@ -31,7 +42,9 @@ interface AdminNavProps {
 
 export function AdminNav({ user }: AdminNavProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const { state, isMobile } = useSidebar();
+  const [isLogoutDialogOpen, setLogoutDialogOpen] = React.useState(false);
 
   const menuItems = [
     { href: "/admin", label: "Dashboard", icon: Home },
@@ -44,6 +57,10 @@ export function AdminNav({ user }: AdminNavProps) {
     { href: "/admin/attendance-requests", label: "Attendance Requests", icon: ClipboardCheck },
     { href: "/admin/settings", label: "Settings", icon: Settings },
   ];
+
+  const handleLogout = () => {
+    router.push('/');
+  };
 
   return (
     <>
@@ -78,10 +95,9 @@ export function AdminNav({ user }: AdminNavProps) {
           ))}
         </SidebarMenu>
       </SidebarContent>
-        {isMobile && (
-           <>
-            <SidebarSeparator />
-             <SidebarFooter>
+        <SidebarSeparator />
+        <SidebarFooter>
+            {isMobile ? (
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="w-full justify-start gap-3 px-3">
@@ -89,7 +105,7 @@ export function AdminNav({ user }: AdminNavProps) {
                                 <AvatarImage src="https://placehold.co/100x100.png" alt={user.name} />
                                 <AvatarFallback>{user.initials}</AvatarFallback>
                             </Avatar>
-                             <div className="flex flex-col items-start">
+                                <div className="flex flex-col items-start">
                                 <span className="text-sm font-medium">{user.name}</span>
                                 <span className="text-xs text-muted-foreground">{user.email}</span>
                             </div>
@@ -101,17 +117,41 @@ export function AdminNav({ user }: AdminNavProps) {
                             <span>Profile</span>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild>
-                        <Link href="/">
+                        <DropdownMenuItem onClick={() => setLogoutDialogOpen(true)}>
                             <LogOut className="mr-2 h-4 w-4" />
                             <span>Log out</span>
-                        </Link>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
-            </SidebarFooter>
-           </>
-        )}
+            ) : (
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton
+                        onClick={() => setLogoutDialogOpen(true)}
+                        tooltip="Log out"
+                        className="w-full"
+                        >
+                        <LogOut />
+                        {state === 'expanded' && <span>Log out</span>}
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            )}
+        </SidebarFooter>
+        <AlertDialog open={isLogoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure you want to log out?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    You will be returned to the home page.
+                </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleLogout}>Log Out</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     </>
   );
 }

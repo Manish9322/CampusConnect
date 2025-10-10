@@ -3,8 +3,9 @@
 "use client"
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Home, CalendarCheck, BarChart2, BookOpen, LogOut, User as UserIcon, Building2, PanelLeft, DollarSign } from "lucide-react";
+import * as React from "react";
 
 import {
   SidebarMenu,
@@ -20,6 +21,16 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface StudentNavProps {
     user: {
@@ -31,7 +42,9 @@ interface StudentNavProps {
 
 export function StudentNav({ user }: StudentNavProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const { state, isMobile } = useSidebar();
+  const [isLogoutDialogOpen, setLogoutDialogOpen] = React.useState(false);
 
   const menuItems = [
     { href: "/student", label: "Dashboard", icon: Home },
@@ -40,6 +53,10 @@ export function StudentNav({ user }: StudentNavProps) {
     { href: "/student/fees", label: "Fees", icon: DollarSign },
     { href: "/student/reports", label: "Reports", icon: BarChart2 },
   ];
+
+  const handleLogout = () => {
+    router.push('/');
+  };
 
   return (
     <>
@@ -74,10 +91,9 @@ export function StudentNav({ user }: StudentNavProps) {
           ))}
         </SidebarMenu>
       </SidebarContent>
-       {isMobile && (
-           <>
-            <SidebarSeparator />
-             <SidebarFooter>
+       <SidebarSeparator />
+        <SidebarFooter>
+             {isMobile ? (
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="w-full justify-start gap-3 px-3">
@@ -97,17 +113,41 @@ export function StudentNav({ user }: StudentNavProps) {
                             <span>Profile</span>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild>
-                        <Link href="/">
+                        <DropdownMenuItem onClick={() => setLogoutDialogOpen(true)}>
                             <LogOut className="mr-2 h-4 w-4" />
                             <span>Log out</span>
-                        </Link>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
-            </SidebarFooter>
-           </>
-        )}
+            ) : (
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton
+                        onClick={() => setLogoutDialogOpen(true)}
+                        tooltip="Log out"
+                        className="w-full"
+                        >
+                        <LogOut />
+                        {state === 'expanded' && <span>Log out</span>}
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            )}
+        </SidebarFooter>
+        <AlertDialog open={isLogoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure you want to log out?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    You will be returned to the home page.
+                </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleLogout}>Log Out</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     </>
   );
 }
