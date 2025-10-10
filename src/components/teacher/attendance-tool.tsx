@@ -186,16 +186,20 @@ export function AttendanceTool() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Roll No.</TableHead>
+                  <TableHead className="hidden md:table-cell">Roll No.</TableHead>
                   <TableHead>Name</TableHead>
+                  <TableHead className="hidden lg:table-cell">Email</TableHead>
+                  <TableHead className="hidden sm:table-cell">Overall Attendance</TableHead>
                   <TableHead className="text-right">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedStudents.map((student) => (
                   <TableRow key={student.id}>
-                    <TableCell>{student.rollNo}</TableCell>
+                    <TableCell className="hidden md:table-cell">{student.rollNo}</TableCell>
                     <TableCell className="font-medium">{student.name}</TableCell>
+                    <TableCell className="hidden lg:table-cell">{student.email}</TableCell>
+                    <TableCell className="hidden sm:table-cell">{student.attendancePercentage}%</TableCell>
                     <TableCell className="text-right">
                       <ThreeStateToggle 
                           status={attendance[student.id] || 'present'}
