@@ -1,4 +1,5 @@
 
+
 export type UserRole = 'admin' | 'teacher' | 'student';
 
 export interface User {
@@ -70,4 +71,31 @@ export interface Announcement {
   createdAt: string;
   category: AnnouncementCategory;
   isPublished: boolean;
+}
+
+export type FeeStatus = 'Paid' | 'Pending' | 'Overdue';
+
+export interface FeeComponent {
+  name: string;
+  amount: number;
+}
+
+export interface PaymentHistory {
+  id: string;
+  date: string;
+  amount: number;
+  method: 'Credit Card' | 'UPI' | 'Net Banking';
+  transactionId: string;
+}
+
+export interface FeeRecord {
+  id: string;
+  studentId: string;
+  studentName: string;
+  totalAmount: number;
+  dueAmount: number;
+  dueDate: string;
+  status: FeeStatus;
+  components: FeeComponent[];
+  paymentHistory: PaymentHistory[];
 }

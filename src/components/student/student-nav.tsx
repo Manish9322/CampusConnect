@@ -1,9 +1,10 @@
 
+
 "use client"
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, CalendarCheck, BarChart2, BookOpen, LogOut, User as UserIcon, Building2, PanelLeft } from "lucide-react";
+import { Home, CalendarCheck, BarChart2, BookOpen, LogOut, User as UserIcon, Building2, PanelLeft, DollarSign } from "lucide-react";
 
 import {
   SidebarMenu,
@@ -36,6 +37,7 @@ export function StudentNav({ user }: StudentNavProps) {
     { href: "/student", label: "Dashboard", icon: Home },
     { href: "/student/attendance", label: "My Attendance", icon: CalendarCheck },
     { href: "/student/schedule", label: "Class Schedule", icon: BookOpen },
+    { href: "/student/fees", label: "Fees", icon: DollarSign },
     { href: "/student/reports", label: "Reports", icon: BarChart2 },
   ];
 

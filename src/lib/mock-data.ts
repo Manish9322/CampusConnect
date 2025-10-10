@@ -1,5 +1,6 @@
 
-import type { Student, Teacher, AttendanceRecord, Class, Announcement } from './types';
+
+import type { Student, Teacher, AttendanceRecord, Class, Announcement, FeeRecord } from './types';
 
 export const mockStudents: Student[] = [
   { id: '1', studentId: 'S001', rollNo: 'CS-001', name: 'Alice Johnson', email: 'alice@example.com', role: 'student', major: 'Computer Science', phone: '202-555-0182', status: 'active', attendancePercentage: 95 },
@@ -70,4 +71,74 @@ export const mockAnnouncements: Announcement[] = [
         category: 'Urgent',
         isPublished: false,
     }
+];
+
+export const mockFeeRecords: FeeRecord[] = [
+  {
+    id: 'F001',
+    studentId: 'S001',
+    studentName: 'Alice Johnson',
+    totalAmount: 5000,
+    dueAmount: 500,
+    dueDate: '2024-08-01',
+    status: 'Pending',
+    components: [
+      { name: 'Tuition Fee', amount: 4000 },
+      { name: 'Library Fee', amount: 200 },
+      { name: 'Exam Fee', amount: 300 },
+      { name: 'Hostel Fee', amount: 500 },
+    ],
+    paymentHistory: [
+      { id: 'P001', date: '2024-07-15', amount: 4500, method: 'Credit Card', transactionId: 'TXN12345' },
+    ],
+  },
+  {
+    id: 'F002',
+    studentId: 'S002',
+    studentName: 'Bob Williams',
+    totalAmount: 4500,
+    dueAmount: 0,
+    dueDate: '2024-08-01',
+    status: 'Paid',
+    components: [
+      { name: 'Tuition Fee', amount: 4000 },
+      { name: 'Library Fee', amount: 200 },
+      { name: 'Exam Fee', amount: 300 },
+    ],
+    paymentHistory: [
+      { id: 'P002', date: '2024-07-20', amount: 4500, method: 'UPI', transactionId: 'TXN12346' },
+    ],
+  },
+  {
+    id: 'F003',
+    studentId: 'S004',
+    studentName: 'Diana Miller',
+    totalAmount: 4500,
+    dueAmount: 4500,
+    dueDate: '2024-06-01',
+    status: 'Overdue',
+    components: [
+      { name: 'Tuition Fee', amount: 4000 },
+      { name: 'Library Fee', amount: 200 },
+      { name: 'Exam Fee', amount: 300 },
+    ],
+    paymentHistory: [],
+  },
+   {
+    id: 'F004',
+    studentId: 'S005',
+    studentName: 'Eve Davis',
+    totalAmount: 4500,
+    dueAmount: 1000,
+    dueDate: '2024-08-01',
+    status: 'Pending',
+    components: [
+      { name: 'Tuition Fee', amount: 4000 },
+      { name: 'Library Fee', amount: 200 },
+      { name: 'Exam Fee', amount: 300 },
+    ],
+    paymentHistory: [
+      { id: 'P003', date: '2024-07-25', amount: 3500, method: 'Net Banking', transactionId: 'TXN12347' },
+    ],
+  },
 ];
