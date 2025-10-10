@@ -1,4 +1,4 @@
-import { Header } from '@/components/landing/header';
+import { PublicHeader } from '@/components/shared/public-header';
 import { HeroSection } from '@/components/landing/hero-section';
 import { HowItWorksSection } from '@/components/landing/how-it-works-section';
 import { FeaturesSection } from '@/components/landing/features-section';
@@ -9,12 +9,12 @@ import { LatestNewsSection } from '@/components/landing/latest-news-section';
 import { OurTeamSection } from '@/components/landing/our-team-section';
 import { FaqSection } from '@/components/landing/faq-section';
 import { CtaSection } from '@/components/landing/cta-section';
-import { Footer } from '@/components/landing/footer';
+import { PublicFooter } from '@/components/shared/public-footer';
 
 export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <Header />
+      <PublicHeader />
       <main className="flex-1">
         <HeroSection />
         <HowItWorksSection />
@@ -27,7 +27,7 @@ export default function HomePage() {
         <FaqSection />
         <CtaSection />
       </main>
-      <Footer />
+      <PublicFooter />
     </div>
   );
 }

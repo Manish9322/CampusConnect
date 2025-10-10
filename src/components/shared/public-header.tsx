@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { ThemeToggle } from './theme-toggle';
 
 interface PublicHeaderProps {
-  active?: 'about' | 'contact';
+  active?: 'about' | 'contact' | 'announcements';
 }
 
 export function PublicHeader({ active }: PublicHeaderProps) {
@@ -17,6 +17,15 @@ export function PublicHeader({ active }: PublicHeaderProps) {
           <span className="text-xl font-bold">CampusConnect</span>
         </Link>
         <nav className="flex items-center gap-2 text-sm font-medium">
+          <Link
+            href="/announcements"
+            className={cn(
+              'hidden md:block transition-colors hover:text-primary-foreground/80 px-4',
+              active === 'announcements' && 'font-bold'
+            )}
+          >
+            Announcements
+          </Link>
           <Link
             href="/about"
             className={cn(
