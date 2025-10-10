@@ -20,7 +20,7 @@ export function PaymentReceiptModal({ isOpen, onOpenChange, payment, studentName
     const feeRecord = mockFeeRecords.find(record => record.studentName === studentName)!;
 
     const handlePrint = () => {
-        const printContent = document.getElementById("receipt-content-wrapper");
+        const printContent = document.getElementById("receipt-content");
         const windowUrl = 'about:blank';
         const uniqueName = new Date().getTime();
         const windowName = 'Print' + uniqueName;
@@ -28,7 +28,7 @@ export function PaymentReceiptModal({ isOpen, onOpenChange, payment, studentName
 
         if (printWindow && printContent) {
             printWindow.document.write('<html><head><title>Print Receipt</title>');
-            printWindow.document.write('<style>body{font-family:sans-serif;padding:0;margin:0;} table{width:100%;border-collapse:collapse;} th,td{padding:8px;text-align:left;border-bottom:1px solid #ddd;}</style>');
+            printWindow.document.write('<style>body{font-family:sans-serif;padding:2rem;} table{width:100%;border-collapse:collapse;} th,td{padding:8px;text-align:left;border-bottom:1px solid #ddd;}</style>');
             printWindow.document.write('</head><body>');
             printWindow.document.write(printContent.innerHTML);
             printWindow.document.write('</body></html>');
@@ -41,8 +41,8 @@ export function PaymentReceiptModal({ isOpen, onOpenChange, payment, studentName
     
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
-        <div id="receipt-content-wrapper" className="bg-white text-black p-4 sm:p-6">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col">
+        <div id="receipt-content-wrapper" className="bg-white text-black p-4 sm:p-6 overflow-y-auto">
             <div id="receipt-content">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #eee', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -120,7 +120,7 @@ export function PaymentReceiptModal({ isOpen, onOpenChange, payment, studentName
                 </div>
             </div>
         </div>
-        <DialogFooter className="mt-4">
+        <DialogFooter className="mt-auto pt-4 border-t">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
           <Button onClick={handlePrint}>
             <Download className="mr-2 h-4 w-4" /> Print / Download
