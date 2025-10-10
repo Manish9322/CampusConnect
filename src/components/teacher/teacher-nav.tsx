@@ -48,28 +48,28 @@ export function TeacherNav({ user }: TeacherNavProps) {
                 <PanelLeft/>
               </Button>
             </SidebarTrigger>
-            <div className="flex-1 overflow-hidden whitespace-nowrap">
-                <Link href="/" className="font-semibold text-lg">CampusConnect</Link>
-            </div>
+            {state === 'expanded' && (
+              <div className="flex-1 overflow-hidden whitespace-nowrap">
+                  <Link href="/" className="font-semibold text-lg">CampusConnect</Link>
+              </div>
+            )}
         </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.href}>
-              <Link href={item.href} legacyBehavior passHref>
-                <SidebarMenuButton
-                  isActive={pathname.startsWith(item.href) && (item.href !== '/teacher' || pathname === '/teacher')}
-                  tooltip={item.label}
-                  className="w-full"
-                  asChild
-                >
-                  <a>
-                    <item.icon />
-                    {state === 'expanded' && <span>{item.label}</span>}
-                  </a>
-                </SidebarMenuButton>
-              </Link>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith(item.href) && (item.href !== '/teacher' || pathname === '/teacher')}
+                tooltip={item.label}
+                className="w-full"
+              >
+                <Link href={item.href}>
+                  <item.icon />
+                  {state === 'expanded' && <span>{item.label}</span>}
+                </Link>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
