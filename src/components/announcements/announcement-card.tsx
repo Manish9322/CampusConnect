@@ -18,17 +18,17 @@ const categoryColors: Record<AnnouncementCategory, string> = {
 
 export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
   return (
-    <Card>
+    <Card className="flex flex-col h-full hover:shadow-lg transition-shadow duration-300">
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
-          <CardTitle className="text-2xl">{announcement.title}</CardTitle>
           <Badge className={cn(categoryColors[announcement.category], "shrink-0")}>{announcement.category}</Badge>
         </div>
+        <CardTitle className="text-xl pt-2">{announcement.title}</CardTitle>
       </CardHeader>
-      <CardContent>
-        <p className="text-muted-foreground">{announcement.content}</p>
+      <CardContent className="flex-1">
+        <p className="text-muted-foreground text-sm">{announcement.content}</p>
       </CardContent>
-      <CardFooter className="text-xs text-muted-foreground flex flex-col sm:flex-row gap-2 sm:gap-4 items-start">
+      <CardFooter className="text-xs text-muted-foreground flex flex-col sm:flex-row gap-2 sm:gap-4 items-start border-t pt-4 mt-auto">
         <div className="flex items-center gap-2">
             <User className="h-4 w-4" />
             <span>Posted by {announcement.author}</span>

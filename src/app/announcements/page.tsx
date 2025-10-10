@@ -3,7 +3,6 @@ import { PublicHeader } from '@/components/shared/public-header';
 import { PublicFooter } from '@/components/shared/public-footer';
 import { AnnouncementCard } from '@/components/announcements/announcement-card';
 import { mockAnnouncements } from '@/lib/mock-data';
-import { Badge } from '@/components/ui/badge';
 import { Megaphone } from 'lucide-react';
 
 export default function AnnouncementsPage() {
@@ -29,7 +28,7 @@ export default function AnnouncementsPage() {
 
         <section className="w-full pb-12 md:pb-24 lg:pb-32">
           <div className="container px-4 md:px-6">
-            <div className="grid gap-8 md:gap-12">
+            <div className="grid gap-8 md:gap-12 md:grid-cols-2 lg:grid-cols-3">
               {publishedAnnouncements.map(announcement => (
                 <AnnouncementCard key={announcement.id} announcement={announcement} />
               ))}
