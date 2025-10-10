@@ -1,5 +1,4 @@
 
-
 import type { Student, Teacher, AttendanceRecord, Class, Announcement, FeeRecord, Assignment, Grade } from './types';
 
 export const mockStudents: Student[] = [
@@ -18,7 +17,37 @@ export const mockTeachers: Teacher[] = [
   { id: '103', teacherId: 'T03', designation: 'Dr.', name: 'Ada Lovelace', email: 'lovelace@example.com', role: 'teacher', department: 'Mathematics', courses: ['MATH201'], phone: '123-456-7892', status: 'inactive' },
 ];
 
+const generateDailyAttendance = (studentId: string, studentName: string, course: string, teacherId: string) => {
+    const records: AttendanceRecord[] = [];
+    const today = new Date();
+    for (let i = 0; i < 90; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() - i);
+        const dayOfWeek = date.getDay();
+
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Skip weekends
+            let status: 'present' | 'absent' | 'late' = 'present';
+            const random = Math.random();
+            if (random > 0.95) status = 'absent';
+            else if (random > 0.9) status = 'late';
+            
+            records.push({
+                id: `att-${studentId}-${course}-${i}`,
+                studentId,
+                studentName,
+                date: date.toISOString().split('T')[0],
+                status,
+                course,
+                recordedBy: teacherId,
+            });
+        }
+    }
+    return records;
+}
+
 export const mockAttendance: AttendanceRecord[] = [
+  ...generateDailyAttendance('S001', 'Alice Johnson', 'CS101', 'T01'),
+  ...generateDailyAttendance('S001', 'Alice Johnson', 'PHY101', 'T02'),
   { id: 'a1', studentId: 'S001', studentName: 'Alice Johnson', date: '2023-10-26', status: 'present', course: 'CS101', recordedBy: 'T01' },
   { id: 'a2', studentId: 'S002', studentName: 'Bob Williams', date: '2023-10-26', status: 'absent', course: 'PHY101', recordedBy: 'T02' },
   { id: 'a3', studentId: 'S003', studentName: 'Charlie Brown', date: '2023-10-26', status: 'present', course: 'MATH201', recordedBy: 'T03' },
