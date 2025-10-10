@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { mockClasses, mockStudents } from "@/lib/mock-data";
 import { useToast } from "@/hooks/use-toast";
-import { Send, ChevronLeft, ChevronRight, CalendarIcon } from "lucide-react";
+import { Send, ChevronLeft, ChevronRight, CalendarIcon, Check, Clock, X } from "lucide-react";
 import { AttendanceStatus, Student } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
@@ -21,11 +21,12 @@ type AttendanceState = {
 
 const statusCycle: AttendanceStatus[] = ['present', 'late', 'absent'];
 
-const statusConfig: { [key in AttendanceStatus]: { text: string; className: string } } = {
-  present: { text: "Present", className: "bg-green-600 hover:bg-green-700 text-white border-green-600" },
-  late: { text: "Late", className: "bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500" },
-  absent: { text: "Absent", className: "bg-destructive hover:bg-destructive/90 text-destructive-foreground border-destructive" },
+const statusConfig: { [key in AttendanceStatus]: { icon: React.ElementType; className: string; text: string } } = {
+  present: { icon: Check, className: "bg-green-600 hover:bg-green-700 text-white border-green-600", text: "Present" },
+  late: { icon: Clock, className: "bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500", text: "Late" },
+  absent: { icon: X, className: "bg-destructive hover:bg-destructive/90 text-destructive-foreground border-destructive", text: "Absent" },
 };
+
 
 const ThreeStateToggle = ({ status, onChange }: { status: AttendanceStatus, onChange: (newStatus: AttendanceStatus) => void }) => {
   const handleClick = () => {
@@ -33,14 +34,17 @@ const ThreeStateToggle = ({ status, onChange }: { status: AttendanceStatus, onCh
     const nextIndex = (currentIndex + 1) % statusCycle.length;
     onChange(statusCycle[nextIndex]);
   };
+  const Icon = statusConfig[status].icon;
 
   return (
     <Button
       onClick={handleClick}
       variant="outline"
-      className={cn("w-24 transition-colors duration-200", statusConfig[status].className)}
+      size="icon"
+      className={cn("transition-colors duration-200", statusConfig[status].className)}
+      aria-label={`Change status from ${statusConfig[status].text}`}
     >
-      {statusConfig[status].text}
+      <Icon className="h-4 w-4" />
     </Button>
   );
 };
