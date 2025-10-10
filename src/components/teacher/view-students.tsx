@@ -19,7 +19,7 @@ import {
   SelectItem,
 } from "../ui/select";
 import { Button } from "../ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { EmptyState } from "../shared/empty-state";
 import { ErrorState } from "../shared/error-state";
 import { Student } from "@/lib/types";
@@ -38,13 +38,14 @@ export function ViewStudents() {
   const [students, setStudents] = React.useState<Student[]>([]);
   const [loadingState, setLoadingState] = React.useState<LoadingState>("loading");
   const [selectedClass, setSelectedClass] = React.useState<string>("all");
+  const [statusFilter, setStatusFilter] = React.useState<string>('all');
   const [showLowAttendance, setShowLowAttendance] = React.useState(false);
   const [selectedStudent, setSelectedStudent] = React.useState<Student | null>(null);
   const [isProfileOpen, setProfileOpen] = React.useState(false);
 
 
   // Assuming the logged-in teacher is Dr. Alan Turing
-  const teacher = mockTeachers.find((t) => t.name === "Dr. Alan Turing");
+  const teacher = mockTeachers.find((t) => t.name === "Alan Turing");
   const teacherClasses = teacher ? mockClasses.filter(c => teacher.courses.some(course => c.name.includes(course))) : [];
 
   const fetchStudents = React.useCallback(() => {
@@ -76,6 +77,7 @@ export function ViewStudents() {
         // This is a simplified logic, in real-world you'd have a proper mapping
         return student.major === teacher?.department && teacherClasses.some(c => c.name === selectedClass);
     })
+    .filter(student => statusFilter === 'all' || student.status === statusFilter)
     .filter((student) =>
       student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.rollNo.toLowerCase().includes(searchTerm.toLowerCase())
@@ -84,6 +86,16 @@ export function ViewStudents() {
         if (!showLowAttendance) return true;
         return student.attendancePercentage < 75;
     });
+    
+  const isFiltered = selectedClass !== 'all' || statusFilter !== 'all' || searchTerm !== '' || showLowAttendance;
+
+  const clearFilters = () => {
+    setSelectedClass('all');
+    setStatusFilter('all');
+    setSearchTerm('');
+    setShowLowAttendance(false);
+  };
+
 
   const totalPages = Math.ceil(filteredStudents.length / rowsPerPage);
   const paginatedStudents = filteredStudents.slice(
@@ -143,29 +155,46 @@ export function ViewStudents() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
-          <div className="flex flex-col md:flex-row gap-4 w-full">
-            <Select value={selectedClass} onValueChange={setSelectedClass}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Select Class" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Classes</SelectItem>
-                {teacherClasses.map(c => (
-                  <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
-                ))}
-              </SelectContent>
+        <div className="flex flex-col gap-4 mb-6">
+            <div className="flex flex-col md:flex-row flex-wrap gap-4">
+                <Input
+                    placeholder="Search by name or roll no..."
+                    value={searchTerm}
+                    onChange={handleSearch}
+                    className="max-w-sm"
+                />
+                <Select value={selectedClass} onValueChange={setSelectedClass}>
+                <SelectTrigger className="w-full md:w-48">
+                    <SelectValue placeholder="Select Class" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Classes</SelectItem>
+                    {teacherClasses.map(c => (
+                    <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+                    ))}
+                </SelectContent>
+                </Select>
+                 <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full md:w-48">
+                    <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
             </Select>
-            <Input
-              placeholder="Search by name or roll no..."
-              value={searchTerm}
-              onChange={handleSearch}
-              className="max-w-sm"
-            />
-          </div>
-          <div className="flex items-center space-x-2">
-            <Switch id="low-attendance" checked={showLowAttendance} onCheckedChange={setShowLowAttendance} />
-            <Label htmlFor="low-attendance">Show Low Attendance (&lt;75%)</Label>
+            </div>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center space-x-2">
+                <Switch id="low-attendance" checked={showLowAttendance} onCheckedChange={setShowLowAttendance} />
+                <Label htmlFor="low-attendance">Show Low Attendance (&lt;75%)</Label>
+            </div>
+            {isFiltered && (
+                <Button variant="ghost" onClick={clearFilters}>
+                    <X className="mr-2 h-4 w-4" /> Clear Filters
+                </Button>
+            )}
           </div>
         </div>
         
@@ -227,4 +256,3 @@ export function ViewStudents() {
     </>
   );
 }
-
