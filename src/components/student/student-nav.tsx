@@ -59,19 +59,17 @@ export function StudentNav({ user }: StudentNavProps) {
         <SidebarMenu>
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.href}>
-              <Link href={item.href} legacyBehavior passHref>
-                <SidebarMenuButton
-                  isActive={pathname === item.href}
-                  tooltip={item.label}
-                  className="w-full"
-                  asChild
-                >
-                  <a>
-                    <item.icon />
-                    {state === 'expanded' && <span>{item.label}</span>}
-                  </a>
-                </SidebarMenuButton>
-              </Link>
+              <SidebarMenuButton
+                isActive={pathname === item.href}
+                tooltip={item.label}
+                className="w-full"
+                asChild
+              >
+                <Link href={item.href}>
+                  <item.icon />
+                  {state === 'expanded' && <span>{item.label}</span>}
+                </Link>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
