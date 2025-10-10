@@ -1,3 +1,4 @@
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,7 @@ export function HeroSection() {
   return (
     <section className="w-full py-12 md:py-20 lg:py-24 bg-gradient-to-br from-background to-muted/50">
       <div className="container px-4 md:px-6">
-        <div className="grid gap-6 lg:grid-cols-[1fr_500px] lg:gap-12 xl:grid-cols-[1fr_600px]">
+        <div className="grid gap-6 lg:grid-cols-[1fr_450px] lg:gap-12 xl:grid-cols-[1fr_500px]">
           <div className="flex flex-col justify-center space-y-6">
             <div className="space-y-4">
               <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm font-medium text-primary">
@@ -53,11 +54,11 @@ export function HeroSection() {
               </div>
             </div>
           </div>
-          <div className="relative">
+          <div className="relative flex items-center justify-center">
             <Image
-              src="https://placehold.co/600x600.png"
-              width="600"
-              height="600"
+              src="https://placehold.co/500x500.png"
+              width="500"
+              height="500"
               alt="Campus"
               className="mx-auto aspect-square overflow-hidden rounded-xl object-cover sm:w-full lg:order-last animate-in fade-in zoom-in-95 duration-500"
               data-ai-hint="university students collaborating"
