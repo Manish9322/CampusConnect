@@ -5,16 +5,19 @@ import { mockAnnouncements } from "@/lib/mock-data";
 
 export default function ManageAnnouncementsPage() {
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Manage Announcements</CardTitle>
-                <CardDescription>
-                    Create, edit, and publish announcements for the campus.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <AnnouncementsTable announcements={mockAnnouncements} />
-            </CardContent>
-        </Card>
+        <div className="space-y-6">
+            <h1 className="text-2xl font-bold">Manage Announcements</h1>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Campus Announcements</CardTitle>
+                    <CardDescription>
+                        Create, edit, and publish announcements for the campus.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <AnnouncementsTable announcements={mockAnnouncements} />
+                </CardContent>
+            </Card>
+        </div>
     );
 }

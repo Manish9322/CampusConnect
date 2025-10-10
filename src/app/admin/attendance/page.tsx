@@ -36,48 +36,47 @@ export default function AttendancePage() {
     );
 
     return (
-        <>
-            <div className="space-y-4">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Attendance Management</CardTitle>
-                        <CardDescription>
-                            Select a class to view and manage student attendance.
-                        </CardDescription>
-                    </CardHeader>
-                     <CardContent>
-                        <Input
-                            placeholder="Search for a class or teacher..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="max-w-sm"
-                        />
-                    </CardContent>
-                </Card>
+        <div className="space-y-6">
+            <h1 className="text-2xl font-bold">Attendance Management</h1>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Select a Class</CardTitle>
+                    <CardDescription>
+                        Click on a class to view and manage student attendance.
+                    </CardDescription>
+                </CardHeader>
+                    <CardContent>
+                    <Input
+                        placeholder="Search for a class or teacher..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="max-w-sm"
+                    />
+                </CardContent>
+            </Card>
 
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {filteredClasses.map(c => (
-                        <Card
-                            key={c.id}
-                            className="cursor-pointer hover:shadow-lg hover:border-primary transition-all"
-                            onClick={() => setSelectedClass(c)}
-                        >
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <BookCopy className="h-5 w-5 text-primary" />
-                                    {c.name}
-                                </CardTitle>
-                                <CardDescription>Taught by {c.teacher}</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex items-center gap-2 text-muted-foreground">
-                                    <Users className="h-4 w-4" />
-                                    <span>{c.studentCount} Students</span>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {filteredClasses.map(c => (
+                    <Card
+                        key={c.id}
+                        className="cursor-pointer hover:shadow-lg hover:border-primary transition-all"
+                        onClick={() => setSelectedClass(c)}
+                    >
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <BookCopy className="h-5 w-5 text-primary" />
+                                {c.name}
+                            </CardTitle>
+                            <CardDescription>Taught by {c.teacher}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                                <Users className="h-4 w-4" />
+                                <span>{c.studentCount} Students</span>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
             </div>
 
             {selectedClass && (
@@ -87,6 +86,6 @@ export default function AttendancePage() {
                     classData={selectedClass}
                 />
             )}
-        </>
+        </div>
     );
 }

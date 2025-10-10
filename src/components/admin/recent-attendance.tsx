@@ -28,7 +28,7 @@ export function RecentAttendance() {
     <Card>
       <CardHeader>
         <CardTitle>Recent Attendance</CardTitle>
-        <CardDescription>A log of the most recent attendance records.</CardDescription>
+        <CardDescription>A log of the most recent attendance records across all classes.</CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
