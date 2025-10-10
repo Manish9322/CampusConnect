@@ -65,7 +65,7 @@ export default function AdminDashboardPage() {
         </CardContent>
       </Card>
 
-      <Card className="lg:col-span-2 lg:row-span-2">
+      <Card className="lg:col-span-2">
         <AttendanceChart />
       </Card>
       <Card className="lg:col-span-2">
@@ -82,39 +82,6 @@ export default function AdminDashboardPage() {
       <Card className="lg:col-span-2">
         <RecentAttendance />
       </Card>
-      
-      <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card className="flex flex-col sm:col-span-1">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Active Alerts</CardTitle>
-            <CardDescription className="text-xs">Urgent issues</CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1 flex justify-center items-center">
-            <div className="text-4xl font-bold">3</div>
-          </CardContent>
-        </Card>
-        <Card className="flex flex-col sm:col-span-1">
-            <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Pending Approvals</CardTitle>
-              <CardDescription className="text-xs">Requests awaiting action</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1 flex justify-center items-center">
-            <div className="text-4xl font-bold">8</div>
-            </CardContent>
-        </Card>
-        <Card className="sm:col-span-2 lg:col-span-1 flex flex-col">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Department Headcount</CardTitle>
-              <CardDescription className="text-xs">Student distribution</CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1 text-sm space-y-2">
-            <div className="flex justify-between items-center"><span>Computer Science</span><Badge variant="secondary">450</Badge></div>
-            <div className="flex justify-between items-center"><span>Physics</span><Badge variant="secondary">220</Badge></div>
-            <div className="flex justify-between items-center"><span>Mathematics</span><Badge variant="secondary">150</Badge></div>
-              <div className="flex justify-between items-center"><span>Chemistry</span><Badge variant="secondary">180</Badge></div>
-          </CardContent>
-        </Card>
-      </div>
 
     </div>
   );
