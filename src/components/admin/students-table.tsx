@@ -113,8 +113,8 @@ export function StudentsTable({ students: initialStudents, majors }: StudentsTab
 
   return (
     <>
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
-        <div className="flex flex-col sm:flex-row flex-wrap items-center gap-4 w-full sm:w-auto">
+      <div className="flex flex-col sm:flex-row items-center justify-between mb-4 flex-wrap gap-4">
+        <div className="flex flex-col sm:flex-row flex-wrap items-center gap-4 w-full flex-1">
             <Input
               placeholder="Search students..."
               value={searchTerm}
