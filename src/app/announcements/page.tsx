@@ -1,12 +1,16 @@
-
 import { PublicHeader } from '@/components/shared/public-header';
 import { PublicFooter } from '@/components/shared/public-footer';
 import { AnnouncementCard } from '@/components/announcements/announcement-card';
 import { mockAnnouncements } from '@/lib/mock-data';
 import { Megaphone } from 'lucide-react';
+import { HighlightedAnnouncementCard } from '@/components/announcements/highlighted-announcement-card';
 
 export default function AnnouncementsPage() {
-  const publishedAnnouncements = mockAnnouncements.filter(a => a.isPublished);
+  const publishedAnnouncements = mockAnnouncements
+    .filter(a => a.isPublished)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  
+  const [latestAnnouncement, ...otherAnnouncements] = publishedAnnouncements;
 
   return (
     <div className="flex flex-col min-h-screen bg-muted/40">
@@ -28,8 +32,13 @@ export default function AnnouncementsPage() {
 
         <section className="w-full pb-12 md:pb-24 lg:pb-32">
           <div className="container px-4 md:px-6">
+            {latestAnnouncement && (
+              <div className="mb-12">
+                <HighlightedAnnouncementCard announcement={latestAnnouncement} />
+              </div>
+            )}
             <div className="grid gap-8 md:gap-12 md:grid-cols-2 lg:grid-cols-3">
-              {publishedAnnouncements.map(announcement => (
+              {otherAnnouncements.map(announcement => (
                 <AnnouncementCard key={announcement.id} announcement={announcement} />
               ))}
             </div>
