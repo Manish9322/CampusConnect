@@ -13,12 +13,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Assignment, Class, Grade, Student, SubmissionStatus } from "@/lib/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
 import { GradeSubmissionDialog } from "./grade-submission-dialog";
 
 interface GradebookTableProps {
@@ -91,8 +89,12 @@ export function GradebookTable({ students, assignments, grades: initialGrades, c
   return (
     <>
       <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <CardHeader>
+            <CardTitle>Student Gradebook</CardTitle>
+            <CardDescription>View, enter, and edit grades for all students and assignments.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
             <Input
               placeholder="Search by student name or roll no..."
               value={searchTerm}
@@ -109,59 +111,59 @@ export function GradebookTable({ students, assignments, grades: initialGrades, c
               </SelectContent>
             </Select>
           </div>
+      
+          {filteredStudents.length === 0 ? (
+            <EmptyState 
+                title="No Students Found"
+                description="There are no students matching your search criteria."
+            />
+          ) : (
+          <>
+            <div className="rounded-md border overflow-x-auto">
+                <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead className="sticky left-0 bg-background z-10 min-w-40">Student Name</TableHead>
+                        {filteredAssignments.map(assignment => (
+                            <TableHead key={assignment.id} className="text-center">{assignment.title}</TableHead>
+                        ))}
+                        <TableHead className="text-right sticky right-0 bg-background z-10">Overall</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {filteredStudents.map(student => (
+                        <TableRow key={student.id}>
+                            <TableCell className="font-medium sticky left-0 bg-background z-10">{student.name}</TableCell>
+                            {filteredAssignments.map(assignment => {
+                                const grade = getStudentGrade(student.id, assignment.id);
+                                return (
+                                    <TableCell key={assignment.id} className="text-center">
+                                        {grade ? (
+                                            <div className="flex flex-col items-center gap-1 cursor-pointer" onClick={() => handleViewSubmission(student, assignment)}>
+                                                <span className={cn("font-semibold", grade.marks && grade.marks < (assignment.totalMarks / 2) && "text-destructive")}>{grade.marks !== null ? `${grade.marks}/${assignment.totalMarks}` : '-'}</span>
+                                                <Badge className={cn("text-xs", statusColor[grade.status])}>{grade.status}</Badge>
+                                            </div>
+                                        ) : (
+                                            <span>-</span>
+                                        )}
+                                    </TableCell>
+                                )
+                            })}
+                            <TableCell className="text-right sticky right-0 bg-background z-10">
+                                <div className="flex flex-col items-end">
+                                    <span className="font-bold text-lg">{calculateOverall(student.id).grade}</span>
+                                    <span className="text-xs text-muted-foreground">{calculateOverall(student.id).score}</span>
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+                </Table>
+            </div>
+           </>
+          )}
         </CardContent>
       </Card>
-      
-      {filteredStudents.length === 0 ? (
-        <EmptyState 
-            title="No Students Found"
-            description="There are no students matching your search criteria."
-        />
-      ) : (
-      <>
-        <div className="rounded-md border overflow-x-auto">
-            <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead className="sticky left-0 bg-background z-10 min-w-40">Student Name</TableHead>
-                    {filteredAssignments.map(assignment => (
-                        <TableHead key={assignment.id} className="text-center">{assignment.title}</TableHead>
-                    ))}
-                    <TableHead className="text-right sticky right-0 bg-background z-10">Overall</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {filteredStudents.map(student => (
-                    <TableRow key={student.id}>
-                        <TableCell className="font-medium sticky left-0 bg-background z-10">{student.name}</TableCell>
-                        {filteredAssignments.map(assignment => {
-                            const grade = getStudentGrade(student.id, assignment.id);
-                            return (
-                                <TableCell key={assignment.id} className="text-center">
-                                    {grade ? (
-                                        <div className="flex flex-col items-center gap-1 cursor-pointer" onClick={() => handleViewSubmission(student, assignment)}>
-                                            <span className={cn("font-semibold", grade.marks && grade.marks < (assignment.totalMarks / 2) && "text-destructive")}>{grade.marks !== null ? `${grade.marks}/${assignment.totalMarks}` : '-'}</span>
-                                            <Badge className={cn("text-xs", statusColor[grade.status])}>{grade.status}</Badge>
-                                        </div>
-                                    ) : (
-                                        <span>-</span>
-                                    )}
-                                </TableCell>
-                            )
-                        })}
-                        <TableCell className="text-right sticky right-0 bg-background z-10">
-                            <div className="flex flex-col items-end">
-                                <span className="font-bold text-lg">{calculateOverall(student.id).grade}</span>
-                                <span className="text-xs text-muted-foreground">{calculateOverall(student.id).score}</span>
-                            </div>
-                        </TableCell>
-                    </TableRow>
-                ))}
-            </TableBody>
-            </Table>
-        </div>
-       </>
-      )}
 
       {selectedGrade && (
         <GradeSubmissionDialog

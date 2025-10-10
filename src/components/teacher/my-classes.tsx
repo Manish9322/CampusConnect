@@ -3,17 +3,18 @@
 
 import * as React from "react";
 import { mockClasses, mockStudents, mockTeachers } from "@/lib/mock-data";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import { Users, BookOpen, Eye, PlusCircle } from "lucide-react";
+import { Eye, PlusCircle } from "lucide-react";
 import { ClassDetailsDialog } from "./class-details-dialog";
 import { ClassWithDetails, Student, Teacher } from "@/lib/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Input } from "../ui/input";
 import { AddClassDialog } from "../admin/add-class-dialog";
-import { Skeleton } from "../ui/skeleton";
 import { EmptyState } from "../shared/empty-state";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
+import { Skeleton } from "../ui/skeleton";
 
 export function MyClasses() {
     const [isLoading, setIsLoading] = React.useState(true);
@@ -23,11 +24,10 @@ export function MyClasses() {
     const [searchTerm, setSearchTerm] = React.useState("");
 
     React.useEffect(() => {
-        const timer = setTimeout(() => setIsLoading(false), 1500);
+        const timer = setTimeout(() => setIsLoading(false), 1000);
         return () => clearTimeout(timer);
     }, []);
 
-    // Assuming the logged-in teacher is Dr. Alan Turing
     const teacher = mockTeachers.find(t => t.name === "Alan Turing");
     if (!teacher) return <div>Teacher not found.</div>;
 
@@ -38,7 +38,7 @@ export function MyClasses() {
     );
 
     const classesWithDetails = filteredClasses.map(c => {
-        const students = mockStudents.filter(s => c.name.includes(s.major)); // Simplified logic
+        const students = mockStudents.filter(s => c.name.includes(s.major)); 
         return {
             ...c,
             teacher: `${teacher.designation} ${teacher.name}`,
@@ -57,30 +57,36 @@ export function MyClasses() {
     };
     
     const handleSaveClass = (classData: any) => {
-        // This is where you would handle saving the data, for now, we'll just update the local state
         console.log("Saving class:", classData);
         setAddDialogOpen(false);
     };
 
-    const renderClassGrid = (classes: (ClassWithDetails & { students: Student[] })[]) => {
+    const renderClassTable = (classes: (ClassWithDetails & { students: Student[] })[]) => {
         if (isLoading) {
             return (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {[...Array(3)].map((_, i) => (
-                        <Card key={i}>
-                            <CardHeader>
-                                <Skeleton className="h-6 w-1/2" />
-                                <Skeleton className="h-4 w-1/4" />
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <Skeleton className="h-4 w-1/3" />
-                                <Skeleton className="h-4 w-1/2" />
-                            </CardContent>
-                            <CardFooter>
-                                <Skeleton className="h-10 w-full" />
-                            </CardFooter>
-                        </Card>
-                    ))}
+                <div className="rounded-md border">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Class Name</TableHead>
+                                <TableHead>Year</TableHead>
+                                <TableHead>Subjects</TableHead>
+                                <TableHead>No. of Students</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {[...Array(3)].map((_, i) => (
+                                <TableRow key={i}>
+                                    <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                                    <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                                    <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                                    <TableCell><Skeleton className="h-5 w-10" /></TableCell>
+                                    <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
                 </div>
             );
         }
@@ -90,80 +96,91 @@ export function MyClasses() {
         }
 
         return (
-             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {classes.map(c => (
-                    <Card key={c.id}>
-                        <CardHeader>
-                            <CardTitle>{c.name}</CardTitle>
-                            <CardDescription>Year: {c.year}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Users className="h-4 w-4" />
-                                <span>{c.studentCount} Students</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <BookOpen className="h-4 w-4" />
-                                <span>Subjects:</span>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                                {c.subjects.map(sub => (
-                                    <Badge key={sub} variant="secondary">{sub}</Badge>
-                                ))}
-                            </div>
-                        </CardContent>
-                        <CardFooter>
-                            <Button className="w-full" onClick={() => handleViewDetails(c)}>
-                                <Eye className="mr-2 h-4 w-4" />
-                                View Details
-                            </Button>
-                        </CardFooter>
-                    </Card>
-                ))}
+            <div className="rounded-md border">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Class Name</TableHead>
+                            <TableHead>Year</TableHead>
+                            <TableHead>Subjects</TableHead>
+                            <TableHead>No. of Students</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {classes.map(c => (
+                            <TableRow key={c.id}>
+                                <TableCell className="font-medium">{c.name}</TableCell>
+                                <TableCell>{c.year}</TableCell>
+                                <TableCell>
+                                    <div className="flex flex-wrap gap-1">
+                                        {c.subjects.map(sub => (
+                                            <Badge key={sub} variant="secondary">{sub}</Badge>
+                                        ))}
+                                    </div>
+                                </TableCell>
+                                <TableCell>{c.studentCount}</TableCell>
+                                <TableCell className="text-right">
+                                    <Button variant="ghost" size="icon" onClick={() => handleViewDetails(c)}>
+                                        <Eye className="h-4 w-4" />
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
             </div>
         );
     };
 
     return (
         <>
-        <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">
-            <Input
-                placeholder="Search classes..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="max-w-sm"
-            />
-            <Button onClick={() => setAddDialogOpen(true)}>
-                <PlusCircle className="mr-2 h-4 w-4" /> Add New Class
-            </Button>
-        </div>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Class Management</CardTitle>
+                    <CardDescription>View and manage your assigned classes.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">
+                        <Input
+                            placeholder="Search classes..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="max-w-sm"
+                        />
+                        <Button onClick={() => setAddDialogOpen(true)}>
+                            <PlusCircle className="mr-2 h-4 w-4" /> Add New Class
+                        </Button>
+                    </div>
 
-        <Tabs defaultValue="active">
-            <TabsList className="mb-4">
-                <TabsTrigger value="active">Active Classes ({activeClasses.length})</TabsTrigger>
-                <TabsTrigger value="past">Past Classes ({pastClasses.length})</TabsTrigger>
-            </TabsList>
-            <TabsContent value="active">
-                {renderClassGrid(activeClasses)}
-            </TabsContent>
-            <TabsContent value="past">
-                {renderClassGrid(pastClasses)}
-            </TabsContent>
-        </Tabs>
+                    <Tabs defaultValue="active">
+                        <TabsList className="mb-4">
+                            <TabsTrigger value="active">Active Classes ({activeClasses.length})</TabsTrigger>
+                            <TabsTrigger value="past">Past Classes ({pastClasses.length})</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="active">
+                            {renderClassTable(activeClasses)}
+                        </TabsContent>
+                        <TabsContent value="past">
+                            {renderClassTable(pastClasses)}
+                        </TabsContent>
+                    </Tabs>
+                </CardContent>
+            </Card>
            
-        {selectedClass && (
-             <ClassDetailsDialog 
-                isOpen={isDetailsOpen}
-                onOpenChange={setDetailsOpen}
-                classData={selectedClass}
-             />
-        )}
-        <AddClassDialog 
-            open={isAddDialogOpen}
-            onOpenChange={setAddDialogOpen}
-            onSave={handleSaveClass}
-            allTeachers={[teacher]}
-        />
+            {selectedClass && (
+                <ClassDetailsDialog 
+                    isOpen={isDetailsOpen}
+                    onOpenChange={setDetailsOpen}
+                    classData={selectedClass}
+                />
+            )}
+            <AddClassDialog 
+                open={isAddDialogOpen}
+                onOpenChange={setAddDialogOpen}
+                onSave={handleSaveClass}
+                allTeachers={[teacher]}
+            />
         </>
     );
 }
