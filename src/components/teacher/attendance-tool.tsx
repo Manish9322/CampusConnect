@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
 import { format } from "date-fns";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 type AttendanceState = {
   [studentId: string]: AttendanceStatus;
@@ -35,17 +36,25 @@ const ThreeStateToggle = ({ status, onChange }: { status: AttendanceStatus, onCh
     onChange(statusCycle[nextIndex]);
   };
   const Icon = statusConfig[status].icon;
+  const config = statusConfig[status];
 
   return (
-    <Button
-      onClick={handleClick}
-      variant="outline"
-      size="icon"
-      className={cn("transition-colors duration-200", statusConfig[status].className)}
-      aria-label={`Change status from ${statusConfig[status].text}`}
-    >
-      <Icon className="h-4 w-4" />
-    </Button>
+    <Tooltip>
+        <TooltipTrigger asChild>
+            <Button
+              onClick={handleClick}
+              variant="outline"
+              size="icon"
+              className={cn("transition-colors duration-200", config.className)}
+              aria-label={`Change status from ${config.text}`}
+            >
+              <Icon className="h-4 w-4" />
+            </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+            <p>{config.text}</p>
+        </TooltipContent>
+    </Tooltip>
   );
 };
 
@@ -124,121 +133,123 @@ export function AttendanceTool() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-                <CardTitle>Take Attendance</CardTitle>
-                <CardDescription>Select a class and date, then mark student attendance.</CardDescription>
-            </div>
-             <div className="flex flex-col sm:flex-row items-center gap-2">
-                 <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-                    <SelectTrigger className="w-full sm:w-[200px]">
-                        <SelectValue placeholder="Select course" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {mockClasses.filter(c => c.status === 'active').map(c => (
-                             <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-                 <Popover>
-                    <PopoverTrigger asChild>
-                        <Button
-                        variant={"outline"}
-                        className={cn(
-                            "w-full sm:w-[240px] justify-start text-left font-normal",
-                            !date && "text-muted-foreground"
-                        )}
-                        >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {date ? format(date, "PPP") : <span>Pick a date</span>}
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                        <Calendar
-                        mode="single"
-                        selected={date}
-                        onSelect={setDate}
-                        initialFocus
-                        />
-                    </PopoverContent>
-                </Popover>
-            </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-         <div className="flex w-full sm:w-auto items-center gap-2 mb-4">
-            <Button variant="outline" className="w-full" onClick={() => markAll('present')}>All Present</Button>
-            <Button variant="outline" className="w-full" onClick={() => markAll('absent')}>All Absent</Button>
-         </div>
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Roll No.</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead className="text-right">Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedStudents.map((student) => (
-                <TableRow key={student.id}>
-                  <TableCell>{student.rollNo}</TableCell>
-                  <TableCell className="font-medium">{student.name}</TableCell>
-                  <TableCell className="text-right">
-                    <ThreeStateToggle 
-                        status={attendance[student.id] || 'present'}
-                        onChange={(newStatus) => handleAttendanceChange(student.id, newStatus)}
-                    />
-                  </TableCell>
+    <TooltipProvider>
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                  <CardTitle>Take Attendance</CardTitle>
+                  <CardDescription>Select a class and date, then mark student attendance.</CardDescription>
+              </div>
+               <div className="flex flex-col sm:flex-row items-center gap-2">
+                   <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+                      <SelectTrigger className="w-full sm:w-[200px]">
+                          <SelectValue placeholder="Select course" />
+                      </SelectTrigger>
+                      <SelectContent>
+                          {mockClasses.filter(c => c.status === 'active').map(c => (
+                               <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+                          ))}
+                      </SelectContent>
+                  </Select>
+                   <Popover>
+                      <PopoverTrigger asChild>
+                          <Button
+                          variant={"outline"}
+                          className={cn(
+                              "w-full sm:w-[240px] justify-start text-left font-normal",
+                              !date && "text-muted-foreground"
+                          )}
+                          >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {date ? format(date, "PPP") : <span>Pick a date</span>}
+                          </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                          <Calendar
+                          mode="single"
+                          selected={date}
+                          onSelect={setDate}
+                          initialFocus
+                          />
+                      </PopoverContent>
+                  </Popover>
+              </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+           <div className="flex w-full sm:w-auto items-center gap-2 mb-4">
+              <Button variant="outline" className="w-full" onClick={() => markAll('present')}>All Present</Button>
+              <Button variant="outline" className="w-full" onClick={() => markAll('absent')}>All Absent</Button>
+           </div>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Roll No.</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead className="text-right">Status</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-         <div className="flex items-center justify-between mt-4 flex-wrap gap-4">
-            <div className="flex items-center space-x-2">
-                <span className="text-sm text-muted-foreground">Rows per page</span>
-                <Select onValueChange={handleRowsPerPageChange} defaultValue={`${rowsPerPage}`}>
-                    <SelectTrigger className="w-20">
-                        <SelectValue placeholder={`${rowsPerPage}`} />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="5">5</SelectItem>
-                        <SelectItem value="10">10</SelectItem>
-                        <SelectItem value="20">20</SelectItem>
-                        <SelectItem value="all">All</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-            <div className="flex items-center space-x-2">
-                <span className="text-sm text-muted-foreground">
-                    Page {page + 1} of {totalPages}
-                </span>
-                <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setPage(p => Math.max(0, p - 1))}
-                    disabled={page === 0}
-                >
-                    <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-                    disabled={page >= totalPages - 1}
-                >
-                    <ChevronRight className="h-4 w-4" />
-                </Button>
-            </div>
-             <Button onClick={handleSubmit} className="bg-accent hover:bg-accent/90 w-full sm:w-auto">
-                <Send className="mr-2 h-4 w-4" />
-                Submit Attendance
-            </Button>
-        </div>
-      </CardContent>
-    </Card>
+              </TableHeader>
+              <TableBody>
+                {paginatedStudents.map((student) => (
+                  <TableRow key={student.id}>
+                    <TableCell>{student.rollNo}</TableCell>
+                    <TableCell className="font-medium">{student.name}</TableCell>
+                    <TableCell className="text-right">
+                      <ThreeStateToggle 
+                          status={attendance[student.id] || 'present'}
+                          onChange={(newStatus) => handleAttendanceChange(student.id, newStatus)}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+           <div className="flex items-center justify-between mt-4 flex-wrap gap-4">
+              <div className="flex items-center space-x-2">
+                  <span className="text-sm text-muted-foreground">Rows per page</span>
+                  <Select onValueChange={handleRowsPerPageChange} defaultValue={`${rowsPerPage}`}>
+                      <SelectTrigger className="w-20">
+                          <SelectValue placeholder={`${rowsPerPage}`} />
+                      </SelectTrigger>
+                      <SelectContent>
+                          <SelectItem value="5">5</SelectItem>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="20">20</SelectItem>
+                          <SelectItem value="all">All</SelectItem>
+                      </SelectContent>
+                  </Select>
+              </div>
+              <div className="flex items-center space-x-2">
+                  <span className="text-sm text-muted-foreground">
+                      Page {page + 1} of {totalPages}
+                  </span>
+                  <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setPage(p => Math.max(0, p - 1))}
+                      disabled={page === 0}
+                  >
+                      <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                      disabled={page >= totalPages - 1}
+                  >
+                      <ChevronRight className="h-4 w-4" />
+                  </Button>
+              </div>
+               <Button onClick={handleSubmit} className="bg-accent hover:bg-accent/90 w-full sm:w-auto">
+                  <Send className="mr-2 h-4 w-4" />
+                  Submit Attendance
+              </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </TooltipProvider>
   );
 }
