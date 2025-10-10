@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,7 +37,6 @@ export function SubjectPerformanceRadarChart() {
             <CardContent>
                 <ChartContainer config={chartConfig} className="h-64 w-full">
                     <RadarChart data={chartData}>
-                        <CartesianGrid />
                         <PolarGrid />
                         <PolarAngleAxis dataKey="subject" />
                         <PolarRadiusAxis angle={30} domain={[60, 100]} />
