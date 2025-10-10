@@ -21,7 +21,7 @@ export function AnnouncementModal({ isOpen, onOpenChange, announcement }: Announ
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent 
-        className="font-chalkboard bg-[#2C3E50] text-white border-4 border-[#a07a56] shadow-[0_0_20px_rgba(235,225,202,0.4),_inset_0_0_10px_rgba(0,0,0,0.5)] p-8 max-w-3xl"
+        className="font-chalkboard bg-[#2C3E50] text-white border-4 border-[#a07a56] shadow-[0_0_20px_rgba(235,225,202,0.4),_inset_0_0_10px_rgba(0,0,0,0.5)] p-8 max-w-3xl mx-4"
         style={{ fontFamily: "'Kalam', cursive" }}
       >
         <DialogHeader className="text-center border-b-2 border-dashed border-white/30 pb-4">
