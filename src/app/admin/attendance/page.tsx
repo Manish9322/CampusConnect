@@ -46,24 +46,23 @@ export default function AttendancePage() {
     const [selectedClass, setSelectedClass] = React.useState<ClassWithStudentDetails | null>(null);
 
     const { data: classes = [], isLoading: isLoadingClasses } = useGetClassesQuery();
-    const { data: teachers = [], isLoading: isLoadingTeachers } = useGetTeachersQuery();
     const { data: students = [], isLoading: isLoadingStudents } = useGetStudentsQuery();
 
-    const isLoading = isLoadingClasses || isLoadingTeachers || isLoadingStudents;
+    const isLoading = isLoadingClasses || isLoadingStudents;
 
     const classDetails: ClassWithStudentDetails[] = React.useMemo(() => {
         if (isLoading) return [];
-        return classes.map((c: Class) => {
-            const teacher = teachers.find((t: any) => t._id === c.teacherId)?.name || "N/A";
+        return classes.map((c: any) => {
+            const teacherName = c.teacherId?.name || "N/A";
             const studentsInClass = students.filter((s: Student) => s.classId === c._id);
             return {
                 ...c,
-                teacher,
+                teacher: teacherName,
                 studentCount: studentsInClass.length,
                 students: studentsInClass,
             };
         });
-    }, [classes, teachers, students, isLoading]);
+    }, [classes, students, isLoading]);
 
     const filteredClasses = classDetails.filter(c =>
         c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
