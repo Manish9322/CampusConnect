@@ -1,20 +1,22 @@
 
 "use client";
 
-import { useState } from "react";
+import * as React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { mockClasses, mockStudents } from "@/lib/mock-data";
 import { useToast } from "@/hooks/use-toast";
 import { Send, ChevronLeft, ChevronRight, CalendarIcon, Check, Clock, X } from "lucide-react";
-import { AttendanceStatus, Student } from "@/lib/types";
+import { AttendanceStatus, Student, Teacher } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
 import { format } from "date-fns";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
+import { useAddAttendanceMutation, useGetAttendanceQuery, useGetClassesQuery, useGetStudentsQuery, useGetTeachersQuery } from "@/services/api";
+import { Skeleton } from "../ui/skeleton";
+import { EmptyState } from "../shared/empty-state";
 
 type AttendanceState = {
   [studentId: string]: AttendanceStatus;
@@ -60,34 +62,50 @@ const ThreeStateToggle = ({ status, onChange }: { status: AttendanceStatus, onCh
 
 
 export function AttendanceTool() {
-  const [selectedCourse, setSelectedCourse] = useState("CS101");
-  const [attendance, setAttendance] = useState<AttendanceState>({});
   const { toast } = useToast();
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [date, setDate] = useState<Date | undefined>(new Date());
-
-
-  const studentsInCourse = mockStudents.filter(s => {
-    if (selectedCourse === 'CS101' || selectedCourse === 'CS303') {
-        return s.major === 'Computer Science';
-    }
-    // Add logic for other courses if necessary
-    return false;
-  });
-
-  const getInitialAttendance = (students: Student[]): AttendanceState => {
-    const initialState: AttendanceState = {};
-    students.forEach(student => {
-      initialState[student.id] = 'present';
-    });
-    return initialState;
-  };
-
-  useState(() => {
-    setAttendance(getInitialAttendance(studentsInCourse));
-  });
   
+  // Mock logged in teacher
+  const { data: allTeachers = [], isLoading: isLoadingTeachers } = useGetTeachersQuery();
+  const teacher = allTeachers.find((t: Teacher) => t.name === 'Alan Turing');
+
+  const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery();
+  const teacherClasses = allClasses.filter((c: any) => c.teacherId._id === teacher?._id);
+
+  const [selectedClassId, setSelectedClassId] = React.useState<string | undefined>(teacherClasses[0]?._id);
+  
+  const [attendance, setAttendance] = React.useState<AttendanceState>({});
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [date, setDate] = React.useState<Date | undefined>(new Date());
+  
+  const { data: studentsInCourse = [], isLoading: isLoadingStudents } = useGetStudentsQuery({ classId: selectedClassId }, {
+    skip: !selectedClassId,
+  });
+
+  const formattedDate = date ? format(date, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
+  const { data: existingAttendance = [] } = useGetAttendanceQuery(
+    { classId: selectedClassId!, date: formattedDate },
+    { skip: !selectedClassId || !date }
+  );
+
+  const [addAttendance, { isLoading: isSubmitting }] = useAddAttendanceMutation();
+
+  React.useEffect(() => {
+      if (teacherClasses.length > 0 && !selectedClassId) {
+          setSelectedClassId(teacherClasses[0]._id);
+      }
+  }, [teacherClasses, selectedClassId]);
+
+  React.useEffect(() => {
+    const newAttendance: AttendanceState = {};
+    studentsInCourse.forEach((student: Student) => {
+        const record = existingAttendance.find((r: any) => r.studentId === student._id);
+        newAttendance[student._id!] = record ? record.status : 'present';
+    });
+    setAttendance(newAttendance);
+  }, [studentsInCourse, existingAttendance]);
+
+
   const totalPages = Math.ceil(studentsInCourse.length / rowsPerPage);
   const paginatedStudents = studentsInCourse.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
 
@@ -104,32 +122,69 @@ export function AttendanceTool() {
     setAttendance((prev) => ({ ...prev, [studentId]: status }));
   };
 
-  const handleSubmit = () => {
-    const absentStudents = studentsInCourse.filter(
-      (student) => attendance[student.id] === "absent"
-    );
+  const handleSubmit = async () => {
+    if (!selectedClassId) return;
 
-    if (absentStudents.length > 0) {
+    const attendanceData = studentsInCourse.map((student: Student) => ({
+      studentId: student._id!,
+      classId: selectedClassId,
+      date: formattedDate,
+      status: attendance[student._id!] || 'present',
+      recordedBy: teacher?._id,
+    }));
+
+    try {
+      await addAttendance(attendanceData).unwrap();
       toast({
-        title: "Absence Notifications Sent",
-        description: `Notifications sent to ${absentStudents.map(s => s.name).join(', ')}.`,
-        variant: "default",
+        title: "Attendance Submitted",
+        description: `Attendance for class on ${format(date || new Date(), "PPP")} has been recorded.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to submit attendance.",
+        variant: "destructive",
       });
     }
-
-    toast({
-        title: "Attendance Submitted",
-        description: `Attendance for ${selectedCourse} has been successfully recorded.`,
-    });
-    setAttendance(getInitialAttendance(studentsInCourse));
   };
   
   const markAll = (status: AttendanceStatus) => {
     const newAttendance: AttendanceState = {};
-    studentsInCourse.forEach(student => {
-      newAttendance[student.id] = status;
+    studentsInCourse.forEach((student: Student) => {
+      newAttendance[student._id!] = status;
     });
     setAttendance(newAttendance);
+  }
+
+  const renderTableBody = () => {
+    if (isLoadingStudents) {
+      return [...Array(rowsPerPage)].map((_, i) => (
+        <TableRow key={i}>
+            <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-20"/></TableCell>
+            <TableCell><Skeleton className="h-5 w-32"/></TableCell>
+            <TableCell className="hidden lg:table-cell"><Skeleton className="h-5 w-48"/></TableCell>
+            <TableCell className="hidden sm:table-cell"><Skeleton className="h-5 w-16"/></TableCell>
+            <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto rounded-full"/></TableCell>
+        </TableRow>
+      ));
+    }
+    if (paginatedStudents.length === 0) {
+      return <TableRow><TableCell colSpan={5}><EmptyState title="No Students" description="There are no students in the selected class." /></TableCell></TableRow>
+    }
+    return paginatedStudents.map((student: Student) => (
+        <TableRow key={student._id}>
+          <TableCell className="hidden md:table-cell">{student.rollNo}</TableCell>
+          <TableCell className="font-medium">{student.name}</TableCell>
+          <TableCell className="hidden lg:table-cell">{student.email}</TableCell>
+          <TableCell className="hidden sm:table-cell">{student.attendancePercentage || 0}%</TableCell>
+          <TableCell className="text-right">
+            <ThreeStateToggle 
+                status={attendance[student._id!] || 'present'}
+                onChange={(newStatus) => handleAttendanceChange(student._id!, newStatus)}
+            />
+          </TableCell>
+        </TableRow>
+    ))
   }
 
   return (
@@ -142,13 +197,13 @@ export function AttendanceTool() {
                   <CardDescription>Select a class and date, then mark student attendance.</CardDescription>
               </div>
                <div className="flex flex-col sm:flex-row items-center gap-2">
-                   <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-                      <SelectTrigger className="w-full sm:w-[200px]">
+                   <Select value={selectedClassId} onValueChange={setSelectedClassId}>
+                      <SelectTrigger className="w-full sm:w-[200px]" disabled={isLoadingClasses}>
                           <SelectValue placeholder="Select course" />
                       </SelectTrigger>
                       <SelectContent>
-                          {mockClasses.filter(c => c.status === 'active').map(c => (
-                               <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+                          {teacherClasses.map((c: any) => (
+                               <SelectItem key={c._id} value={c._id}>{c.name}</SelectItem>
                           ))}
                       </SelectContent>
                   </Select>
@@ -179,8 +234,8 @@ export function AttendanceTool() {
         </CardHeader>
         <CardContent>
            <div className="flex w-full sm:w-auto items-center gap-2 mb-4">
-              <Button variant="outline" className="w-full" onClick={() => markAll('present')}>All Present</Button>
-              <Button variant="outline" className="w-full" onClick={() => markAll('absent')}>All Absent</Button>
+              <Button variant="outline" className="w-full" onClick={() => markAll('present')} disabled={isLoadingStudents}>All Present</Button>
+              <Button variant="outline" className="w-full" onClick={() => markAll('absent')} disabled={isLoadingStudents}>All Absent</Button>
            </div>
           <div className="rounded-md border">
             <Table>
@@ -194,20 +249,7 @@ export function AttendanceTool() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedStudents.map((student) => (
-                  <TableRow key={student.id}>
-                    <TableCell className="hidden md:table-cell">{student.rollNo}</TableCell>
-                    <TableCell className="font-medium">{student.name}</TableCell>
-                    <TableCell className="hidden lg:table-cell">{student.email}</TableCell>
-                    <TableCell className="hidden sm:table-cell">{student.attendancePercentage}%</TableCell>
-                    <TableCell className="text-right">
-                      <ThreeStateToggle 
-                          status={attendance[student.id] || 'present'}
-                          onChange={(newStatus) => handleAttendanceChange(student.id, newStatus)}
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {renderTableBody()}
               </TableBody>
             </Table>
           </div>
@@ -247,9 +289,8 @@ export function AttendanceTool() {
                       <ChevronRight className="h-4 w-4" />
                   </Button>
               </div>
-               <Button onClick={handleSubmit} className="bg-accent hover:bg-accent/90 w-full sm:w-auto">
-                  <Send className="mr-2 h-4 w-4" />
-                  Submit Attendance
+               <Button onClick={handleSubmit} disabled={isSubmitting || isLoadingStudents} className="bg-accent hover:bg-accent/90 w-full sm:w-auto">
+                  {isSubmitting ? "Submitting..." : <><Send className="mr-2 h-4 w-4" />Submit Attendance</>}
               </Button>
           </div>
         </CardContent>

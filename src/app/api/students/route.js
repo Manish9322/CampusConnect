@@ -3,10 +3,18 @@ import { NextResponse } from 'next/server';
 import _db from '@/lib/db';
 import { Student } from '@/models/student.model.js';
 
-export async function GET() {
+export async function GET(request) {
   await _db();
   try {
-    const students = await Student.find({}).populate('classId');
+    const { searchParams } = new URL(request.url);
+    const classId = searchParams.get('classId');
+    
+    const filter = {};
+    if (classId) {
+      filter.classId = classId;
+    }
+
+    const students = await Student.find(filter).populate('classId');
     return NextResponse.json(students, { status: 200 });
   } catch (error) {
     return NextResponse.json({ message: 'Error fetching students', error: error.message }, { status: 500 });

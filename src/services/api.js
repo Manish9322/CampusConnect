@@ -165,8 +165,11 @@ export const api = createApi({
 
     // Student CRUD endpoints
     getStudents: builder.query({
-      query: () => 'students',
-      providesTags: ['Student'],
+      query: ({ classId } = {}) => classId ? `students?classId=${classId}` : 'students',
+      providesTags: (result, error, arg) =>
+        result
+          ? [...result.map(({ _id }) => ({ type: 'Student', id: _id })), { type: 'Student', id: 'LIST' }]
+          : [{ type: 'Student', id: 'LIST' }],
     }),
     addStudent: builder.mutation({
         query: (newStudent) => ({
@@ -174,7 +177,7 @@ export const api = createApi({
             method: 'POST',
             body: newStudent,
         }),
-        invalidatesTags: ['Student', 'Class'],
+        invalidatesTags: [{ type: 'Student', id: 'LIST' }, 'Class'],
     }),
     updateStudent: builder.mutation({
         query: (studentToUpdate) => ({
@@ -182,14 +185,14 @@ export const api = createApi({
             method: 'PUT',
             body: studentToUpdate,
         }),
-        invalidatesTags: ['Student', 'Class'],
+        invalidatesTags: (result, error, { _id }) => [{ type: 'Student', id: _id }, 'Class'],
     }),
     deleteStudent: builder.mutation({
         query: (id) => ({
             url: `students?id=${id}`,
             method: 'DELETE',
         }),
-        invalidatesTags: ['Student', 'Class'],
+        invalidatesTags: (result, error, id) => [{ type: 'Student', id }, { type: 'Student', id: 'LIST' }, 'Class'],
     }),
 
     // Announcement Category CRUD endpoints
