@@ -185,9 +185,9 @@ export default function SettingsPage() {
                             ) : items.length > 0 ? (
                                 items.map((item) => (
                                     <div key={item._id} className="flex items-center justify-between p-2 border rounded-md">
-                                        <div>
-                                            <p className="font-medium">{item.name}</p>
-                                            {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
+                                        <div className="flex-1 overflow-hidden">
+                                            <p className="font-medium truncate">{item.name}</p>
+                                            {item.description && <p className="text-sm text-muted-foreground truncate">{item.description}</p>}
                                         </div>
                                         <div>
                                             <Button variant="ghost" size="icon" onClick={() => onEdit(item)}>
@@ -278,7 +278,3 @@ export default function SettingsPage() {
         </div>
     );
 }
-
-    
-
-    
