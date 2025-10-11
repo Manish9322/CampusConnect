@@ -230,7 +230,7 @@ export default function SettingsPage() {
                     </Button>
                 </div>
                 <div className="flex-1 relative">
-                    <ScrollArea className="absolute inset-0 pr-6">
+                    <ScrollArea className="h-64 pr-6">
                         <div className="space-y-2">
                             {isLoading ? (
                                 [...Array(3)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)
@@ -268,7 +268,7 @@ export default function SettingsPage() {
     return (
         <div className="space-y-6">
             <h1 className="text-2xl font-bold">Settings</h1>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
                 {renderCard(
                     "Manage Subjects",
                     "Add or remove subjects offered.",

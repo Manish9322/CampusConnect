@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Student, Class } from "@/lib/types";
-import { Edit, PlusCircle, Trash2, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Edit, PlusCircle, Trash2, ChevronLeft, ChevronRight, X, Eye } from "lucide-react";
 import { DeleteConfirmationDialog } from "../shared/delete-confirmation-dialog";
 import { AddStudentDialog } from "./add-student-dialog";
 import { Progress } from "../ui/progress";
@@ -24,6 +24,7 @@ import { useAddStudentMutation, useDeleteStudentMutation, useUpdateStudentMutati
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "../ui/skeleton";
 import { EmptyState } from "../shared/empty-state";
+import { StudentProfileDialog } from "./student-profile-dialog";
 
 interface StudentsTableProps {
   students: Student[];
@@ -41,6 +42,7 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [classFilter, setClassFilter] = React.useState<string>('all');
   const [statusFilter, setStatusFilter] = React.useState<string>('all');
+  const [isProfileOpen, setProfileOpen] = React.useState(false);
 
   const [addStudent] = useAddStudentMutation();
   const [updateStudent] = useUpdateStudentMutation();
@@ -49,7 +51,7 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
   const studentsWithRandomAttendance = React.useMemo(() => {
     return initialStudents.map(student => ({
       ...student,
-      attendancePercentage: Math.floor(Math.random() * (100 - 70 + 1) + 70) // Random value between 70 and 100
+      attendancePercentage: student.attendancePercentage || Math.floor(Math.random() * (100 - 70 + 1) + 70) // Random value between 70 and 100
     }));
   }, [initialStudents]);
 
@@ -61,7 +63,7 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
   const filteredStudents = studentsWithRandomAttendance.filter(
     (student) =>
       (student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (student.studentId && student.studentId.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (student.rollNo && student.rollNo.toLowerCase().includes(searchTerm.toLowerCase())) ||
       student.email.toLowerCase().includes(searchTerm.toLowerCase())) &&
       (classFilter === 'all' || student.classId === classFilter) &&
       (statusFilter === 'all' || student.status === statusFilter)
@@ -78,6 +80,11 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
   const handleEdit = (student: Student) => {
     setStudentToAction(student);
     setAddDialogOpen(true);
+  };
+
+  const handleViewProfile = (student: Student) => {
+    setStudentToAction(student);
+    setProfileOpen(true);
   };
 
   const handleAdd = () => {
@@ -148,7 +155,6 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
           {[...Array(5)].map((_, i) => (
             <TableRow key={i}>
               <TableCell><Skeleton className="h-5 w-20" /></TableCell>
-              <TableCell><Skeleton className="h-5 w-20" /></TableCell>
               <TableCell><Skeleton className="h-5 w-32" /></TableCell>
               <TableCell><Skeleton className="h-5 w-40" /></TableCell>
               <TableCell><Skeleton className="h-5 w-24" /></TableCell>
@@ -165,7 +171,7 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
       return (
         <TableBody>
           <TableRow>
-            <TableCell colSpan={8} className="h-24 text-center">
+            <TableCell colSpan={7} className="h-24 text-center">
               <EmptyState title="No Students Found" description="There are no students matching your criteria." />
             </TableCell>
           </TableRow>
@@ -177,7 +183,6 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
        <TableBody>
         {paginatedStudents.map((student) => (
           <TableRow key={student._id}>
-            <TableCell>{student.studentId}</TableCell>
             <TableCell>{student.rollNo}</TableCell>
             <TableCell className="font-medium">{student.name}</TableCell>
             <TableCell>{student.email}</TableCell>
@@ -196,6 +201,9 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
               />
             </TableCell>
             <TableCell className="text-right">
+              <Button variant="ghost" size="icon" onClick={() => handleViewProfile(student)}>
+                <Eye className="h-4 w-4" />
+              </Button>
               <Button variant="ghost" size="icon" onClick={() => handleEdit(student)}>
                 <Edit className="h-4 w-4" />
               </Button>
@@ -255,7 +263,6 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Student ID</TableHead>
               <TableHead>Roll No.</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
@@ -311,12 +318,20 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
         studentData={studentToAction}
       />
       {studentToAction && (
-        <DeleteConfirmationDialog
-          open={isDeleteDialogOpen}
-          onOpenChange={setDeleteDialogOpen}
-          onConfirm={handleDelete}
-          itemName={studentToAction.name}
-        />
+        <>
+          <DeleteConfirmationDialog
+            open={isDeleteDialogOpen}
+            onOpenChange={setDeleteDialogOpen}
+            onConfirm={handleDelete}
+            itemName={studentToAction.name}
+          />
+          <StudentProfileDialog
+            open={isProfileOpen}
+            onOpenChange={setProfileOpen}
+            student={studentToAction}
+            classes={classes}
+          />
+        </>
       )}
     </>
   );
