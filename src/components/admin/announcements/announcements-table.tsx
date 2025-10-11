@@ -19,20 +19,28 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AddAnnouncementDialog } from "./add-announcement-dialog";
+import { useAddAnnouncementMutation, useDeleteAnnouncementMutation, useUpdateAnnouncementMutation } from "@/services/api";
+import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/shared/empty-state";
 
 interface AnnouncementsTableProps {
   announcements: Announcement[];
+  isLoading: boolean;
 }
 
-export function AnnouncementsTable({ announcements: initialAnnouncements }: AnnouncementsTableProps) {
-  const [announcements, setAnnouncements] = React.useState(initialAnnouncements);
+export function AnnouncementsTable({ announcements, isLoading }: AnnouncementsTableProps) {
   const [searchTerm, setSearchTerm] = React.useState("");
   const [isAddDialogOpen, setAddDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [announcementToAction, setAnnouncementToAction] = React.useState<Announcement | null>(null);
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const { toast } = useToast();
 
+  const [addAnnouncement] = useAddAnnouncementMutation();
+  const [updateAnnouncement] = useUpdateAnnouncementMutation();
+  const [deleteAnnouncement] = useDeleteAnnouncementMutation();
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -66,35 +74,102 @@ export function AnnouncementsTable({ announcements: initialAnnouncements }: Anno
     setDeleteDialogOpen(true);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (announcementToAction) {
-      setAnnouncements(announcements.filter((item) => item.id !== announcementToAction.id));
-      setAnnouncementToAction(null);
-      setDeleteDialogOpen(false);
+      try {
+        await deleteAnnouncement(announcementToAction._id).unwrap();
+        toast({ title: "Announcement Deleted", description: `"${announcementToAction.title}" has been deleted.` });
+        setDeleteDialogOpen(false);
+        setAnnouncementToAction(null);
+      } catch (error) {
+        toast({ title: "Error", description: "Failed to delete announcement.", variant: "destructive" });
+      }
     }
   };
 
-  const handleTogglePublished = (id: string, isPublished: boolean) => {
-    setAnnouncements(
-      announcements.map((item) =>
-        item.id === id ? { ...item, isPublished } : item
-      )
-    );
+  const handleTogglePublished = async (announcement: Announcement, isPublished: boolean) => {
+    try {
+        await updateAnnouncement({ ...announcement, isPublished }).unwrap();
+        toast({ title: "Status Updated", description: `"${announcement.title}" has been ${isPublished ? 'published' : 'unpublished'}.` });
+    } catch(error) {
+        toast({ title: "Error", description: "Failed to update status.", variant: "destructive" });
+    }
   };
   
-   const handleSave = (data: Omit<Announcement, 'id' | 'createdAt' | 'author'>) => {
-    if (announcementToAction) {
-        setAnnouncements(announcements.map(a => a.id === announcementToAction.id ? { ...announcementToAction, ...data } : a));
-    } else {
-        const newAnnouncement: Announcement = {
-            id: `AN${Date.now()}`,
-            createdAt: new Date().toISOString().split('T')[0],
-            author: 'Admin User',
-            ...data
-        };
-        setAnnouncements([newAnnouncement, ...announcements]);
+  const handleSave = async (data: Omit<Announcement, 'id' | 'createdAt' | 'author'>) => {
+    try {
+      if (announcementToAction) {
+        await updateAnnouncement({ _id: announcementToAction._id, ...data }).unwrap();
+        toast({ title: "Announcement Updated" });
+      } else {
+        await addAnnouncement({ ...data, author: "Admin User" }).unwrap();
+        toast({ title: "Announcement Created" });
+      }
+      setAddDialogOpen(false);
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to save announcement.", variant: "destructive" });
     }
-    setAddDialogOpen(false);
+  };
+
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <TableBody>
+          {[...Array(5)].map((_, i) => (
+            <TableRow key={i}>
+              <TableCell><Skeleton className="h-5 w-48" /></TableCell>
+              <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+              <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+              <TableCell><Skeleton className="h-6 w-11" /></TableCell>
+              <TableCell className="text-right"><Skeleton className="h-8 w-20 ml-auto" /></TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      );
+    }
+    
+    if (paginatedAnnouncements.length === 0) {
+        return (
+            <TableBody>
+                <TableRow>
+                    <TableCell colSpan={5}>
+                        <EmptyState title="No Announcements Found" description="There are no announcements matching your criteria." />
+                    </TableCell>
+                </TableRow>
+            </TableBody>
+        )
+    }
+
+    return (
+      <TableBody>
+        {paginatedAnnouncements.map((item) => (
+          <TableRow key={item._id}>
+            <TableCell className="font-medium">{item.title}</TableCell>
+            <TableCell><Badge variant="outline">{item.category}</Badge></TableCell>
+            <TableCell>{new Date(item.createdAt).toLocaleDateString()}</TableCell>
+            <TableCell>
+              <Switch
+                checked={item.isPublished}
+                onCheckedChange={(checked) => handleTogglePublished(item, checked)}
+                aria-label="Toggle published status"
+              />
+            </TableCell>
+            <TableCell className="text-right">
+              <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
+                <Edit className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => openDeleteDialog(item)}
+              >
+                <Trash2 className="h-4 w-4 text-destructive" />
+              </Button>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    );
   };
 
   return (
@@ -121,34 +196,7 @@ export function AnnouncementsTable({ announcements: initialAnnouncements }: Anno
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {paginatedAnnouncements.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell className="font-medium">{item.title}</TableCell>
-                <TableCell><Badge variant="outline">{item.category}</Badge></TableCell>
-                <TableCell>{item.createdAt}</TableCell>
-                <TableCell>
-                  <Switch
-                    checked={item.isPublished}
-                    onCheckedChange={(checked) => handleTogglePublished(item.id, checked)}
-                    aria-label="Toggle published status"
-                  />
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => openDeleteDialog(item)}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
+          {renderContent()}
         </Table>
       </div>
        <div className="flex items-center justify-between mt-4">

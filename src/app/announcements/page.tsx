@@ -1,21 +1,23 @@
+
 "use client"
 
 import * as React from 'react';
 import { PublicHeader } from '@/components/shared/public-header';
 import { PublicFooter } from '@/components/shared/public-footer';
 import { AnnouncementCard } from '@/components/announcements/announcement-card';
-import { mockAnnouncements } from '@/lib/mock-data';
 import { Megaphone } from 'lucide-react';
 import { HighlightedAnnouncementCard } from '@/components/announcements/highlighted-announcement-card';
 import { Announcement } from '@/lib/types';
 import { AnnouncementModal } from '@/components/announcements/announcement-modal';
+import { useGetAnnouncementsQuery } from '@/services/api';
+import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/shared/empty-state';
 
 export default function AnnouncementsPage() {
   const [selectedAnnouncement, setSelectedAnnouncement] = React.useState<Announcement | null>(null);
+  const { data: announcements = [], isLoading } = useGetAnnouncementsQuery();
 
-  const publishedAnnouncements = mockAnnouncements
-    .filter(a => a.isPublished)
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const publishedAnnouncements = announcements.filter((a: { isPublished: any; }) => a.isPublished);
   
   const [latestAnnouncement, ...otherAnnouncements] = publishedAnnouncements;
 
@@ -26,6 +28,45 @@ export default function AnnouncementsPage() {
   const handleCloseModal = () => {
     setSelectedAnnouncement(null);
   };
+
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className="container px-4 md:px-6">
+          <Skeleton className="h-64 w-full mb-12" />
+          <div className="grid gap-8 md:gap-12 md:grid-cols-2 lg:grid-cols-3">
+            {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-72 w-full" />)}
+          </div>
+        </div>
+      );
+    }
+    if (publishedAnnouncements.length === 0) {
+        return (
+            <div className="container px-4 md:px-6">
+                <EmptyState 
+                    title="No Announcements" 
+                    description="There are no announcements at this time. Please check back later." 
+                />
+            </div>
+        )
+    }
+    return (
+        <div className="container px-4 md:px-6">
+            {latestAnnouncement && (
+            <div className="mb-12 cursor-pointer" onClick={() => handleOpenModal(latestAnnouncement)}>
+                <HighlightedAnnouncementCard announcement={latestAnnouncement} />
+            </div>
+            )}
+            <div className="grid gap-8 md:gap-12 md:grid-cols-2 lg:grid-cols-3">
+            {otherAnnouncements.map(announcement => (
+                <div key={announcement._id} className="cursor-pointer" onClick={() => handleOpenModal(announcement)}>
+                <AnnouncementCard announcement={announcement} />
+                </div>
+            ))}
+            </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -47,20 +88,7 @@ export default function AnnouncementsPage() {
           </section>
 
           <section className="w-full pb-12 md:pb-24 lg:pb-32">
-            <div className="container px-4 md:px-6">
-              {latestAnnouncement && (
-                <div className="mb-12 cursor-pointer" onClick={() => handleOpenModal(latestAnnouncement)}>
-                  <HighlightedAnnouncementCard announcement={latestAnnouncement} />
-                </div>
-              )}
-              <div className="grid gap-8 md:gap-12 md:grid-cols-2 lg:grid-cols-3">
-                {otherAnnouncements.map(announcement => (
-                  <div key={announcement.id} className="cursor-pointer" onClick={() => handleOpenModal(announcement)}>
-                    <AnnouncementCard announcement={announcement} />
-                  </div>
-                ))}
-              </div>
-            </div>
+            {renderContent()}
           </section>
 
         </main>

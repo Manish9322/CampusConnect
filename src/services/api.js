@@ -4,7 +4,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student'],
+  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory'],
   endpoints: (builder) => ({
     testDBConnection: builder.query({
       query: () => 'connect',
@@ -168,6 +168,64 @@ export const api = createApi({
       query: () => 'students', // Assuming you'll create this endpoint
       providesTags: ['Student'],
     }),
+
+    // Announcement Category CRUD endpoints
+    getAnnouncementCategories: builder.query({
+        query: () => 'settings/announcement-category',
+        providesTags: ['AnnouncementCategory'],
+    }),
+    addAnnouncementCategory: builder.mutation({
+        query: (newCategory) => ({
+            url: 'settings/announcement-category',
+            method: 'POST',
+            body: newCategory,
+        }),
+        invalidatesTags: ['AnnouncementCategory'],
+    }),
+    updateAnnouncementCategory: builder.mutation({
+        query: (categoryToUpdate) => ({
+            url: `settings/announcement-category`,
+            method: 'PUT',
+            body: categoryToUpdate,
+        }),
+        invalidatesTags: ['AnnouncementCategory'],
+    }),
+    deleteAnnouncementCategory: builder.mutation({
+        query: (id) => ({
+            url: `settings/announcement-category?id=${id}`,
+            method: 'DELETE',
+        }),
+        invalidatesTags: ['AnnouncementCategory'],
+    }),
+
+    // Announcement CRUD endpoints
+    getAnnouncements: builder.query({
+        query: () => 'announcements',
+        providesTags: ['Announcement'],
+    }),
+    addAnnouncement: builder.mutation({
+        query: (newAnnouncement) => ({
+            url: 'announcements',
+            method: 'POST',
+            body: newAnnouncement,
+        }),
+        invalidatesTags: ['Announcement'],
+    }),
+    updateAnnouncement: builder.mutation({
+        query: (announcementToUpdate) => ({
+            url: 'announcements',
+            method: 'PUT',
+            body: announcementToUpdate,
+        }),
+        invalidatesTags: ['Announcement'],
+    }),
+    deleteAnnouncement: builder.mutation({
+        query: (id) => ({
+            url: `announcements?id=${id}`,
+            method: 'DELETE',
+        }),
+        invalidatesTags: ['Announcement'],
+    }),
   }),
 });
 
@@ -195,4 +253,12 @@ export const {
     useUpdateClassMutation,
     useDeleteClassMutation,
     useGetStudentsQuery,
+    useGetAnnouncementCategoriesQuery,
+    useAddAnnouncementCategoryMutation,
+    useUpdateAnnouncementCategoryMutation,
+    useDeleteAnnouncementCategoryMutation,
+    useGetAnnouncementsQuery,
+    useAddAnnouncementMutation,
+    useUpdateAnnouncementMutation,
+    useDeleteAnnouncementMutation,
 } = api;

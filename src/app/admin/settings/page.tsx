@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PlusCircle, Trash2, Edit, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useGetSubjectsQuery, useAddSubjectMutation, useDeleteSubjectMutation, useUpdateSubjectMutation, useGetDepartmentsQuery, useAddDepartmentMutation, useDeleteDepartmentMutation, useUpdateDepartmentMutation, useGetDesignationsQuery, useAddDesignationMutation, useDeleteDesignationMutation, useUpdateDesignationMutation } from "@/services/api";
+import { useGetSubjectsQuery, useAddSubjectMutation, useDeleteSubjectMutation, useUpdateSubjectMutation, useGetDepartmentsQuery, useAddDepartmentMutation, useDeleteDepartmentMutation, useUpdateDepartmentMutation, useGetDesignationsQuery, useAddDesignationMutation, useDeleteDesignationMutation, useUpdateDesignationMutation, useGetAnnouncementCategoriesQuery, useAddAnnouncementCategoryMutation, useUpdateAnnouncementCategoryMutation, useDeleteAnnouncementCategoryMutation } from "@/services/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,12 +22,13 @@ type Item = {
 }
 
 type ItemToModify = Item | null;
-type ItemType = "subject" | "department" | "designation";
+type ItemType = "subject" | "department" | "designation" | "announcementCategory";
 
 export default function SettingsPage() {
     const [newSubject, setNewSubject] = React.useState({ name: "", description: "" });
     const [newDepartment, setNewDepartment] = React.useState({ name: "", description: "" });
     const [newDesignation, setNewDesignation] = React.useState({ name: "", description: "" });
+    const [newAnnouncementCategory, setNewAnnouncementCategory] = React.useState({ name: "", description: "" });
     
     const [itemToEdit, setItemToEdit] = React.useState<ItemToModify>(null);
     const [editName, setEditName] = React.useState("");
@@ -53,6 +54,11 @@ export default function SettingsPage() {
     const [addDesignation, { isLoading: isAddingDesignation }] = useAddDesignationMutation();
     const [updateDesignation, { isLoading: isUpdatingDesignation }] = useUpdateDesignationMutation();
     const [deleteDesignation] = useDeleteDesignationMutation();
+    
+    const { data: announcementCategories = [], isLoading: isLoadingAnnouncementCategories } = useGetAnnouncementCategoriesQuery();
+    const [addAnnouncementCategory, { isLoading: isAddingAnnouncementCategory }] = useAddAnnouncementCategoryMutation();
+    const [updateAnnouncementCategory, { isLoading: isUpdatingAnnouncementCategory }] = useUpdateAnnouncementCategoryMutation();
+    const [deleteAnnouncementCategory] = useDeleteAnnouncementCategoryMutation();
 
     const openEditDialog = (item: ItemToModify, type: ItemType) => {
         setItemToEdit(item);
@@ -89,6 +95,8 @@ export default function SettingsPage() {
                 await updateDepartment(updatedData).unwrap();
             } else if (editType === 'designation') {
                 await updateDesignation(updatedData).unwrap();
+            } else if (editType === 'announcementCategory') {
+                await updateAnnouncementCategory(updatedData).unwrap();
             }
             toast({ title: `${editType.charAt(0).toUpperCase() + editType.slice(1)} Updated`, description: `"${editName}" has been updated.` });
             closeEditDialog();
@@ -160,6 +168,28 @@ export default function SettingsPage() {
             toast({ title: "Error", description: "Failed to remove designation.", variant: "destructive" });
         }
     };
+    
+    const handleAddAnnouncementCategory = async () => {
+        if (newAnnouncementCategory.name.trim()) {
+            try {
+                await addAnnouncementCategory({ name: newAnnouncementCategory.name.trim(), description: newAnnouncementCategory.description.trim() }).unwrap();
+                toast({ title: "Category Added", description: `"${newAnnouncementCategory.name.trim()}" has been added.` });
+                setNewAnnouncementCategory({ name: "", description: "" });
+            } catch (error) {
+                toast({ title: "Error", description: "Failed to add category.", variant: "destructive" });
+            }
+        }
+    };
+
+    const handleRemoveAnnouncementCategory = async (category: { _id: string, name: string }) => {
+        try {
+            await deleteAnnouncementCategory(category._id).unwrap();
+            toast({ title: "Category Removed", description: `"${category.name}" has been removed.` });
+        } catch (error) {
+            toast({ title: "Error", description: "Failed to remove category.", variant: "destructive" });
+        }
+    };
+
 
     const renderCard = (
         title: string,
@@ -185,18 +215,18 @@ export default function SettingsPage() {
                     <Input
                         value={newItem.name}
                         onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                        placeholder={`New ${type} name`}
+                        placeholder={`New ${type.replace(/([A-Z])/g, ' $1').toLowerCase()} name`}
                         disabled={isAdding}
                     />
                     <Textarea
                         value={newItem.description}
                         onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
-                        placeholder={`${type.charAt(0).toUpperCase() + type.slice(1)} description (optional)`}
+                        placeholder={`${type.charAt(0).toUpperCase() + type.slice(1).replace(/([A-Z])/g, ' $1')} description (optional)`}
                         disabled={isAdding}
                         rows={2}
                     />
                     <Button onClick={onAdd} disabled={isAdding || !newItem.name.trim()}>
-                        <PlusCircle className="mr-2 h-4 w-4" /> {isAdding ? "Adding..." : `Add ${type.charAt(0).toUpperCase() + type.slice(1)}`}
+                        <PlusCircle className="mr-2 h-4 w-4" /> {isAdding ? "Adding..." : `Add ${type.charAt(0).toUpperCase() + type.slice(1).replace(/([A-Z])/g, ' $1')}`}
                     </Button>
                 </div>
                 <div className="flex-1 relative">
@@ -225,7 +255,7 @@ export default function SettingsPage() {
                                     </div>
                                 ))
                             ) : (
-                                <EmptyState title={`No ${type}s`} description={`No ${type}s have been added yet.`} />
+                                <EmptyState title={`No ${type}s`} description={`No ${type.replace(/([A-Z])/g, ' $1').toLowerCase()}s have been added yet.`} />
                             )}
                         </div>
                     </ScrollArea>
@@ -238,7 +268,7 @@ export default function SettingsPage() {
     return (
         <div className="space-y-6">
             <h1 className="text-2xl font-bold">Settings</h1>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
                 {renderCard(
                     "Manage Subjects",
                     "Add or remove subjects offered.",
@@ -281,12 +311,26 @@ export default function SettingsPage() {
                     newDesignation,
                     setNewDesignation
                 )}
+                {renderCard(
+                    "Announcement Categories",
+                    "Manage announcement categories.",
+                    announcementCategories,
+                    isLoadingAnnouncementCategories,
+                    isAddingAnnouncementCategory,
+                    handleAddAnnouncementCategory,
+                    handleRemoveAnnouncementCategory,
+                    (item) => openEditDialog(item, "announcementCategory"),
+                    (item) => openPreviewDialog(item, "announcementCategory"),
+                    "announcementCategory",
+                    newAnnouncementCategory,
+                    setNewAnnouncementCategory
+                )}
             </div>
 
             <Dialog open={!!itemToEdit} onOpenChange={closeEditDialog}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Edit {editType}</DialogTitle>
+                        <DialogTitle>Edit {editType?.replace(/([A-Z])/g, ' $1')}</DialogTitle>
                         <DialogDescription>Update the details for this item.</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
@@ -303,8 +347,8 @@ export default function SettingsPage() {
                     </div>
                     <DialogFooter>
                         <Button variant="ghost" onClick={closeEditDialog}>Cancel</Button>
-                        <Button onClick={handleSave} disabled={isUpdatingSubject || isUpdatingDepartment || isUpdatingDesignation}>
-                            {(isUpdatingSubject || isUpdatingDepartment || isUpdatingDesignation) ? "Saving..." : "Save Changes"}
+                        <Button onClick={handleSave} disabled={isUpdatingSubject || isUpdatingDepartment || isUpdatingDesignation || isUpdatingAnnouncementCategory}>
+                            {(isUpdatingSubject || isUpdatingDepartment || isUpdatingDesignation || isUpdatingAnnouncementCategory) ? "Saving..." : "Save Changes"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

@@ -1,14 +1,23 @@
 
+"use client";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AnnouncementsTable } from "@/components/admin/announcements/announcements-table";
-import { mockAnnouncements } from "@/lib/mock-data";
+import { useGetAnnouncementsQuery } from "@/services/api";
 import { Megaphone, CheckCircle, FileText, AlertTriangle } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ManageAnnouncementsPage() {
-    const totalAnnouncements = mockAnnouncements.length;
-    const publishedCount = mockAnnouncements.filter(a => a.isPublished).length;
+    const { data: announcements = [], isLoading } = useGetAnnouncementsQuery();
+
+    const totalAnnouncements = announcements.length;
+    const publishedCount = announcements.filter((a: { isPublished: any; }) => a.isPublished).length;
     const unpublishedCount = totalAnnouncements - publishedCount;
-    const urgentCount = mockAnnouncements.filter(a => a.category === 'Urgent' && a.isPublished).length;
+    const urgentCount = announcements.filter((a: { category: string; isPublished: any; }) => a.category === 'Urgent' && a.isPublished).length;
+
+    const renderCardContent = (value: number) => {
+        return isLoading ? <Skeleton className="h-8 w-1/3" /> : <div className="text-2xl font-bold">{value}</div>
+    }
 
     return (
         <div className="space-y-6">
@@ -20,7 +29,7 @@ export default function ManageAnnouncementsPage() {
                         <Megaphone className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{totalAnnouncements}</div>
+                        {renderCardContent(totalAnnouncements)}
                         <p className="text-xs text-muted-foreground">All announcements created</p>
                     </CardContent>
                 </Card>
@@ -30,7 +39,7 @@ export default function ManageAnnouncementsPage() {
                         <CheckCircle className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{publishedCount}</div>
+                        {renderCardContent(publishedCount)}
                         <p className="text-xs text-muted-foreground">Currently live</p>
                     </CardContent>
                 </Card>
@@ -40,7 +49,7 @@ export default function ManageAnnouncementsPage() {
                         <FileText className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{unpublishedCount}</div>
+                        {renderCardContent(unpublishedCount)}
                         <p className="text-xs text-muted-foreground">Not yet visible</p>
                     </CardContent>
                 </Card>
@@ -50,7 +59,7 @@ export default function ManageAnnouncementsPage() {
                         <AlertTriangle className="h-4 w-4 text-destructive" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{urgentCount}</div>
+                        {renderCardContent(urgentCount)}
                         <p className="text-xs text-muted-foreground">Active urgent notices</p>
                     </CardContent>
                 </Card>
@@ -63,7 +72,7 @@ export default function ManageAnnouncementsPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <AnnouncementsTable announcements={mockAnnouncements} />
+                    <AnnouncementsTable announcements={announcements} isLoading={isLoading} />
                 </CardContent>
             </Card>
         </div>

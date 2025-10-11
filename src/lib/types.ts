@@ -55,6 +55,7 @@ export interface ClassWithDetails extends Class {
 export type AnnouncementCategory = 'General' | 'Event' | 'Academic' | 'Urgent';
 
 export interface Announcement {
+  _id: string;
   id: string;
   title: string;
   content: string;
