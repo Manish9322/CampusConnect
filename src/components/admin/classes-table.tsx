@@ -12,35 +12,47 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ClassWithDetails } from "@/lib/types";
+import { ClassWithDetails, Teacher } from "@/lib/types";
 import { Edit, PlusCircle, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { AddClassDialog } from "./add-class-dialog";
 import { DeleteConfirmationDialog } from "../shared/delete-confirmation-dialog";
 import { Badge } from "../ui/badge";
 import { Switch } from "../ui/switch";
-import { mockTeachers } from "@/lib/mock-data";
+import { useAddClassMutation, useDeleteClassMutation, useGetTeachersQuery, useUpdateClassMutation } from "@/services/api";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "../ui/skeleton";
 
 interface ClassesTableProps {
   classes: ClassWithDetails[];
+  isLoading: boolean;
 }
 
-export function ClassesTable({ classes: initialClasses }: ClassesTableProps) {
-  const [classes, setClasses] = React.useState(initialClasses);
+export function ClassesTable({ classes: initialClasses, isLoading }: ClassesTableProps) {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = React.useState("");
   const [isAddDialogOpen, setAddDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [classToAction, setClassToAction] = React.useState<ClassWithDetails | null>(null);
   const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
-
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  
+  const { data: teachers = [] } = useGetTeachersQuery();
+  const [addClass, { isLoading: isAdding }] = useAddClassMutation();
+  const [updateClass, { isLoading: isUpdating }] = useUpdateClassMutation();
+  const [deleteClass] = useDeleteClassMutation();
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
     setPage(0);
   };
+  
+  const classesWithTeacherNames = initialClasses.map(c => {
+    const teacher = teachers.find((t: Teacher) => t._id === c.teacherId);
+    return { ...c, teacher: teacher?.name || 'N/A' };
+  });
 
-  const filteredClasses = classes.filter(
+  const filteredClasses = classesWithTeacherNames.filter(
     (c) =>
       c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       c.teacher.toLowerCase().includes(searchTerm.toLowerCase())
@@ -74,26 +86,41 @@ export function ClassesTable({ classes: initialClasses }: ClassesTableProps) {
     setDeleteDialogOpen(true);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (classToAction) {
-      setClasses(classes.filter((c) => c.id !== classToAction.id));
-      setClassToAction(null);
-      setDeleteDialogOpen(false);
+        try {
+            await deleteClass(classToAction._id!).unwrap();
+            toast({ title: "Class Deleted", description: `Class ${classToAction.name} has been deleted.` });
+            setDeleteDialogOpen(false);
+            setClassToAction(null);
+        } catch (error) {
+            toast({ title: "Error", description: "Failed to delete class.", variant: "destructive" });
+        }
     }
   };
 
-  const handleToggleStatus = (classId: string, newStatus: boolean) => {
-    setClasses(
-      classes.map((c) =>
-        c.id === classId ? { ...c, status: newStatus ? "active" : "inactive" } : c
-      )
-    );
+  const handleToggleStatus = async (classData: ClassWithDetails, newStatus: boolean) => {
+    const status = newStatus ? "active" : "inactive";
+    try {
+        await updateClass({ ...classData, status }).unwrap();
+        toast({ title: "Status Updated", description: `${classData.name}'s status updated.` });
+    } catch (error) {
+        toast({ title: "Error", description: "Failed to update status.", variant: "destructive" });
+    }
   };
   
-   const handleSaveClass = (classData: any) => {
-    // This is where you would handle saving the data, for now, we'll just update the local state
-    console.log("Saving class:", classData);
-    setAddDialogOpen(false);
+   const handleSaveClass = async (classData: any) => {
+    try {
+        if(classToAction) {
+            await updateClass({ _id: classToAction._id, ...classData }).unwrap();
+            toast({ title: "Class Updated", description: `${classData.name} has been updated.` });
+        } else {
+            await addClass(classData).unwrap();
+            toast({ title: "Class Added", description: `${classData.name} has been added.` });
+        }
+    } catch(error) {
+        toast({ title: "Error", description: "An error occurred while saving the class.", variant: "destructive" });
+    }
   };
 
   return (
@@ -114,7 +141,7 @@ export function ClassesTable({ classes: initialClasses }: ClassesTableProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Class Name</TableHead>
-              <TableHead>Assigned Teacher</TableHead>
+              <TableHead>Class Teacher</TableHead>
               <TableHead>Subjects</TableHead>
               <TableHead>No. of Students</TableHead>
               <TableHead>Status</TableHead>
@@ -122,8 +149,19 @@ export function ClassesTable({ classes: initialClasses }: ClassesTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedClasses.map((c) => (
-              <TableRow key={c.id}>
+            {isLoading ? (
+                [...Array(5)].map((_, i) => (
+                    <TableRow key={i}>
+                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-10" /></TableCell>
+                        <TableCell><Skeleton className="h-6 w-11" /></TableCell>
+                        <TableCell className="text-right"><Skeleton className="h-8 w-20 ml-auto" /></TableCell>
+                    </TableRow>
+                ))
+            ) : paginatedClasses.map((c) => (
+              <TableRow key={c._id}>
                 <TableCell className="font-medium">{c.name}</TableCell>
                 <TableCell>{c.teacher}</TableCell>
                 <TableCell>
@@ -133,7 +171,7 @@ export function ClassesTable({ classes: initialClasses }: ClassesTableProps) {
                 <TableCell>
                   <Switch
                     checked={c.status === "active"}
-                    onCheckedChange={(checked) => handleToggleStatus(c.id, checked)}
+                    onCheckedChange={(checked) => handleToggleStatus(c, checked)}
                     aria-label="Toggle class status"
                   />
                 </TableCell>
@@ -196,7 +234,6 @@ export function ClassesTable({ classes: initialClasses }: ClassesTableProps) {
         onOpenChange={setAddDialogOpen}
         onSave={handleSaveClass}
         classData={classToAction}
-        allTeachers={mockTeachers}
       />
       {classToAction && (
         <DeleteConfirmationDialog

@@ -1,9 +1,10 @@
+
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher'],
+  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student'],
   endpoints: (builder) => ({
     testDBConnection: builder.query({
       query: () => 'connect',
@@ -132,6 +133,41 @@ export const api = createApi({
         }),
         invalidatesTags: ['Teacher'],
     }),
+
+    // Class CRUD endpoints
+    getClasses: builder.query({
+        query: () => 'classes',
+        providesTags: ['Class'],
+    }),
+    addClass: builder.mutation({
+        query: (newClass) => ({
+            url: 'classes',
+            method: 'POST',
+            body: newClass,
+        }),
+        invalidatesTags: ['Class'],
+    }),
+    updateClass: builder.mutation({
+        query: (classToUpdate) => ({
+            url: 'classes',
+            method: 'PUT',
+            body: classToUpdate,
+        }),
+        invalidatesTags: ['Class'],
+    }),
+    deleteClass: builder.mutation({
+        query: (id) => ({
+            url: `classes?id=${id}`,
+            method: 'DELETE',
+        }),
+        invalidatesTags: ['Class'],
+    }),
+
+    // Students endpoint - for now just a getter for the card
+    getStudents: builder.query({
+      query: () => 'students', // Assuming you'll create this endpoint
+      providesTags: ['Student'],
+    }),
   }),
 });
 
@@ -154,4 +190,9 @@ export const {
     useAddTeacherMutation,
     useUpdateTeacherMutation,
     useDeleteTeacherMutation,
+    useGetClassesQuery,
+    useAddClassMutation,
+    useUpdateClassMutation,
+    useDeleteClassMutation,
+    useGetStudentsQuery,
 } = api;

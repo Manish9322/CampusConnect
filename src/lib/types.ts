@@ -35,31 +35,21 @@ export interface Teacher extends User {
   status: TeacherStatus;
 }
 
-export type AttendanceStatus = 'present' | 'absent' | 'late';
-
-export interface AttendanceRecord {
-  id: string;
-  studentId: string;
-  studentName: string;
-  date: string;
-  status: AttendanceStatus;
-  course: string;
-  recordedBy: string; // Teacher ID
-}
-
 export type ClassStatus = 'active' | 'inactive';
 
 export interface Class {
+  _id?: string;
   id: string;
   name: string;
   year: number;
   status: ClassStatus;
+  teacherId: string;
+  subjects: string[];
+  studentCount: number;
 }
 
 export interface ClassWithDetails extends Class {
     teacher: string;
-    subjects: string[];
-    studentCount: number;
 }
 
 export type AnnouncementCategory = 'General' | 'Event' | 'Academic' | 'Urgent';

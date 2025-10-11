@@ -28,6 +28,8 @@ import { useToast } from "@/hooks/use-toast";
 import { ClassWithDetails, Teacher } from "@/lib/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Switch } from "../ui/switch";
+import { useGetTeachersQuery } from "@/services/api";
+import { Skeleton } from "../ui/skeleton";
 
 const formSchema = z.object({
   name: z.string().min(2, "Class name must be at least 2 characters."),
@@ -35,6 +37,7 @@ const formSchema = z.object({
   subjects: z.string().min(1, "At least one subject is required."),
   studentCount: z.coerce.number().min(0, "Number of students cannot be negative."),
   status: z.boolean(),
+  year: z.coerce.number().min(2000, "Year must be valid."),
 });
 
 interface AddClassDialogProps {
@@ -42,7 +45,6 @@ interface AddClassDialogProps {
   onOpenChange: (open: boolean) => void;
   onSave: (newClass: any) => void;
   classData?: ClassWithDetails | null;
-  allTeachers: Teacher[];
 }
 
 export function AddClassDialog({
@@ -50,40 +52,40 @@ export function AddClassDialog({
   onOpenChange,
   onSave,
   classData,
-  allTeachers,
 }: AddClassDialogProps) {
   const { toast } = useToast();
+  const { data: allTeachers = [], isLoading: isLoadingTeachers } = useGetTeachersQuery();
   
-  const defaultTeacher = allTeachers.find(t => t.name === classData?.teacher);
+  const defaultTeacher = allTeachers.find((t: Teacher) => t._id === classData?.teacherId);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: classData?.name || "",
-      teacherId: defaultTeacher?.id || "",
+      teacherId: classData?.teacherId || "",
       subjects: classData?.subjects.join(', ') || "",
       studentCount: classData?.studentCount || 0,
       status: classData?.status === 'active',
+      year: classData?.year || new Date().getFullYear(),
     },
   });
 
   React.useEffect(() => {
-    const defaultTeacher = allTeachers.find(t => t.name === classData?.teacher);
     form.reset({
         name: classData?.name || "",
-        teacherId: defaultTeacher?.id || "",
+        teacherId: classData?.teacherId || "",
         subjects: classData?.subjects.join(', ') || "",
         studentCount: classData?.studentCount || 0,
         status: classData?.status === 'active',
+        year: classData?.year || new Date().getFullYear(),
     });
   }, [classData, allTeachers, form]);
 
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    onSave(values);
-    toast({
-      title: classData ? "Class Updated" : "Class Added",
-      description: `Class ${values.name} has been successfully ${classData ? 'updated' : 'added'}.`,
+    onSave({
+        ...values,
+        subjects: values.subjects.split(',').map(s => s.trim()),
     });
     onOpenChange(false);
   };
@@ -97,6 +99,13 @@ export function AddClassDialog({
             Fill in the details below to {classData ? "update the" : "add a new"} class.
           </DialogDescription>
         </DialogHeader>
+        {isLoadingTeachers ? (
+             <div className="space-y-4 py-4">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+            </div>
+        ) : (
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
@@ -118,7 +127,7 @@ export function AddClassDialog({
                 name="teacherId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Assign Teacher</FormLabel>
+                    <FormLabel>Class Teacher</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -126,8 +135,8 @@ export function AddClassDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {allTeachers.map(teacher => (
-                          <SelectItem key={teacher.id} value={teacher.id}>{teacher.name}</SelectItem>
+                        {allTeachers.map((teacher: Teacher) => (
+                          <SelectItem key={teacher._id} value={teacher._id!}>{teacher.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -136,7 +145,7 @@ export function AddClassDialog({
                 )}
               />
             </div>
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-3 gap-4">
                 <FormField
                 control={form.control}
                 name="subjects"
@@ -163,6 +172,19 @@ export function AddClassDialog({
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="year"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Year</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="e.g., 2024" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
             <FormField
               control={form.control}
@@ -170,7 +192,7 @@ export function AddClassDialog({
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                   <div className="space-y-0.5">
-                    <FormLabel>Status</FormLabel>
+                    <FormLabel>Status (Active)</FormLabel>
                     <FormMessage />
                   </div>
                   <FormControl>
@@ -190,6 +212,7 @@ export function AddClassDialog({
             </DialogFooter>
           </form>
         </Form>
+        )}
       </DialogContent>
     </Dialog>
   );

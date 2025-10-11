@@ -1,26 +1,22 @@
 
+"use client"
+
 import { ClassesTable } from "@/components/admin/classes-table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { mockClasses, mockStudents, mockTeachers } from "@/lib/mock-data";
+import { useGetClassesQuery, useGetStudentsQuery } from "@/services/api";
 import { BookCopy, School, Users, BarChart } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ManageClassesPage() {
-    const classesWithDetails = mockClasses.map(c => {
-        const teacher = mockTeachers.find(t => t.courses.includes(c.name));
-        // A more realistic student count logic
-        const students = mockStudents.filter(s => teacher?.courses.includes(s.major)); 
-        return {
-            ...c,
-            teacher: teacher?.name || 'N/A',
-            subjects: teacher?.courses.filter(course => c.name.includes(course)) || [],
-            studentCount: students.length,
-        };
-    });
+    const { data: classes = [], isLoading: isLoadingClasses } = useGetClassesQuery();
+    const { data: students = [], isLoading: isLoadingStudents } = useGetStudentsQuery();
 
-    const totalClasses = classesWithDetails.length;
-    const activeClasses = classesWithDetails.filter(c => c.status === 'active').length;
-    const totalStudents = mockStudents.length; // Or a sum of studentCount if classes don't overlap students
+    const totalClasses = classes.length;
+    const activeClasses = classes.filter((c: { status: string; }) => c.status === 'active').length;
+    const totalStudents = students.length; 
     const avgStudentsPerClass = totalClasses > 0 ? Math.round(totalStudents / totalClasses) : 0;
+    
+    const isLoading = isLoadingClasses || isLoadingStudents;
 
     return (
         <div className="space-y-6">
@@ -31,7 +27,7 @@ export default function ManageClassesPage() {
                         <School className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{totalClasses}</div>
+                        {isLoading ? <Skeleton className="h-8 w-1/3" /> : <div className="text-2xl font-bold">{totalClasses}</div>}
                         <p className="text-xs text-muted-foreground">Across all departments</p>
                     </CardContent>
                 </Card>
@@ -41,7 +37,7 @@ export default function ManageClassesPage() {
                         <BookCopy className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{activeClasses}</div>
+                         {isLoading ? <Skeleton className="h-8 w-1/3" /> : <div className="text-2xl font-bold">{activeClasses}</div>}
                         <p className="text-xs text-muted-foreground">Currently in session</p>
                     </CardContent>
                 </Card>
@@ -51,7 +47,7 @@ export default function ManageClassesPage() {
                         <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{totalStudents}</div>
+                        {isLoading ? <Skeleton className="h-8 w-1/3" /> : <div className="text-2xl font-bold">{totalStudents}</div>}
                         <p className="text-xs text-muted-foreground">Enrolled in all classes</p>
                     </CardContent>
                 </Card>
@@ -61,7 +57,7 @@ export default function ManageClassesPage() {
                         <BarChart className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{avgStudentsPerClass}</div>
+                        {isLoading ? <Skeleton className="h-8 w-1/3" /> : <div className="text-2xl font-bold">{avgStudentsPerClass}</div>}
                         <p className="text-xs text-muted-foreground">Average class size</p>
                     </CardContent>
                 </Card>
@@ -74,7 +70,7 @@ export default function ManageClassesPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <ClassesTable classes={classesWithDetails} />
+                    <ClassesTable classes={classes} isLoading={isLoadingClasses} />
                 </CardContent>
             </Card>
         </div>
