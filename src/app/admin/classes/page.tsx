@@ -8,7 +8,7 @@ import { BookCopy, School, Users, BarChart } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ManageClassesPage() {
-    const { data: classes = [], isLoading: isLoadingClasses } = useGetClassesQuery();
+    const { data: classes = [], isLoading: isLoadingClasses, isError, refetch } = useGetClassesQuery();
     const { data: students = [], isLoading: isLoadingStudents } = useGetStudentsQuery();
 
     const totalClasses = classes.length;
@@ -70,7 +70,12 @@ export default function ManageClassesPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <ClassesTable classes={classes} isLoading={isLoadingClasses} />
+                    <ClassesTable 
+                        classes={classes} 
+                        isLoading={isLoadingClasses} 
+                        isError={isError}
+                        refetch={refetch}
+                    />
                 </CardContent>
             </Card>
         </div>

@@ -22,13 +22,17 @@ import { useAddClassMutation, useDeleteClassMutation, useGetTeachersQuery, useUp
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "../ui/skeleton";
+import { EmptyState } from "../shared/empty-state";
+import { ErrorState } from "../shared/error-state";
 
 interface ClassesTableProps {
   classes: ClassWithDetails[];
   isLoading: boolean;
+  isError: boolean;
+  refetch: () => void;
 }
 
-export function ClassesTable({ classes: initialClasses, isLoading }: ClassesTableProps) {
+export function ClassesTable({ classes: initialClasses, isLoading, isError, refetch }: ClassesTableProps) {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = React.useState("");
   const [isAddDialogOpen, setAddDialogOpen] = React.useState(false);
@@ -123,6 +127,88 @@ export function ClassesTable({ classes: initialClasses, isLoading }: ClassesTabl
     }
   };
 
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <TableBody>
+          {[...Array(5)].map((_, i) => (
+            <TableRow key={i}>
+              <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+              <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+              <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+              <TableCell><Skeleton className="h-5 w-10" /></TableCell>
+              <TableCell><Skeleton className="h-6 w-11" /></TableCell>
+              <TableCell className="text-right"><Skeleton className="h-8 w-20 ml-auto" /></TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      );
+    }
+
+    if (isError) {
+      return (
+        <TableBody>
+          <TableRow>
+            <TableCell colSpan={6}>
+              <ErrorState 
+                type="error"
+                title="Failed to Load Classes"
+                description="There was an issue fetching the class data. Please try again."
+                onRetry={refetch}
+              />
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      );
+    }
+    
+    if (paginatedClasses.length === 0) {
+      return (
+        <TableBody>
+          <TableRow>
+            <TableCell colSpan={6}>
+              <EmptyState title="No Classes Found" description="There are no classes matching your criteria." />
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      );
+    }
+
+    return (
+      <TableBody>
+        {paginatedClasses.map((c) => (
+          <TableRow key={c._id}>
+            <TableCell className="font-medium">{c.name}</TableCell>
+            <TableCell>{c.teacher}</TableCell>
+            <TableCell>
+              {c.subjects.map(sub => <Badge key={sub} variant="outline" className="mr-1">{sub}</Badge>)}
+            </TableCell>
+            <TableCell>{c.studentCount}</TableCell>
+            <TableCell>
+              <Switch
+                checked={c.status === "active"}
+                onCheckedChange={(checked) => handleToggleStatus(c, checked)}
+                aria-label="Toggle class status"
+              />
+            </TableCell>
+            <TableCell className="text-right">
+              <Button variant="ghost" size="icon" onClick={() => handleEdit(c)}>
+                <Edit className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => openDeleteDialog(c)}
+              >
+                <Trash2 className="h-4 w-4 text-destructive" />
+              </Button>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    );
+  }
+
   return (
     <>
       <div className="flex items-center justify-between mb-4">
@@ -148,87 +234,48 @@ export function ClassesTable({ classes: initialClasses, isLoading }: ClassesTabl
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {isLoading ? (
-                [...Array(5)].map((_, i) => (
-                    <TableRow key={i}>
-                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-                        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
-                        <TableCell><Skeleton className="h-5 w-40" /></TableCell>
-                        <TableCell><Skeleton className="h-5 w-10" /></TableCell>
-                        <TableCell><Skeleton className="h-6 w-11" /></TableCell>
-                        <TableCell className="text-right"><Skeleton className="h-8 w-20 ml-auto" /></TableCell>
-                    </TableRow>
-                ))
-            ) : paginatedClasses.map((c) => (
-              <TableRow key={c._id}>
-                <TableCell className="font-medium">{c.name}</TableCell>
-                <TableCell>{c.teacher}</TableCell>
-                <TableCell>
-                    {c.subjects.map(sub => <Badge key={sub} variant="outline" className="mr-1">{sub}</Badge>)}
-                </TableCell>
-                <TableCell>{c.studentCount}</TableCell>
-                <TableCell>
-                  <Switch
-                    checked={c.status === "active"}
-                    onCheckedChange={(checked) => handleToggleStatus(c, checked)}
-                    aria-label="Toggle class status"
-                  />
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button variant="ghost" size="icon" onClick={() => handleEdit(c)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => openDeleteDialog(c)}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
+          {renderContent()}
         </Table>
       </div>
-       <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center space-x-2">
-            <span className="text-sm text-muted-foreground">Rows per page</span>
-            <Select onValueChange={handleRowsPerPageChange} defaultValue={`${rowsPerPage}`}>
-                <SelectTrigger className="w-20">
-                    <SelectValue placeholder={`${rowsPerPage}`} />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="5">5</SelectItem>
-                    <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="20">20</SelectItem>
-                    <SelectItem value="all">All</SelectItem>
-                </SelectContent>
-            </Select>
+      {paginatedClasses.length > 0 && (
+         <div className="flex items-center justify-between mt-4">
+            <div className="flex items-center space-x-2">
+                <span className="text-sm text-muted-foreground">Rows per page</span>
+                <Select onValueChange={handleRowsPerPageChange} defaultValue={`${rowsPerPage}`}>
+                    <SelectTrigger className="w-20">
+                        <SelectValue placeholder={`${rowsPerPage}`} />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="5">5</SelectItem>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="all">All</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+            <div className="flex items-center space-x-2">
+                <span className="text-sm text-muted-foreground">
+                    Page {page + 1} of {totalPages}
+                </span>
+                <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setPage(p => Math.max(0, p - 1))}
+                    disabled={page === 0}
+                >
+                    <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                    disabled={page >= totalPages - 1}
+                >
+                    <ChevronRight className="h-4 w-4" />
+                </Button>
+            </div>
         </div>
-        <div className="flex items-center space-x-2">
-            <span className="text-sm text-muted-foreground">
-                Page {page + 1} of {totalPages}
-            </span>
-            <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setPage(p => Math.max(0, p - 1))}
-                disabled={page === 0}
-            >
-                <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-                disabled={page >= totalPages - 1}
-            >
-                <ChevronRight className="h-4 w-4" />
-            </Button>
-        </div>
-      </div>
+       )}
       <AddClassDialog
         open={isAddDialogOpen}
         onOpenChange={setAddDialogOpen}
