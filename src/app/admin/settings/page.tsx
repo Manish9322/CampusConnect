@@ -7,25 +7,42 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PlusCircle, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useGetSubjectsQuery, useAddSubjectMutation, useDeleteSubjectMutation } from "@/services/api";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/shared/empty-state";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function SettingsPage() {
-    const [subjects, setSubjects] = React.useState(["Math", "Science", "History", "English", "Physics"]);
     const [departments, setDepartments] = React.useState(["Computer Science", "Physics", "Mathematics", "Chemistry"]);
-    const [newSubject, setNewSubject] = React.useState("");
+    const [newSubjectName, setNewSubjectName] = React.useState("");
+    const [newSubjectDescription, setNewSubjectDescription] = React.useState("");
     const [newDepartment, setNewDepartment] = React.useState("");
     const { toast } = useToast();
 
-    const handleAddSubject = () => {
-        if (newSubject.trim()) {
-            setSubjects(prev => [...prev, newSubject.trim()]);
-            setNewSubject("");
-            toast({ title: "Subject Added", description: `"${newSubject.trim()}" has been added.` });
+    const { data: subjects = [], isLoading: isLoadingSubjects } = useGetSubjectsQuery();
+    const [addSubject, { isLoading: isAddingSubject }] = useAddSubjectMutation();
+    const [deleteSubject] = useDeleteSubjectMutation();
+
+    const handleAddSubject = async () => {
+        if (newSubjectName.trim()) {
+            try {
+                await addSubject({ name: newSubjectName.trim(), description: newSubjectDescription.trim() }).unwrap();
+                toast({ title: "Subject Added", description: `"${newSubjectName.trim()}" has been added.` });
+                setNewSubjectName("");
+                setNewSubjectDescription("");
+            } catch (error) {
+                toast({ title: "Error", description: "Failed to add subject.", variant: "destructive" });
+            }
         }
     };
 
-    const handleRemoveSubject = (subject: string) => {
-        setSubjects(prev => prev.filter(s => s !== subject));
-        toast({ title: "Subject Removed", description: `"${subject}" has been removed.` });
+    const handleRemoveSubject = async (subject: { _id: string, name: string }) => {
+        try {
+            await deleteSubject(subject._id).unwrap();
+            toast({ title: "Subject Removed", description: `"${subject.name}" has been removed.` });
+        } catch (error) {
+            toast({ title: "Error", description: "Failed to remove subject.", variant: "destructive" });
+        }
     };
 
     const handleAddDepartment = () => {
@@ -52,25 +69,41 @@ export default function SettingsPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            <div className="flex gap-2">
+                            <div className="flex flex-col gap-2">
                                 <Input
-                                    value={newSubject}
-                                    onChange={(e) => setNewSubject(e.target.value)}
+                                    value={newSubjectName}
+                                    onChange={(e) => setNewSubjectName(e.target.value)}
                                     placeholder="New subject name"
+                                    disabled={isAddingSubject}
                                 />
-                                <Button onClick={handleAddSubject}>
-                                    <PlusCircle className="mr-2 h-4 w-4" /> Add
+                                <Textarea
+                                    value={newSubjectDescription}
+                                    onChange={(e) => setNewSubjectDescription(e.target.value)}
+                                    placeholder="Subject description (optional)"
+                                    disabled={isAddingSubject}
+                                />
+                                <Button onClick={handleAddSubject} disabled={isAddingSubject}>
+                                    <PlusCircle className="mr-2 h-4 w-4" /> {isAddingSubject ? "Adding..." : "Add Subject"}
                                 </Button>
                             </div>
                             <div className="space-y-2">
-                                {subjects.map(subject => (
-                                    <div key={subject} className="flex items-center justify-between p-2 border rounded-md">
-                                        <span>{subject}</span>
-                                        <Button variant="ghost" size="icon" onClick={() => handleRemoveSubject(subject)}>
-                                            <Trash2 className="h-4 w-4 text-destructive" />
-                                        </Button>
-                                    </div>
-                                ))}
+                                {isLoadingSubjects ? (
+                                    [...Array(3)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)
+                                ) : subjects.length > 0 ? (
+                                    subjects.map((subject) => (
+                                        <div key={subject._id} className="flex items-center justify-between p-2 border rounded-md">
+                                            <div>
+                                                <p className="font-medium">{subject.name}</p>
+                                                {subject.description && <p className="text-sm text-muted-foreground">{subject.description}</p>}
+                                            </div>
+                                            <Button variant="ghost" size="icon" onClick={() => handleRemoveSubject(subject)}>
+                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                            </Button>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <EmptyState title="No Subjects" description="No subjects have been added yet." />
+                                )}
                             </div>
                         </div>
                     </CardContent>
