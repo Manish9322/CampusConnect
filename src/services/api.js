@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-  tagTypes: ['Connection', 'Subject', 'Department'],
+  tagTypes: ['Connection', 'Subject', 'Department', 'Designation'],
   endpoints: (builder) => ({
     testDBConnection: builder.query({
       query: () => 'connect',
@@ -74,6 +74,35 @@ export const api = createApi({
         }),
         invalidatesTags: ['Department'],
     }),
+
+    // Designation CRUD endpoints
+    getDesignations: builder.query({
+        query: () => 'settings/designation',
+        providesTags: ['Designation'],
+    }),
+    addDesignation: builder.mutation({
+        query: (newDesignation) => ({
+            url: 'settings/designation',
+            method: 'POST',
+            body: newDesignation,
+        }),
+        invalidatesTags: ['Designation'],
+    }),
+    updateDesignation: builder.mutation({
+        query: (designationToUpdate) => ({
+            url: `settings/designation`,
+            method: 'PUT',
+            body: designationToUpdate,
+        }),
+        invalidatesTags: ['Designation'],
+    }),
+    deleteDesignation: builder.mutation({
+        query: (id) => ({
+            url: `settings/designation?id=${id}`,
+            method: 'DELETE',
+        }),
+        invalidatesTags: ['Designation'],
+    }),
   }),
 });
 
@@ -88,4 +117,8 @@ export const {
     useAddDepartmentMutation,
     useUpdateDepartmentMutation,
     useDeleteDepartmentMutation,
+    useGetDesignationsQuery,
+    useAddDesignationMutation,
+    useUpdateDesignationMutation,
+    useDeleteDesignationMutation,
 } = api;

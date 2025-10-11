@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PlusCircle, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useGetSubjectsQuery, useAddSubjectMutation, useDeleteSubjectMutation, useGetDepartmentsQuery, useAddDepartmentMutation, useDeleteDepartmentMutation } from "@/services/api";
+import { useGetSubjectsQuery, useAddSubjectMutation, useDeleteSubjectMutation, useGetDepartmentsQuery, useAddDepartmentMutation, useDeleteDepartmentMutation, useGetDesignationsQuery, useAddDesignationMutation, useDeleteDesignationMutation } from "@/services/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,6 +17,8 @@ export default function SettingsPage() {
     const [newSubjectDescription, setNewSubjectDescription] = React.useState("");
     const [newDepartmentName, setNewDepartmentName] = React.useState("");
     const [newDepartmentDescription, setNewDepartmentDescription] = React.useState("");
+    const [newDesignationName, setNewDesignationName] = React.useState("");
+    const [newDesignationDescription, setNewDesignationDescription] = React.useState("");
     const { toast } = useToast();
 
     const { data: subjects = [], isLoading: isLoadingSubjects } = useGetSubjectsQuery();
@@ -26,6 +28,10 @@ export default function SettingsPage() {
     const { data: departments = [], isLoading: isLoadingDepartments } = useGetDepartmentsQuery();
     const [addDepartment, { isLoading: isAddingDepartment }] = useAddDepartmentMutation();
     const [deleteDepartment] = useDeleteDepartmentMutation();
+
+    const { data: designations = [], isLoading: isLoadingDesignations } = useGetDesignationsQuery();
+    const [addDesignation, { isLoading: isAddingDesignation }] = useAddDesignationMutation();
+    const [deleteDesignation] = useDeleteDesignationMutation();
 
     const handleAddSubject = async () => {
         if (newSubjectName.trim()) {
@@ -71,10 +77,33 @@ export default function SettingsPage() {
         }
     };
 
+    const handleAddDesignation = async () => {
+        if (newDesignationName.trim()) {
+            try {
+                await addDesignation({ name: newDesignationName.trim(), description: newDesignationDescription.trim() }).unwrap();
+                toast({ title: "Designation Added", description: `"${newDesignationName.trim()}" has been added.` });
+                setNewDesignationName("");
+                setNewDesignationDescription("");
+            } catch (error) {
+                toast({ title: "Error", description: "Failed to add designation.", variant: "destructive" });
+            }
+        }
+    };
+
+    const handleRemoveDesignation = async (designation: { _id: string, name: string }) => {
+        try {
+            await deleteDesignation(designation._id).unwrap();
+            toast({ title: "Designation Removed", description: `"${designation.name}" has been removed.` });
+        } catch (error) {
+            toast({ title: "Error", description: "Failed to remove designation.", variant: "destructive" });
+        }
+    };
+
+
     return (
         <div className="space-y-6">
             <h1 className="text-2xl font-bold">Settings</h1>
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <Card>
                     <CardHeader>
                         <CardTitle>Manage Subjects</CardTitle>
@@ -163,6 +192,53 @@ export default function SettingsPage() {
                                     ))
                                 ) : (
                                      <EmptyState title="No Departments" description="No departments have been added yet." />
+                                )}
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Manage Designations</CardTitle>
+                        <CardDescription>Add or remove teacher designations.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            <div className="flex flex-col gap-2">
+                                <Input
+                                    value={newDesignationName}
+                                    onChange={(e) => setNewDesignationName(e.target.value)}
+                                    placeholder="e.g., Dr., Prof."
+                                    disabled={isAddingDesignation}
+                                />
+                                <Textarea
+                                    value={newDesignationDescription}
+                                    onChange={(e) => setNewDesignationDescription(e.target.value)}
+                                    placeholder="Designation description (optional)"
+                                    disabled={isAddingDesignation}
+                                />
+                                <Button onClick={handleAddDesignation} disabled={isAddingDesignation}>
+                                    <PlusCircle className="mr-2 h-4 w-4" /> {isAddingDesignation ? "Adding..." : "Add Designation"}
+                                </Button>
+                            </div>
+                            <div className="space-y-2">
+                                {isLoadingDesignations ? (
+                                    [...Array(3)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)
+                                ) : designations.length > 0 ? (
+                                    designations.map((designation) => (
+                                        <div key={designation._id} className="flex items-center justify-between p-2 border rounded-md">
+                                            <div>
+                                                <p className="font-medium">{designation.name}</p>
+                                                {designation.description && <p className="text-sm text-muted-foreground">{designation.description}</p>}
+                                            </div>
+                                            <Button variant="ghost" size="icon" onClick={() => handleRemoveDesignation(designation)}>
+                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                            </Button>
+                                        </div>
+                                    ))
+                                ) : (
+                                     <EmptyState title="No Designations" description="No designations have been added yet." />
                                 )}
                             </div>
                         </div>
