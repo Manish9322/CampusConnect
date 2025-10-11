@@ -144,7 +144,10 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
     setSearchTerm('');
   };
   
-  const getClassName = (classId: string) => {
+  const getClassName = (classId: any) => {
+    if (typeof classId === 'object' && classId !== null && classId.name) {
+      return classId.name;
+    }
     return classes.find(c => c._id === classId)?.name || 'N/A';
   }
 
