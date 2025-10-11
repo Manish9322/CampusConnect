@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 type ItemToEdit = {
     _id: string;
@@ -153,54 +154,56 @@ export default function SettingsPage() {
         onEdit: (item: any) => void,
         type: "subject" | "department" | "designation"
     ) => (
-        <Card>
+        <Card className="flex flex-col">
             <CardHeader>
                 <CardTitle>{title}</CardTitle>
                 <CardDescription>{description}</CardDescription>
             </CardHeader>
-            <CardContent>
-                <div className="space-y-4">
-                    <div className="flex flex-col gap-2">
-                        <Input
-                            value={newItemName}
-                            onChange={(e) => setNewItemName(e.target.value)}
-                            placeholder={`New ${type} name`}
-                            disabled={isAdding}
-                        />
-                        <Textarea
-                            value={newItemDescription}
-                            onChange={(e) => setNewItemDescription(e.target.value)}
-                            placeholder={`${type.charAt(0).toUpperCase() + type.slice(1)} description (optional)`}
-                            disabled={isAdding}
-                        />
-                        <Button onClick={onAdd} disabled={isAdding}>
-                            <PlusCircle className="mr-2 h-4 w-4" /> {isAdding ? "Adding..." : `Add ${type.charAt(0).toUpperCase() + type.slice(1)}`}
-                        </Button>
-                    </div>
-                    <div className="space-y-2">
-                        {isLoading ? (
-                            [...Array(3)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)
-                        ) : items.length > 0 ? (
-                            items.map((item) => (
-                                <div key={item._id} className="flex items-center justify-between p-2 border rounded-md">
-                                    <div>
-                                        <p className="font-medium">{item.name}</p>
-                                        {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
+            <CardContent className="flex-1 flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                    <Input
+                        value={newItemName}
+                        onChange={(e) => setNewItemName(e.target.value)}
+                        placeholder={`New ${type} name`}
+                        disabled={isAdding}
+                    />
+                    <Textarea
+                        value={newItemDescription}
+                        onChange={(e) => setNewItemDescription(e.target.value)}
+                        placeholder={`${type.charAt(0).toUpperCase() + type.slice(1)} description (optional)`}
+                        disabled={isAdding}
+                    />
+                    <Button onClick={onAdd} disabled={isAdding}>
+                        <PlusCircle className="mr-2 h-4 w-4" /> {isAdding ? "Adding..." : `Add ${type.charAt(0).toUpperCase() + type.slice(1)}`}
+                    </Button>
+                </div>
+                <div className="flex-1 relative">
+                    <ScrollArea className="absolute inset-0 pr-6">
+                        <div className="space-y-2">
+                            {isLoading ? (
+                                [...Array(3)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)
+                            ) : items.length > 0 ? (
+                                items.map((item) => (
+                                    <div key={item._id} className="flex items-center justify-between p-2 border rounded-md">
+                                        <div>
+                                            <p className="font-medium">{item.name}</p>
+                                            {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
+                                        </div>
+                                        <div>
+                                            <Button variant="ghost" size="icon" onClick={() => onEdit(item)}>
+                                                <Edit className="h-4 w-4" />
+                                            </Button>
+                                            <Button variant="ghost" size="icon" onClick={() => onRemove(item)}>
+                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                            </Button>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <Button variant="ghost" size="icon" onClick={() => onEdit(item)}>
-                                            <Edit className="h-4 w-4" />
-                                        </Button>
-                                        <Button variant="ghost" size="icon" onClick={() => onRemove(item)}>
-                                            <Trash2 className="h-4 w-4 text-destructive" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            ))
-                        ) : (
-                            <EmptyState title={`No ${type}s`} description={`No ${type}s have been added yet.`} />
-                        )}
-                    </div>
+                                ))
+                            ) : (
+                                <EmptyState title={`No ${type}s`} description={`No ${type}s have been added yet.`} />
+                            )}
+                        </div>
+                    </ScrollArea>
                 </div>
             </CardContent>
         </Card>
@@ -210,7 +213,7 @@ export default function SettingsPage() {
     return (
         <div className="space-y-6">
             <h1 className="text-2xl font-bold">Settings</h1>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
                 {renderCard(
                     "Manage Subjects",
                     "Add or remove subjects offered.",
@@ -275,5 +278,7 @@ export default function SettingsPage() {
         </div>
     );
 }
+
+    
 
     

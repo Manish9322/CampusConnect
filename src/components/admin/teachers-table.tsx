@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { PlusCircle, Edit, Trash2, ChevronLeft, ChevronRight } from "lucide-react"
+import { PlusCircle, Edit, Trash2, ChevronLeft, ChevronRight, Eye } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Teacher } from "@/lib/types"
 import {
@@ -22,6 +22,7 @@ import { Switch } from "../ui/switch"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select"
 import { useAddTeacherMutation, useDeleteTeacherMutation, useUpdateTeacherMutation } from "@/services/api"
 import { Skeleton } from "../ui/skeleton"
+import { TeacherProfileDialog } from "./teacher-profile-dialog"
 
 interface TeachersTableProps {
   data: Teacher[];
@@ -36,6 +37,7 @@ export function TeachersTable({ data, isLoading }: TeachersTableProps) {
   const [teacherToAction, setTeacherToAction] = React.useState<Teacher | null>(null);
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [isProfileOpen, setProfileOpen] = React.useState(false);
   
   const [addTeacher] = useAddTeacherMutation();
   const [updateTeacher] = useUpdateTeacherMutation();
@@ -59,6 +61,11 @@ export function TeachersTable({ data, isLoading }: TeachersTableProps) {
     setTeacherToAction(teacher);
     setAddTeacherDialogOpen(true);
   }
+
+  const handleViewProfile = (teacher: Teacher) => {
+    setTeacherToAction(teacher);
+    setProfileOpen(true);
+  };
 
   const handleDeleteClick = (teacher: Teacher) => {
     setTeacherToAction(teacher);
@@ -174,6 +181,9 @@ export function TeachersTable({ data, isLoading }: TeachersTableProps) {
                         />
                     </TableCell>
                     <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" onClick={() => handleViewProfile(teacher)}>
+                            <Eye className="h-4 w-4" />
+                        </Button>
                         <Button variant="ghost" size="icon" onClick={() => handleEdit(teacher)}>
                             <Edit className="h-4 w-4" />
                         </Button>
@@ -239,12 +249,23 @@ export function TeachersTable({ data, isLoading }: TeachersTableProps) {
         onSave={handleSaveTeacher}
         teacher={teacherToAction}
       />
-       {teacherToAction && <DeleteConfirmationDialog 
-        open={isDeleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        onConfirm={confirmDelete}
-        itemName={teacherToAction.name}
-      />}
+       {teacherToAction && (
+        <>
+            <DeleteConfirmationDialog 
+                open={isDeleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
+                onConfirm={confirmDelete}
+                itemName={teacherToAction.name}
+            />
+            <TeacherProfileDialog
+                open={isProfileOpen}
+                onOpenChange={setProfileOpen}
+                teacher={teacherToAction}
+            />
+        </>
+       )}
     </div>
   )
 }
+
+    
