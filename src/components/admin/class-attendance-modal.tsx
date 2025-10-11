@@ -91,7 +91,7 @@ export function ClassAttendanceModal({ isOpen, onOpenChange, classData }: ClassA
       classId: classData._id!,
       date: formattedDate,
       status: attendance[student._id!],
-      recordedBy: classData.teacherId, // Assuming admin or teacher ID is available
+      recordedBy: classData.teacherId,
     }));
 
     try {
