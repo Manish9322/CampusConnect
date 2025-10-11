@@ -1,6 +1,3 @@
-// This file was created as requested.
-// The standard architecture for this project uses Firebase for all database operations.
-// Database logic should be handled through Firebase services and Next.js API routes.
 import mongoose from 'mongoose';
 import config from '../../config/config.js';
 
@@ -12,13 +9,7 @@ if (!MONGODB_URI) {
   );
 }
 
-/**
- * Global is used here to maintain a cached connection across hot reloads
- * in development. This prevents connections from growing exponentially
-* during API Route usage.
- */
 let cached = global.mongoose;
-
 if (!cached) {
   cached = global.mongoose = { conn: null, promise: null };
 }
