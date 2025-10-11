@@ -34,6 +34,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { useGetDepartmentsQuery, useGetDesignationsQuery, useGetSubjectsQuery } from "@/services/api";
+import { MultiSelect } from "react-multi-select-component";
+import { Skeleton } from "../ui/skeleton";
 
 const phoneRegex = new RegExp(
   /^([+]?[\s0-9]+)?(\d{3}|[(]\d{3}[)])?[\s-]?(\d{3})[\s-]?(\d{4})$/
@@ -45,7 +48,7 @@ const formSchema = z.object({
   email: z.string().email("Please enter a valid email."),
   phone: z.string().regex(phoneRegex, "Invalid phone number format"),
   department: z.string().min(2, "Department is required."),
-  courses: z.string().min(2, "Courses are required (comma-separated)."),
+  courses: z.array(z.object({ label: z.string(), value: z.string() })).min(1, "At least one subject is required."),
   status: z.boolean(),
 });
 
@@ -63,27 +66,33 @@ export function AddTeacherDialog({
   teacher,
 }: AddTeacherDialogProps) {
   const { toast } = useToast();
+  const { data: designations = [], isLoading: isLoadingDesignations } = useGetDesignationsQuery();
+  const { data: departments = [], isLoading: isLoadingDepartments } = useGetDepartmentsQuery();
+  const { data: subjects = [], isLoading: isLoadingSubjects } = useGetSubjectsQuery();
+
+  const subjectOptions = subjects.map((s: { name: string }) => ({ label: s.name, value: s.name }));
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      designation: teacher?.designation || "Dr.",
+      designation: teacher?.designation || "",
       name: teacher?.name || "",
       email: teacher?.email || "",
       phone: teacher?.phone || "",
       department: teacher?.department || "",
-      courses: teacher?.courses.join(", ") || "",
+      courses: teacher?.courses.map(c => ({ label: c, value: c })) || [],
       status: teacher?.status === "active",
     },
   });
 
   React.useEffect(() => {
     form.reset({
-      designation: teacher?.designation || "Dr.",
+      designation: teacher?.designation || "",
       name: teacher?.name || "",
       email: teacher?.email || "",
       phone: teacher?.phone || "",
       department: teacher?.department || "",
-      courses: teacher?.courses.join(", ") || "",
+      courses: teacher?.courses.map(c => ({ label: c, value: c })) || [],
       status: teacher?.status === "active",
     });
   }, [teacher, form]);
@@ -95,7 +104,7 @@ export function AddTeacherDialog({
       role: "teacher",
       ...values,
       status: values.status ? "active" : "inactive",
-      courses: values.courses.split(",").map((c) => c.trim()),
+      courses: values.courses.map((c) => c.value),
     };
 
     onSave(newOrUpdatedTeacher);
@@ -107,6 +116,8 @@ export function AddTeacherDialog({
     });
     onOpenChange(false);
   };
+  
+  const isLoading = isLoadingDesignations || isLoadingDepartments || isLoadingSubjects;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -120,6 +131,14 @@ export function AddTeacherDialog({
             teacher.
           </DialogDescription>
         </DialogHeader>
+        {isLoading ? (
+            <div className="space-y-4 py-4">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+            </div>
+        ) : (
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid md:grid-cols-3 gap-4">
@@ -139,11 +158,9 @@ export function AddTeacherDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Mr.">Mr.</SelectItem>
-                        <SelectItem value="Mrs.">Mrs.</SelectItem>
-                        <SelectItem value="Miss">Miss</SelectItem>
-                        <SelectItem value="Dr.">Dr.</SelectItem>
-                        <SelectItem value="Prof.">Prof.</SelectItem>
+                        {designations.map((d: { _id: string, name: string }) => (
+                            <SelectItem key={d._id} value={d.name}>{d.name}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -199,9 +216,18 @@ export function AddTeacherDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Department</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Computer Science" {...field} />
-                    </FormControl>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select a department" />
+                            </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            {departments.map((d: { _id: string, name: string }) => (
+                                <SelectItem key={d._id} value={d.name}>{d.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -211,9 +237,15 @@ export function AddTeacherDialog({
                 name="courses"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Courses (comma-separated)</FormLabel>
+                    <FormLabel>Subjects</FormLabel>
                     <FormControl>
-                      <Input placeholder="CS101, CS303" {...field} />
+                        <MultiSelect
+                            options={subjectOptions}
+                            value={field.value}
+                            onChange={field.onChange}
+                            labelledBy="Select Subjects"
+                            hasSelectAll={false}
+                        />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -249,6 +281,7 @@ export function AddTeacherDialog({
             </DialogFooter>
           </form>
         </Form>
+        )}
       </DialogContent>
     </Dialog>
   );
