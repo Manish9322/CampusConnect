@@ -16,6 +16,31 @@ interface ClassWithStudentDetails extends Class {
     students: Student[];
 }
 
+const ClassCard = React.memo(({ classItem, onClick }: { classItem: ClassWithStudentDetails, onClick: (classItem: ClassWithStudentDetails) => void }) => {
+    return (
+        <Card
+            className="cursor-pointer hover:shadow-lg hover:border-primary transition-all"
+            onClick={() => onClick(classItem)}
+        >
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <BookCopy className="h-5 w-5 text-primary" />
+                    {classItem.name}
+                </CardTitle>
+                <CardDescription>Taught by {classItem.teacher}</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                    <Users className="h-4 w-4" />
+                    <span>{classItem.studentCount} Students</span>
+                </div>
+            </CardContent>
+        </Card>
+    );
+});
+ClassCard.displayName = 'ClassCard';
+
+
 export default function AttendancePage() {
     const [searchTerm, setSearchTerm] = React.useState("");
     const [selectedClass, setSelectedClass] = React.useState<ClassWithStudentDetails | null>(null);
@@ -44,6 +69,10 @@ export default function AttendancePage() {
         c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         c.teacher.toLowerCase().includes(searchTerm.toLowerCase())
     );
+    
+    const handleClassClick = React.useCallback((classItem: ClassWithStudentDetails) => {
+        setSelectedClass(classItem);
+    }, []);
 
     const renderClassGrid = () => {
         if (isLoading) {
@@ -67,25 +96,7 @@ export default function AttendancePage() {
         return (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filteredClasses.map(c => (
-                    <Card
-                        key={c._id}
-                        className="cursor-pointer hover:shadow-lg hover:border-primary transition-all"
-                        onClick={() => setSelectedClass(c)}
-                    >
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <BookCopy className="h-5 w-5 text-primary" />
-                                {c.name}
-                            </CardTitle>
-                            <CardDescription>Taught by {c.teacher}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                                <Users className="h-4 w-4" />
-                                <span>{c.studentCount} Students</span>
-                            </div>
-                        </CardContent>
-                    </Card>
+                   <ClassCard key={c._id} classItem={c} onClick={handleClassClick} />
                 ))}
             </div>
         )
