@@ -8,7 +8,7 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = { name: "Admin User", email: "admin@campus.edu", initials: "AU" };
+  const user = { name: "Admin User", email: "admin@campus.edu", initials: "AU", profileImage: "" };
 
   return (
     <SidebarProvider>

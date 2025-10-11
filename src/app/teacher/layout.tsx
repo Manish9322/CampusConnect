@@ -13,7 +13,8 @@ export default function TeacherLayout({
   const user = { 
     name: `${teacher.designation || ''} ${teacher.name}`, 
     email: teacher.email, 
-    initials: `${teacher.designation?.charAt(0) || ''}${teacher.name.charAt(0)}` 
+    initials: `${teacher.designation?.charAt(0) || ''}${teacher.name.charAt(0)}`,
+    profileImage: teacher.profileImage,
   };
 
   return (

@@ -39,6 +39,10 @@ const teacherSchema = new mongoose.Schema({
     type: String,
     default: 'teacher',
   },
+  profileImage: {
+    type: String,
+    required: false,
+  }
 }, { timestamps: true });
 
 export const Teacher = mongoose.models.Teacher || mongoose.model('Teacher', teacherSchema);

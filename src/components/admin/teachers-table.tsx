@@ -23,6 +23,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from ".
 import { useAddTeacherMutation, useDeleteTeacherMutation, useUpdateTeacherMutation } from "@/services/api"
 import { Skeleton } from "../ui/skeleton"
 import { TeacherProfileDialog } from "./teacher-profile-dialog"
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 
 interface TeachersTableProps {
   data: Teacher[];
@@ -147,8 +148,7 @@ export function TeachersTable({ data, isLoading }: TeachersTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Teacher ID</TableHead>
-              <TableHead>Name</TableHead>
+              <TableHead>Teacher</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Department</TableHead>
               <TableHead>Status</TableHead>
@@ -159,8 +159,7 @@ export function TeachersTable({ data, isLoading }: TeachersTableProps) {
             {isLoading ? (
                 [...Array(rowsPerPage)].map((_, i) => (
                     <TableRow key={i}>
-                        <TableCell><Skeleton className="h-5 w-20" /></TableCell>
-                        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                        <TableCell><div className="flex items-center gap-2"><Skeleton className="h-10 w-10 rounded-full" /><Skeleton className="h-5 w-32" /></div></TableCell>
                         <TableCell><Skeleton className="h-5 w-40" /></TableCell>
                         <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                         <TableCell><Skeleton className="h-6 w-11" /></TableCell>
@@ -170,8 +169,15 @@ export function TeachersTable({ data, isLoading }: TeachersTableProps) {
             ) : paginatedTeachers.length > 0 ? (
               paginatedTeachers.map((teacher) => (
                 <TableRow key={teacher._id}>
-                    <TableCell>{teacher.teacherId}</TableCell>
-                    <TableCell className="font-medium">{teacher.designation} {teacher.name}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar>
+                          <AvatarImage src={teacher.profileImage} />
+                          <AvatarFallback>{teacher.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                        </Avatar>
+                        <div className="font-medium">{teacher.designation} {teacher.name}</div>
+                      </div>
+                    </TableCell>
                     <TableCell>{teacher.email}</TableCell>
                     <TableCell><Badge variant="outline">{teacher.department}</Badge></TableCell>
                     <TableCell>

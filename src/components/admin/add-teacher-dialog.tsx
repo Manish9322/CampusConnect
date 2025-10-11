@@ -50,6 +50,7 @@ const formSchema = z.object({
   department: z.string().min(2, "Department is required."),
   courses: z.array(z.object({ label: z.string(), value: z.string() })).min(1, "At least one subject is required."),
   status: z.boolean(),
+  profileImage: z.string().url().optional().or(z.literal('')),
 });
 
 interface AddTeacherDialogProps {
@@ -82,6 +83,7 @@ export function AddTeacherDialog({
       department: teacher?.department || "",
       courses: teacher?.courses.map(c => ({ label: c, value: c })) || [],
       status: teacher?.status === "active",
+      profileImage: teacher?.profileImage || "",
     },
   });
 
@@ -94,6 +96,7 @@ export function AddTeacherDialog({
       department: teacher?.department || "",
       courses: teacher?.courses.map(c => ({ label: c, value: c })) || [],
       status: teacher?.status === "active",
+      profileImage: teacher?.profileImage || "",
     });
   }, [teacher, form]);
 
@@ -245,6 +248,19 @@ export function AddTeacherDialog({
                 )}
               />
             </div>
+            <FormField
+              control={form.control}
+              name="profileImage"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Profile Image URL</FormLabel>
+                  <FormControl>
+                    <Input placeholder="https://example.com/image.png" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="status"

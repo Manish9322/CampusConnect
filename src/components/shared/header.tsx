@@ -22,6 +22,7 @@ interface HeaderProps {
     name: string;
     email: string;
     initials: string;
+    profileImage?: string;
   };
 }
 
@@ -39,7 +40,7 @@ export function Header({ title, user }: HeaderProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src="https://placehold.co/100x100.png" alt={user.name} />
+                  <AvatarImage src={user.profileImage} alt={user.name} />
                   <AvatarFallback>{user.initials}</AvatarFallback>
                 </Avatar>
               </Button>

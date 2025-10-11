@@ -8,7 +8,7 @@ export default function StudentLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = { name: "Alice Johnson", email: "alice@example.com", initials: "AJ" };
+  const user = { name: "Alice Johnson", email: "alice@example.com", initials: "AJ", profileImage: "" };
 
   return (
     <SidebarProvider>

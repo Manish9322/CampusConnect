@@ -37,6 +37,7 @@ interface AdminNavProps {
         name: string;
         email: string;
         initials: string;
+        profileImage?: string;
     }
 }
 
@@ -102,7 +103,7 @@ export function AdminNav({ user }: AdminNavProps) {
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="w-full justify-start gap-3 px-3">
                             <Avatar className="h-8 w-8">
-                                <AvatarImage src="https://placehold.co/100x100.png" alt={user.name} />
+                                <AvatarImage src={user.profileImage} alt={user.name} />
                                 <AvatarFallback>{user.initials}</AvatarFallback>
                             </Avatar>
                                 <div className="flex flex-col items-start">

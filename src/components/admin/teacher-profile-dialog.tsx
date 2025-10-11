@@ -39,8 +39,8 @@ export function TeacherProfileDialog({ open, onOpenChange, teacher }: TeacherPro
             <Card>
                 <CardHeader className="flex flex-col sm:flex-row items-center gap-4">
                     <Avatar className="h-20 w-20">
-                        <AvatarImage src={`https://placehold.co/100x100.png`} />
-                        <AvatarFallback>{teacher.name.charAt(0)}</AvatarFallback>
+                        <AvatarImage src={teacher.profileImage} />
+                        <AvatarFallback>{teacher.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                     </Avatar>
                     <div className="grid gap-1 text-center sm:text-left">
                         <CardTitle className="text-2xl">{teacher.designation} {teacher.name}</CardTitle>
