@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Student } from "@/lib/types";
+import { Student, Class } from "@/lib/types";
 import { Edit, PlusCircle, Trash2, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { DeleteConfirmationDialog } from "../shared/delete-confirmation-dialog";
 import { AddStudentDialog } from "./add-student-dialog";
@@ -20,35 +20,50 @@ import { Progress } from "../ui/progress";
 import { Switch } from "../ui/switch";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select";
 import { Badge } from "../ui/badge";
+import { useAddStudentMutation, useDeleteStudentMutation, useUpdateStudentMutation } from "@/services/api";
+import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "../ui/skeleton";
+import { EmptyState } from "../shared/empty-state";
 
 interface StudentsTableProps {
   students: Student[];
-  majors: string[];
+  classes: Class[];
+  isLoading: boolean;
 }
 
-export function StudentsTable({ students: initialStudents, majors }: StudentsTableProps) {
-  const [students, setStudents] = React.useState(initialStudents);
+export function StudentsTable({ students: initialStudents, classes, isLoading }: StudentsTableProps) {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = React.useState("");
   const [isAddDialogOpen, setAddDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [studentToAction, setStudentToAction] = React.useState<Student | null>(null);
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
-  const [majorFilter, setMajorFilter] = React.useState<string>('all');
+  const [classFilter, setClassFilter] = React.useState<string>('all');
   const [statusFilter, setStatusFilter] = React.useState<string>('all');
 
+  const [addStudent] = useAddStudentMutation();
+  const [updateStudent] = useUpdateStudentMutation();
+  const [deleteStudent] = useDeleteStudentMutation();
+
+  const studentsWithRandomAttendance = React.useMemo(() => {
+    return initialStudents.map(student => ({
+      ...student,
+      attendancePercentage: Math.floor(Math.random() * (100 - 70 + 1) + 70) // Random value between 70 and 100
+    }));
+  }, [initialStudents]);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
     setPage(0);
   };
 
-  const filteredStudents = students.filter(
+  const filteredStudents = studentsWithRandomAttendance.filter(
     (student) =>
       (student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.studentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (student.studentId && student.studentId.toLowerCase().includes(searchTerm.toLowerCase())) ||
       student.email.toLowerCase().includes(searchTerm.toLowerCase())) &&
-      (majorFilter === 'all' || student.major === majorFilter) &&
+      (classFilter === 'all' || student.classId === classFilter) &&
       (statusFilter === 'all' || student.status === statusFilter)
   );
 
@@ -56,11 +71,7 @@ export function StudentsTable({ students: initialStudents, majors }: StudentsTab
   const paginatedStudents = filteredStudents.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
 
   const handleRowsPerPageChange = (value: string) => {
-    if (value === 'all') {
-        setRowsPerPage(filteredStudents.length);
-    } else {
-        setRowsPerPage(Number(value));
-    }
+    setRowsPerPage(Number(value));
     setPage(0);
   };
   
@@ -74,41 +85,133 @@ export function StudentsTable({ students: initialStudents, majors }: StudentsTab
     setAddDialogOpen(true);
   };
 
-
   const openDeleteDialog = (student: Student) => {
     setStudentToAction(student);
     setDeleteDialogOpen(true);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (studentToAction) {
-      setStudents(students.filter((s) => s.id !== studentToAction.id));
-      setStudentToAction(null);
-      setDeleteDialogOpen(false);
+      try {
+        await deleteStudent(studentToAction._id).unwrap();
+        toast({ title: "Student Deleted" });
+        setDeleteDialogOpen(false);
+      } catch {
+        toast({ title: "Error deleting student", variant: "destructive" });
+      }
     }
   };
   
-  const handleToggleStatus = (studentId: string, newStatus: boolean) => {
-    setStudents(
-      students.map((s) =>
-        s.id === studentId ? { ...s, status: newStatus ? "active" : "inactive" } : s
-      )
-    );
+  const handleToggleStatus = async (student: Student, newStatus: boolean) => {
+    try {
+      await updateStudent({ ...student, status: newStatus ? "active" : "inactive" }).unwrap();
+      toast({ title: "Status Updated" });
+    } catch {
+      toast({ title: "Error updating status", variant: "destructive" });
+    }
   };
   
-  const handleSaveStudent = (studentData: any) => {
-    // This is where you would handle saving the data, for now, we'll just update the local state
-    console.log("Saving student:", studentData);
-    setAddDialogOpen(false);
+  const handleSaveStudent = async (studentData: any) => {
+    try {
+        const payload = {
+            ...studentData,
+            studentId: studentToAction?.studentId || `SID${Date.now()}`
+        };
+        if(studentToAction) {
+            await updateStudent({ _id: studentToAction._id, ...payload }).unwrap();
+            toast({ title: "Student Updated" });
+        } else {
+            await addStudent(payload).unwrap();
+            toast({ title: "Student Added" });
+        }
+    } catch (error) {
+        toast({ title: "Error saving student", variant: "destructive" });
+    }
   };
 
-  const isFiltered = majorFilter !== 'all' || statusFilter !== 'all';
+  const isFiltered = classFilter !== 'all' || statusFilter !== 'all' || searchTerm !== '';
 
   const clearFilters = () => {
-    setMajorFilter('all');
+    setClassFilter('all');
     setStatusFilter('all');
     setSearchTerm('');
   };
+  
+  const getClassName = (classId: string) => {
+    return classes.find(c => c._id === classId)?.name || 'N/A';
+  }
+
+  const renderTableBody = () => {
+    if (isLoading) {
+      return (
+        <TableBody>
+          {[...Array(5)].map((_, i) => (
+            <TableRow key={i}>
+              <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+              <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+              <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+              <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+              <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+              <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+              <TableCell><Skeleton className="h-6 w-11" /></TableCell>
+              <TableCell className="text-right"><Skeleton className="h-8 w-20 ml-auto" /></TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      );
+    }
+
+    if (paginatedStudents.length === 0) {
+      return (
+        <TableBody>
+          <TableRow>
+            <TableCell colSpan={8} className="h-24 text-center">
+              <EmptyState title="No Students Found" description="There are no students matching your criteria." />
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      );
+    }
+    
+    return (
+       <TableBody>
+        {paginatedStudents.map((student) => (
+          <TableRow key={student._id}>
+            <TableCell>{student.studentId}</TableCell>
+            <TableCell>{student.rollNo}</TableCell>
+            <TableCell className="font-medium">{student.name}</TableCell>
+            <TableCell>{student.email}</TableCell>
+            <TableCell><Badge variant="outline">{getClassName(student.classId)}</Badge></TableCell>
+            <TableCell>
+              <div className="flex items-center gap-2">
+                <Progress value={student.attendancePercentage} className="h-2 w-20" />
+                <span>{student.attendancePercentage}%</span>
+              </div>
+            </TableCell>
+            <TableCell>
+              <Switch
+                checked={student.status === 'active'}
+                onCheckedChange={(checked) => handleToggleStatus(student, checked)}
+                aria-label="Toggle student status"
+              />
+            </TableCell>
+            <TableCell className="text-right">
+              <Button variant="ghost" size="icon" onClick={() => handleEdit(student)}>
+                <Edit className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => openDeleteDialog(student)}
+              >
+                <Trash2 className="h-4 w-4 text-destructive" />
+              </Button>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    )
+  }
 
 
   return (
@@ -121,14 +224,14 @@ export function StudentsTable({ students: initialStudents, majors }: StudentsTab
               onChange={handleSearch}
               className="w-full sm:max-w-xs"
             />
-            <Select value={majorFilter} onValueChange={setMajorFilter}>
+            <Select value={classFilter} onValueChange={setClassFilter}>
                 <SelectTrigger className="w-full sm:w-[180px]">
-                    <SelectValue placeholder="Filter by major" />
+                    <SelectValue placeholder="Filter by class" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="all">All Majors</SelectItem>
-                    {majors.map(major => (
-                        <SelectItem key={major} value={major}>{major}</SelectItem>
+                    <SelectItem value="all">All Classes</SelectItem>
+                    {classes.map((c: Class) => (
+                        <SelectItem key={c._id} value={c._id!}>{c.name}</SelectItem>
                     ))}
                 </SelectContent>
             </Select>
@@ -156,48 +259,13 @@ export function StudentsTable({ students: initialStudents, majors }: StudentsTab
               <TableHead>Roll No.</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Major</TableHead>
+              <TableHead>Class</TableHead>
               <TableHead>Attendance</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {paginatedStudents.map((student) => (
-              <TableRow key={student.id}>
-                <TableCell>{student.studentId}</TableCell>
-                <TableCell>{student.rollNo}</TableCell>
-                <TableCell className="font-medium">{student.name}</TableCell>
-                <TableCell>{student.email}</TableCell>
-                <TableCell><Badge variant="outline">{student.major}</Badge></TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Progress value={student.attendancePercentage} className="h-2 w-20" />
-                    <span>{student.attendancePercentage}%</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Switch
-                    checked={student.status === 'active'}
-                    onCheckedChange={(checked) => handleToggleStatus(student.id, checked)}
-                    aria-label="Toggle student status"
-                  />
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button variant="ghost" size="icon" onClick={() => handleEdit(student)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => openDeleteDialog(student)}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
+          {renderTableBody()}
         </Table>
       </div>
       <div className="flex items-center justify-between mt-4">
@@ -211,7 +279,6 @@ export function StudentsTable({ students: initialStudents, majors }: StudentsTab
                     <SelectItem value="5">5</SelectItem>
                     <SelectItem value="10">10</SelectItem>
                     <SelectItem value="20">20</SelectItem>
-                    <SelectItem value="all">All</SelectItem>
                 </SelectContent>
             </Select>
         </div>

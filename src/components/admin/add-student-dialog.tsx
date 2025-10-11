@@ -24,11 +24,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import { Student } from "@/lib/types";
+import { Student, Class } from "@/lib/types";
 import { Switch } from "../ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { mockClasses } from "@/lib/mock-data";
+import { useGetClassesQuery } from "@/services/api";
+import { Skeleton } from "../ui/skeleton";
 
 
 const phoneRegex = new RegExp(
@@ -40,7 +40,7 @@ const formSchema = z.object({
   rollNo: z.string().min(1, "Roll number is required."),
   email: z.string().email("Please enter a valid email."),
   phone: z.string().regex(phoneRegex, "Invalid phone number format"),
-  major: z.string().min(2, "Major is required."),
+  classId: z.string().nonempty("A class must be assigned."),
   status: z.boolean(),
 });
 
@@ -57,7 +57,7 @@ export function AddStudentDialog({
   onSave,
   studentData,
 }: AddStudentDialogProps) {
-  const { toast } = useToast();
+  const { data: classes = [], isLoading: isLoadingClasses } = useGetClassesQuery();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -66,7 +66,7 @@ export function AddStudentDialog({
       rollNo: studentData?.rollNo || "",
       email: studentData?.email || "",
       phone: studentData?.phone || "",
-      major: studentData?.major || "",
+      classId: studentData?.classId || undefined,
       status: studentData?.status === 'active',
     },
   });
@@ -77,16 +77,15 @@ export function AddStudentDialog({
         rollNo: studentData?.rollNo || "",
         email: studentData?.email || "",
         phone: studentData?.phone || "",
-        major: studentData?.major || "",
+        classId: studentData?.classId || undefined,
         status: studentData?.status === 'active',
     });
   }, [studentData, form]);
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    onSave(values);
-    toast({
-      title: studentData ? "Student Updated" : "Student Added",
-      description: `Student ${values.name} has been successfully ${studentData ? 'updated' : 'added'}.`,
+    onSave({
+      ...values,
+      status: values.status ? 'active' : 'inactive'
     });
     onOpenChange(false);
   };
@@ -100,6 +99,13 @@ export function AddStudentDialog({
             Fill in the details below to {studentData ? "update the" : "add a new"} student.
           </DialogDescription>
         </DialogHeader>
+        {isLoadingClasses ? (
+             <div className="space-y-4 py-4">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+            </div>
+        ) : (
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
@@ -160,10 +166,10 @@ export function AddStudentDialog({
             </div>
             <FormField
               control={form.control}
-              name="major"
+              name="classId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Major/Class</FormLabel>
+                  <FormLabel>Class</FormLabel>
                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -171,8 +177,8 @@ export function AddStudentDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {mockClasses.map(c => (
-                        <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+                      {classes.map((c: Class) => (
+                        <SelectItem key={c._id} value={c._id!}>{c.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -186,7 +192,7 @@ export function AddStudentDialog({
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                   <div className="space-y-0.5">
-                    <FormLabel>Status</FormLabel>
+                    <FormLabel>Status (Active)</FormLabel>
                     <FormMessage />
                   </div>
                   <FormControl>
@@ -206,6 +212,7 @@ export function AddStudentDialog({
             </DialogFooter>
           </form>
         </Form>
+        )}
       </DialogContent>
     </Dialog>
   );

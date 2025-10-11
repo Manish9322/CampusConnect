@@ -13,10 +13,11 @@ export type StudentStatus = 'active' | 'inactive';
 
 
 export interface Student extends User {
+  _id?: string;
   role: 'student';
   studentId: string;
   rollNo: string;
-  major: string;
+  classId: string;
   phone: string;
   status: StudentStatus;
   attendancePercentage: number;

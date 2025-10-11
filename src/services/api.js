@@ -163,10 +163,33 @@ export const api = createApi({
         invalidatesTags: ['Class'],
     }),
 
-    // Students endpoint - for now just a getter for the card
+    // Student CRUD endpoints
     getStudents: builder.query({
-      query: () => 'students', // Assuming you'll create this endpoint
+      query: () => 'students',
       providesTags: ['Student'],
+    }),
+    addStudent: builder.mutation({
+        query: (newStudent) => ({
+            url: 'students',
+            method: 'POST',
+            body: newStudent,
+        }),
+        invalidatesTags: ['Student'],
+    }),
+    updateStudent: builder.mutation({
+        query: (studentToUpdate) => ({
+            url: 'students',
+            method: 'PUT',
+            body: studentToUpdate,
+        }),
+        invalidatesTags: ['Student'],
+    }),
+    deleteStudent: builder.mutation({
+        query: (id) => ({
+            url: `students?id=${id}`,
+            method: 'DELETE',
+        }),
+        invalidatesTags: ['Student'],
     }),
 
     // Announcement Category CRUD endpoints
@@ -253,6 +276,9 @@ export const {
     useUpdateClassMutation,
     useDeleteClassMutation,
     useGetStudentsQuery,
+    useAddStudentMutation,
+    useUpdateStudentMutation,
+    useDeleteStudentMutation,
     useGetAnnouncementCategoriesQuery,
     useAddAnnouncementCategoryMutation,
     useUpdateAnnouncementCategoryMutation,
