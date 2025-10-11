@@ -31,6 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { cn } from "@/lib/utils";
 
 interface AdminNavProps {
     user: {
@@ -72,7 +73,7 @@ export function AdminNav({ user }: AdminNavProps) {
                 <PanelLeft/>
               </Button>
             </SidebarTrigger>
-            <div className="flex-1 overflow-hidden whitespace-nowrap">
+            <div className={cn("flex-1 overflow-hidden whitespace-nowrap", state === 'collapsed' && 'hidden')}>
                 <Link href="/" className="font-semibold text-lg">CampusConnect</Link>
             </div>
         </div>
