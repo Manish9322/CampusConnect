@@ -22,14 +22,20 @@ type Item = {
 }
 
 type ItemToModify = Item | null;
+type ItemType = "subject" | "department" | "designation";
 
 export default function SettingsPage() {
-    const [newItemName, setNewItemName] = React.useState("");
-    const [newItemDescription, setNewItemDescription] = React.useState("");
+    const [newSubject, setNewSubject] = React.useState({ name: "", description: "" });
+    const [newDepartment, setNewDepartment] = React.useState({ name: "", description: "" });
+    const [newDesignation, setNewDesignation] = React.useState({ name: "", description: "" });
+    
     const [itemToEdit, setItemToEdit] = React.useState<ItemToModify>(null);
-    const [editType, setEditType] = React.useState<"subject" | "department" | "designation" | null>(null);
+    const [editName, setEditName] = React.useState("");
+    const [editDescription, setEditDescription] = React.useState("");
+    const [editType, setEditType] = React.useState<ItemType | null>(null);
+    
     const [itemToView, setItemToView] = React.useState<ItemToModify>(null);
-    const [viewType, setViewType] = React.useState<"subject" | "department" | "designation" | null>(null);
+    const [viewType, setViewType] = React.useState<ItemType | null>(null);
 
     const { toast } = useToast();
 
@@ -48,21 +54,21 @@ export default function SettingsPage() {
     const [updateDesignation, { isLoading: isUpdatingDesignation }] = useUpdateDesignationMutation();
     const [deleteDesignation] = useDeleteDesignationMutation();
 
-    const openEditDialog = (item: ItemToModify, type: "subject" | "department" | "designation") => {
+    const openEditDialog = (item: ItemToModify, type: ItemType) => {
         setItemToEdit(item);
-        setNewItemName(item?.name || "");
-        setNewItemDescription(item?.description || "");
+        setEditName(item?.name || "");
+        setEditDescription(item?.description || "");
         setEditType(type);
     };
 
     const closeEditDialog = () => {
         setItemToEdit(null);
-        setNewItemName("");
-        setNewItemDescription("");
+        setEditName("");
+        setEditDescription("");
         setEditType(null);
     };
     
-    const openPreviewDialog = (item: ItemToModify, type: "subject" | "department" | "designation") => {
+    const openPreviewDialog = (item: ItemToModify, type: ItemType) => {
         setItemToView(item);
         setViewType(type);
     };
@@ -72,12 +78,11 @@ export default function SettingsPage() {
         setViewType(null);
     };
 
-
     const handleSave = async () => {
         if (!itemToEdit || !editType) return;
         
         try {
-            const updatedData = { _id: itemToEdit._id, name: newItemName, description: newItemDescription };
+            const updatedData = { _id: itemToEdit._id, name: editName, description: editDescription };
             if (editType === 'subject') {
                 await updateSubject(updatedData).unwrap();
             } else if (editType === 'department') {
@@ -85,7 +90,7 @@ export default function SettingsPage() {
             } else if (editType === 'designation') {
                 await updateDesignation(updatedData).unwrap();
             }
-            toast({ title: `${editType.charAt(0).toUpperCase() + editType.slice(1)} Updated`, description: `"${newItemName}" has been updated.` });
+            toast({ title: `${editType.charAt(0).toUpperCase() + editType.slice(1)} Updated`, description: `"${editName}" has been updated.` });
             closeEditDialog();
         } catch (error) {
             toast({ title: "Error", description: "Failed to update item.", variant: "destructive" });
@@ -94,12 +99,11 @@ export default function SettingsPage() {
 
 
     const handleAddSubject = async () => {
-        if (newItemName.trim()) {
+        if (newSubject.name.trim()) {
             try {
-                await addSubject({ name: newItemName.trim(), description: newItemDescription.trim() }).unwrap();
-                toast({ title: "Subject Added", description: `"${newItemName.trim()}" has been added.` });
-                setNewItemName("");
-                setNewItemDescription("");
+                await addSubject({ name: newSubject.name.trim(), description: newSubject.description.trim() }).unwrap();
+                toast({ title: "Subject Added", description: `"${newSubject.name.trim()}" has been added.` });
+                setNewSubject({ name: "", description: "" });
             } catch (error) {
                 toast({ title: "Error", description: "Failed to add subject.", variant: "destructive" });
             }
@@ -116,12 +120,11 @@ export default function SettingsPage() {
     };
 
     const handleAddDepartment = async () => {
-        if (newItemName.trim()) {
+        if (newDepartment.name.trim()) {
             try {
-                await addDepartment({ name: newItemName.trim(), description: newItemDescription.trim() }).unwrap();
-                toast({ title: "Department Added", description: `"${newItemName.trim()}" has been added.` });
-                setNewItemName("");
-                setNewItemDescription("");
+                await addDepartment({ name: newDepartment.name.trim(), description: newDepartment.description.trim() }).unwrap();
+                toast({ title: "Department Added", description: `"${newDepartment.name.trim()}" has been added.` });
+                setNewDepartment({ name: "", description: "" });
             } catch (error) {
                 toast({ title: "Error", description: "Failed to add department.", variant: "destructive" });
             }
@@ -138,12 +141,11 @@ export default function SettingsPage() {
     };
 
     const handleAddDesignation = async () => {
-        if (newItemName.trim()) {
+        if (newDesignation.name.trim()) {
             try {
-                await addDesignation({ name: newItemName.trim(), description: newItemDescription.trim() }).unwrap();
-                toast({ title: "Designation Added", description: `"${newItemName.trim()}" has been added.` });
-                setNewItemName("");
-                setNewItemDescription("");
+                await addDesignation({ name: newDesignation.name.trim(), description: newDesignation.description.trim() }).unwrap();
+                toast({ title: "Designation Added", description: `"${newDesignation.name.trim()}" has been added.` });
+                setNewDesignation({ name: "", description: "" });
             } catch (error) {
                 toast({ title: "Error", description: "Failed to add designation.", variant: "destructive" });
             }
@@ -169,7 +171,9 @@ export default function SettingsPage() {
         onRemove: (item: any) => void,
         onEdit: (item: any) => void,
         onView: (item: any) => void,
-        type: "subject" | "department" | "designation"
+        type: ItemType,
+        newItem: { name: string, description: string },
+        setNewItem: React.Dispatch<React.SetStateAction<{ name: string, description: string }>>
     ) => (
         <Card className="flex flex-col">
             <CardHeader>
@@ -179,19 +183,19 @@ export default function SettingsPage() {
             <CardContent className="flex-1 flex flex-col gap-4">
                 <div className="flex flex-col gap-2">
                     <Input
-                        value={newItemName}
-                        onChange={(e) => setNewItemName(e.target.value)}
+                        value={newItem.name}
+                        onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
                         placeholder={`New ${type} name`}
                         disabled={isAdding}
                     />
                     <Textarea
-                        value={newItemDescription}
-                        onChange={(e) => setNewItemDescription(e.target.value)}
+                        value={newItem.description}
+                        onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
                         placeholder={`${type.charAt(0).toUpperCase() + type.slice(1)} description (optional)`}
                         disabled={isAdding}
                         rows={2}
                     />
-                    <Button onClick={onAdd} disabled={isAdding || !newItemName.trim()}>
+                    <Button onClick={onAdd} disabled={isAdding || !newItem.name.trim()}>
                         <PlusCircle className="mr-2 h-4 w-4" /> {isAdding ? "Adding..." : `Add ${type.charAt(0).toUpperCase() + type.slice(1)}`}
                     </Button>
                 </div>
@@ -245,7 +249,9 @@ export default function SettingsPage() {
                     handleRemoveSubject,
                     (item) => openEditDialog(item, "subject"),
                     (item) => openPreviewDialog(item, "subject"),
-                    "subject"
+                    "subject",
+                    newSubject,
+                    setNewSubject
                 )}
                 {renderCard(
                     "Manage Departments",
@@ -257,7 +263,9 @@ export default function SettingsPage() {
                     handleRemoveDepartment,
                     (item) => openEditDialog(item, "department"),
                     (item) => openPreviewDialog(item, "department"),
-                    "department"
+                    "department",
+                    newDepartment,
+                    setNewDepartment
                 )}
                 {renderCard(
                     "Manage Designations",
@@ -269,7 +277,9 @@ export default function SettingsPage() {
                     handleRemoveDesignation,
                     (item) => openEditDialog(item, "designation"),
                     (item) => openPreviewDialog(item, "designation"),
-                    "designation"
+                    "designation",
+                    newDesignation,
+                    setNewDesignation
                 )}
             </div>
 
@@ -281,13 +291,13 @@ export default function SettingsPage() {
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <Input
-                            value={newItemName}
-                            onChange={(e) => setNewItemName(e.target.value)}
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
                             placeholder="Name"
                         />
                         <Textarea
-                            value={newItemDescription}
-                            onChange={(e) => setNewItemDescription(e.target.value)}
+                            value={editDescription}
+                            onChange={(e) => setEditDescription(e.target.value)}
                             placeholder="Description (optional)"
                         />
                     </div>
