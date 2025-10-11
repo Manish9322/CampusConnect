@@ -5,7 +5,7 @@ import * as React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PlusCircle, Trash2, Edit } from "lucide-react";
+import { PlusCircle, Trash2, Edit, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useGetSubjectsQuery, useAddSubjectMutation, useDeleteSubjectMutation, useUpdateSubjectMutation, useGetDepartmentsQuery, useAddDepartmentMutation, useDeleteDepartmentMutation, useUpdateDepartmentMutation, useGetDesignationsQuery, useAddDesignationMutation, useDeleteDesignationMutation, useUpdateDesignationMutation } from "@/services/api";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -187,9 +187,12 @@ export default function SettingsPage() {
                                     <div key={item._id} className="flex items-center justify-between p-2 border rounded-md">
                                         <div className="flex-1 overflow-hidden">
                                             <p className="font-medium truncate">{item.name}</p>
-                                            {item.description && <p className="text-sm text-muted-foreground truncate">{item.description}</p>}
+                                            {item.description && <p className="text-sm text-muted-foreground truncate line-clamp-1">{item.description}</p>}
                                         </div>
                                         <div>
+                                            <Button variant="ghost" size="icon" onClick={() => onEdit(item)}>
+                                                <Eye className="h-4 w-4" />
+                                            </Button>
                                             <Button variant="ghost" size="icon" onClick={() => onEdit(item)}>
                                                 <Edit className="h-4 w-4" />
                                             </Button>
