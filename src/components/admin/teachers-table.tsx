@@ -3,7 +3,7 @@
 
 import * as React from "react"
 import { PlusCircle, Edit, Trash2, ChevronLeft, ChevronRight } from "lucide-react"
-
+import { useToast } from "@/hooks/use-toast"
 import { Teacher } from "@/lib/types"
 import {
   Table,
@@ -20,26 +20,33 @@ import { DeleteConfirmationDialog } from "../shared/delete-confirmation-dialog"
 import { Badge } from "../ui/badge"
 import { Switch } from "../ui/switch"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select"
+import { useAddTeacherMutation, useDeleteTeacherMutation, useUpdateTeacherMutation } from "@/services/api"
+import { Skeleton } from "../ui/skeleton"
 
 interface TeachersTableProps {
-  data: Teacher[]
+  data: Teacher[];
+  isLoading: boolean;
 }
 
-export function TeachersTable({ data }: TeachersTableProps) {
-  const [teachers, setTeachers] = React.useState(data);
+export function TeachersTable({ data, isLoading }: TeachersTableProps) {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = React.useState("");
   const [isAddTeacherDialogOpen, setAddTeacherDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [teacherToAction, setTeacherToAction] = React.useState<Teacher | null>(null);
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  
+  const [addTeacher] = useAddTeacherMutation();
+  const [updateTeacher] = useUpdateTeacherMutation();
+  const [deleteTeacher] = useDeleteTeacherMutation();
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
     setPage(0);
   };
 
-  const filteredTeachers = teachers.filter(teacher => 
+  const filteredTeachers = data.filter(teacher => 
     teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     teacher.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     teacher.department.toLowerCase().includes(searchTerm.toLowerCase())
@@ -58,11 +65,16 @@ export function TeachersTable({ data }: TeachersTableProps) {
     setDeleteDialogOpen(true);
   }
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if(teacherToAction) {
-      setTeachers(prev => prev.filter(t => t.id !== teacherToAction.id));
-      setDeleteDialogOpen(false);
-      setTeacherToAction(null);
+      try {
+        await deleteTeacher(teacherToAction._id).unwrap();
+        toast({ title: "Teacher Deleted", description: `${teacherToAction.name} has been deleted.` });
+        setDeleteDialogOpen(false);
+        setTeacherToAction(null);
+      } catch (error) {
+        toast({ title: "Error", description: "Failed to delete teacher.", variant: "destructive" });
+      }
     }
   }
 
@@ -71,18 +83,28 @@ export function TeachersTable({ data }: TeachersTableProps) {
     setAddTeacherDialogOpen(true);
   }
 
-  const handleSaveTeacher = (teacher: Teacher) => {
-    setTeachers(prev => {
-        const existing = prev.find(t => t.id === teacher.id);
-        if (existing) {
-            return prev.map(t => t.id === teacher.id ? teacher : t);
+  const handleSaveTeacher = async (values: any) => {
+    try {
+        if(teacherToAction) {
+            await updateTeacher({ _id: teacherToAction._id, ...values }).unwrap();
+            toast({ title: "Teacher Updated", description: `${values.name} has been updated.` });
+        } else {
+            await addTeacher(values).unwrap();
+            toast({ title: "Teacher Added", description: `${values.name} has been added.` });
         }
-        return [...prev, teacher];
-    });
+    } catch(error) {
+        toast({ title: "Error", description: "An error occurred while saving the teacher.", variant: "destructive" });
+    }
   }
 
-  const handleToggleStatus = (teacherId: string, newStatus: boolean) => {
-    setTeachers(prev => prev.map(t => t.id === teacherId ? { ...t, status: newStatus ? 'active' : 'inactive' } : t));
+  const handleToggleStatus = async (teacher: Teacher, newStatus: boolean) => {
+    const status = newStatus ? 'active' : 'inactive';
+    try {
+        await updateTeacher({ ...teacher, status }).unwrap();
+        toast({ title: "Status Updated", description: `${teacher.name}'s status has been updated to ${status}.` });
+    } catch (error) {
+        toast({ title: "Error", description: "Failed to update status.", variant: "destructive" });
+    }
   }
   
   const handleRowsPerPageChange = (value: string) => {
@@ -127,17 +149,28 @@ export function TeachersTable({ data }: TeachersTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedTeachers.length ? (
+            {isLoading ? (
+                [...Array(rowsPerPage)].map((_, i) => (
+                    <TableRow key={i}>
+                        <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                        <TableCell><Skeleton className="h-6 w-11" /></TableCell>
+                        <TableCell className="text-right"><Skeleton className="h-8 w-20 ml-auto" /></TableCell>
+                    </TableRow>
+                ))
+            ) : paginatedTeachers.length > 0 ? (
               paginatedTeachers.map((teacher) => (
-                <TableRow key={teacher.id}>
+                <TableRow key={teacher._id}>
                     <TableCell>{teacher.teacherId}</TableCell>
-                    <TableCell className="font-medium">{teacher.name}</TableCell>
+                    <TableCell className="font-medium">{teacher.designation} {teacher.name}</TableCell>
                     <TableCell>{teacher.email}</TableCell>
                     <TableCell><Badge variant="outline">{teacher.department}</Badge></TableCell>
                     <TableCell>
                         <Switch
                             checked={teacher.status === 'active'}
-                            onCheckedChange={(checked) => handleToggleStatus(teacher.id, checked)}
+                            onCheckedChange={(checked) => handleToggleStatus(teacher, checked)}
                         />
                     </TableCell>
                     <TableCell className="text-right">

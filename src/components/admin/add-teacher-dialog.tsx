@@ -55,7 +55,7 @@ const formSchema = z.object({
 interface AddTeacherDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (teacher: Teacher) => void;
+  onSave: (teacher: Omit<Teacher, '_id'>) => void;
   teacher?: Teacher | null;
 }
 
@@ -98,8 +98,7 @@ export function AddTeacherDialog({
   }, [teacher, form]);
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    const newOrUpdatedTeacher: Teacher = {
-      id: teacher?.id || `T${Date.now()}`,
+    const newOrUpdatedTeacher = {
       teacherId: teacher?.teacherId || `TID${Date.now()}`,
       role: "teacher",
       ...values,
@@ -108,12 +107,6 @@ export function AddTeacherDialog({
     };
 
     onSave(newOrUpdatedTeacher);
-    toast({
-      title: teacher ? "Teacher Updated" : "Teacher Added",
-      description: `${values.name} has been successfully ${
-        teacher ? "updated" : "added"
-      }.`,
-    });
     onOpenChange(false);
   };
   

@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-  tagTypes: ['Connection', 'Subject', 'Department', 'Designation'],
+  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher'],
   endpoints: (builder) => ({
     testDBConnection: builder.query({
       query: () => 'connect',
@@ -103,6 +103,35 @@ export const api = createApi({
         }),
         invalidatesTags: ['Designation'],
     }),
+
+    // Teacher CRUD endpoints
+    getTeachers: builder.query({
+        query: () => 'teachers',
+        providesTags: ['Teacher'],
+    }),
+    addTeacher: builder.mutation({
+        query: (newTeacher) => ({
+            url: 'teachers',
+            method: 'POST',
+            body: newTeacher,
+        }),
+        invalidatesTags: ['Teacher'],
+    }),
+    updateTeacher: builder.mutation({
+        query: (teacherToUpdate) => ({
+            url: 'teachers',
+            method: 'PUT',
+            body: teacherToUpdate,
+        }),
+        invalidatesTags: ['Teacher'],
+    }),
+    deleteTeacher: builder.mutation({
+        query: (id) => ({
+            url: `teachers?id=${id}`,
+            method: 'DELETE',
+        }),
+        invalidatesTags: ['Teacher'],
+    }),
   }),
 });
 
@@ -121,4 +150,8 @@ export const {
     useAddDesignationMutation,
     useUpdateDesignationMutation,
     useDeleteDesignationMutation,
+    useGetTeachersQuery,
+    useAddTeacherMutation,
+    useUpdateTeacherMutation,
+    useDeleteTeacherMutation,
 } = api;

@@ -24,6 +24,7 @@ export interface Student extends User {
 export type TeacherStatus = 'active' | 'inactive';
 
 export interface Teacher extends User {
+  _id?: string;
   role: 'teacher';
   teacherId: string;
   designation?: string;
