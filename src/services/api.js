@@ -4,7 +4,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory'],
+  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance'],
   endpoints: (builder) => ({
     testDBConnection: builder.query({
       query: () => 'connect',
@@ -124,7 +124,7 @@ export const api = createApi({
             method: 'PUT',
             body: teacherToUpdate,
         }),
-        invalidatesTags: ['Teacher'],
+        invalidatesTags: ['Teacher', 'Class'],
     }),
     deleteTeacher: builder.mutation({
         query: (id) => ({
@@ -174,7 +174,7 @@ export const api = createApi({
             method: 'POST',
             body: newStudent,
         }),
-        invalidatesTags: ['Student'],
+        invalidatesTags: ['Student', 'Class'],
     }),
     updateStudent: builder.mutation({
         query: (studentToUpdate) => ({
@@ -182,14 +182,14 @@ export const api = createApi({
             method: 'PUT',
             body: studentToUpdate,
         }),
-        invalidatesTags: ['Student'],
+        invalidatesTags: ['Student', 'Class'],
     }),
     deleteStudent: builder.mutation({
         query: (id) => ({
             url: `students?id=${id}`,
             method: 'DELETE',
         }),
-        invalidatesTags: ['Student'],
+        invalidatesTags: ['Student', 'Class'],
     }),
 
     // Announcement Category CRUD endpoints
@@ -249,6 +249,23 @@ export const api = createApi({
         }),
         invalidatesTags: ['Announcement'],
     }),
+
+    // Attendance endpoints
+    getAttendance: builder.query({
+        query: ({ classId, date }) => `attendance?classId=${classId}&date=${date}`,
+        providesTags: (result, error, { classId, date }) => [{ type: 'Attendance', id: `${classId}-${date}` }],
+    }),
+    addAttendance: builder.mutation({
+        query: (attendanceData) => ({
+            url: 'attendance',
+            method: 'POST',
+            body: attendanceData,
+        }),
+        invalidatesTags: (result, error, arg) => {
+            const { classId, date } = arg[0] || { classId: 'UNKNOWN', date: 'UNKNOWN' };
+            return [{ type: 'Attendance', id: `${classId}-${date}` }];
+        },
+    }),
   }),
 });
 
@@ -287,4 +304,6 @@ export const {
     useAddAnnouncementMutation,
     useUpdateAnnouncementMutation,
     useDeleteAnnouncementMutation,
+    useGetAttendanceQuery,
+    useAddAttendanceMutation,
 } = api;

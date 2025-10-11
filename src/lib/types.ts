@@ -118,3 +118,17 @@ export interface Grade {
     feedback?: string;
     submissionUrl?: string;
 }
+
+export type AttendanceStatus = 'present' | 'late' | 'absent';
+
+export interface AttendanceRecord {
+  _id?: string;
+  id: string;
+  studentId: string;
+  studentName: string;
+  classId: string;
+  date: string;
+  status: AttendanceStatus;
+  course: string;
+  recordedBy: string;
+}

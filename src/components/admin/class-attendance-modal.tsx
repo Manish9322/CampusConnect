@@ -3,7 +3,7 @@
 
 import * as React from "react";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Check, ChevronsUpDown, Send, X } from "lucide-react";
+import { Calendar as CalendarIcon, Send, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -27,7 +27,10 @@ import { Calendar } from "@/components/ui/calendar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { Class, Student, AttendanceStatus } from "@/lib/types";
+import { Class, Student, AttendanceStatus, AttendanceRecord } from "@/lib/types";
+import { useAddAttendanceMutation, useGetAttendanceQuery } from "@/services/api";
+import { ThreeStateToggle } from "../shared/three-state-toggle";
+import { Skeleton } from "../ui/skeleton";
 
 interface ClassWithStudentDetails extends Class {
   teacher: string;
@@ -45,48 +48,30 @@ type AttendanceState = {
   [studentId: string]: AttendanceStatus;
 };
 
-const statusCycle: AttendanceStatus[] = ['present', 'late', 'absent'];
-
-const statusConfig: { [key in AttendanceStatus]: { text: string; className: string } } = {
-  present: { text: "Present", className: "bg-green-600 hover:bg-green-700 text-white border-green-600" },
-  late: { text: "Late", className: "bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500" },
-  absent: { text: "Absent", className: "bg-destructive hover:bg-destructive/90 text-destructive-foreground border-destructive" },
-};
-
-const ThreeStateToggle = ({ status, onChange }: { status: AttendanceStatus, onChange: (newStatus: AttendanceStatus) => void }) => {
-  const handleClick = () => {
-    const currentIndex = statusCycle.indexOf(status);
-    const nextIndex = (currentIndex + 1) % statusCycle.length;
-    onChange(statusCycle[nextIndex]);
-  };
-
-  return (
-    <Button
-      onClick={handleClick}
-      variant="outline"
-      className={cn("w-24 transition-colors duration-200", statusConfig[status].className)}
-    >
-      {statusConfig[status].text}
-    </Button>
-  );
-};
-
-
 export function ClassAttendanceModal({ isOpen, onOpenChange, classData }: ClassAttendanceModalProps) {
   const [searchTerm, setSearchTerm] = React.useState("");
   const [date, setDate] = React.useState<Date | undefined>(new Date());
   const [attendance, setAttendance] = React.useState<AttendanceState>({});
   const { toast } = useToast();
 
+  const formattedDate = date ? format(date, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
+  const { data: existingAttendance = [], isLoading: isLoadingAttendance } = useGetAttendanceQuery(
+    { classId: classData._id!, date: formattedDate },
+    { skip: !classData._id || !date }
+  );
+
+  const [addAttendance, { isLoading: isSubmitting }] = useAddAttendanceMutation();
+
   React.useEffect(() => {
-    if (classData) {
+    if (classData.students) {
       const initialAttendance: AttendanceState = {};
       classData.students.forEach(student => {
-        initialAttendance[student.id] = 'present';
+        const record = existingAttendance.find((r: AttendanceRecord) => r.studentId === student._id);
+        initialAttendance[student._id!] = record ? record.status : 'present';
       });
       setAttendance(initialAttendance);
     }
-  }, [classData]);
+  }, [classData, existingAttendance]);
 
   const handleAttendanceChange = (studentId: string, status: AttendanceStatus) => {
     setAttendance(prev => ({ ...prev, [studentId]: status }));
@@ -95,17 +80,34 @@ export function ClassAttendanceModal({ isOpen, onOpenChange, classData }: ClassA
   const markAll = (status: AttendanceStatus) => {
     const newAttendance: AttendanceState = {};
     classData.students.forEach(student => {
-      newAttendance[student.id] = status;
+      newAttendance[student._id!] = status;
     });
     setAttendance(newAttendance);
   }
 
-  const handleSubmit = () => {
-    toast({
-      title: "Attendance Submitted",
-      description: `Attendance for ${classData.name} on ${format(date || new Date(), "PPP")} has been recorded.`,
-    });
-    onOpenChange(false);
+  const handleSubmit = async () => {
+    const attendanceData = classData.students.map(student => ({
+      studentId: student._id!,
+      classId: classData._id!,
+      date: formattedDate,
+      status: attendance[student._id!],
+      recordedBy: classData.teacherId, // Assuming admin or teacher ID is available
+    }));
+
+    try {
+      await addAttendance(attendanceData).unwrap();
+      toast({
+        title: "Attendance Submitted",
+        description: `Attendance for ${classData.name} on ${format(date || new Date(), "PPP")} has been recorded.`,
+      });
+      onOpenChange(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to submit attendance.",
+        variant: "destructive",
+      });
+    }
   };
 
   const filteredStudents = classData.students.filter(
@@ -153,37 +155,43 @@ export function ClassAttendanceModal({ isOpen, onOpenChange, classData }: ClassA
         </div>
         <div className="flex-1 relative">
             <ScrollArea className="absolute inset-0">
-                <Table>
-                    <TableHeader>
-                    <TableRow>
-                        <TableHead>Roll No.</TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead className="text-right">Status</TableHead>
-                    </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                    {filteredStudents.map((student) => (
-                        <TableRow key={student.id}>
-                        <TableCell>{student.rollNo}</TableCell>
-                        <TableCell className="font-medium">{student.name}</TableCell>
-                        <TableCell className="text-right">
-                           <ThreeStateToggle 
-                                status={attendance[student.id] || 'present'}
-                                onChange={(newStatus) => handleAttendanceChange(student.id, newStatus)}
-                            />
-                        </TableCell>
+                {isLoadingAttendance ? (
+                    <div className="space-y-2 p-2">
+                        {[...Array(10)].map((_, i) => <Skeleton key={i} className="h-12 w-full"/>)}
+                    </div>
+                ) : (
+                    <Table>
+                        <TableHeader>
+                        <TableRow>
+                            <TableHead>Roll No.</TableHead>
+                            <TableHead>Name</TableHead>
+                            <TableHead className="text-right">Status</TableHead>
                         </TableRow>
-                    ))}
-                    </TableBody>
-                </Table>
+                        </TableHeader>
+                        <TableBody>
+                        {filteredStudents.map((student) => (
+                            <TableRow key={student._id}>
+                            <TableCell>{student.rollNo}</TableCell>
+                            <TableCell className="font-medium">{student.name}</TableCell>
+                            <TableCell className="text-right">
+                               <ThreeStateToggle 
+                                    status={attendance[student._id!] || 'present'}
+                                    onChange={(newStatus) => handleAttendanceChange(student._id!, newStatus)}
+                                />
+                            </TableCell>
+                            </TableRow>
+                        ))}
+                        </TableBody>
+                    </Table>
+                )}
             </ScrollArea>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
             <X className="mr-2 h-4 w-4" /> Cancel
           </Button>
-          <Button onClick={handleSubmit}>
-            <Send className="mr-2 h-4 w-4" /> Submit Attendance
+          <Button onClick={handleSubmit} disabled={isSubmitting}>
+            {isSubmitting ? "Submitting..." : <><Send className="mr-2 h-4 w-4" /> Submit Attendance</>}
           </Button>
         </DialogFooter>
       </DialogContent>
