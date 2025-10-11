@@ -28,13 +28,14 @@ import { useToast } from "@/hooks/use-toast";
 import { ClassWithDetails, Teacher } from "@/lib/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Switch } from "../ui/switch";
-import { useGetTeachersQuery } from "@/services/api";
+import { useGetSubjectsQuery, useGetTeachersQuery } from "@/services/api";
 import { Skeleton } from "../ui/skeleton";
+import { MultiSelect } from "react-multi-select-component";
 
 const formSchema = z.object({
   name: z.string().min(2, "Class name must be at least 2 characters."),
   teacherId: z.string().nonempty("A teacher must be assigned."),
-  subjects: z.string().min(1, "At least one subject is required."),
+  subjects: z.array(z.object({ label: z.string(), value: z.string() })).min(1, "At least one subject is required."),
   studentCount: z.coerce.number().min(0, "Number of students cannot be negative."),
   status: z.boolean(),
   year: z.coerce.number().min(2000, "Year must be valid."),
@@ -55,15 +56,16 @@ export function AddClassDialog({
 }: AddClassDialogProps) {
   const { toast } = useToast();
   const { data: allTeachers = [], isLoading: isLoadingTeachers } = useGetTeachersQuery();
-  
-  const defaultTeacher = allTeachers.find((t: Teacher) => t._id === classData?.teacherId);
+  const { data: allSubjects = [], isLoading: isLoadingSubjects } = useGetSubjectsQuery();
+
+  const subjectOptions = allSubjects.map((s: { name: string; _id: string; }) => ({ label: s.name, value: s.name }));
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: classData?.name || "",
       teacherId: classData?.teacherId || "",
-      subjects: classData?.subjects.join(', ') || "",
+      subjects: classData?.subjects.map(s => ({ label: s, value: s })) || [],
       studentCount: classData?.studentCount || 0,
       status: classData?.status === 'active',
       year: classData?.year || new Date().getFullYear(),
@@ -74,7 +76,7 @@ export function AddClassDialog({
     form.reset({
         name: classData?.name || "",
         teacherId: classData?.teacherId || "",
-        subjects: classData?.subjects.join(', ') || "",
+        subjects: classData?.subjects.map(s => ({ label: s, value: s })) || [],
         studentCount: classData?.studentCount || 0,
         status: classData?.status === 'active',
         year: classData?.year || new Date().getFullYear(),
@@ -85,10 +87,13 @@ export function AddClassDialog({
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     onSave({
         ...values,
-        subjects: values.subjects.split(',').map(s => s.trim()),
+        subjects: values.subjects.map(s => s.value),
+        status: values.status ? 'active' : 'inactive',
     });
     onOpenChange(false);
   };
+  
+  const isLoading = isLoadingTeachers || isLoadingSubjects;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -99,7 +104,7 @@ export function AddClassDialog({
             Fill in the details below to {classData ? "update the" : "add a new"} class.
           </DialogDescription>
         </DialogHeader>
-        {isLoadingTeachers ? (
+        {isLoading ? (
              <div className="space-y-4 py-4">
                 <Skeleton className="h-10 w-full" />
                 <Skeleton className="h-10 w-full" />
@@ -147,18 +152,24 @@ export function AddClassDialog({
             </div>
             <div className="grid md:grid-cols-3 gap-4">
                 <FormField
-                control={form.control}
-                name="subjects"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Subjects (comma-separated)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Math, Science" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                    control={form.control}
+                    name="subjects"
+                    render={({ field }) => (
+                    <FormItem className="md:col-span-1">
+                        <FormLabel>Subjects</FormLabel>
+                        <FormControl>
+                            <MultiSelect
+                                options={subjectOptions}
+                                value={field.value}
+                                onChange={field.onChange}
+                                labelledBy="Select Subjects"
+                                hasSelectAll={false}
+                            />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
               <FormField
                 control={form.control}
                 name="studentCount"
@@ -217,3 +228,5 @@ export function AddClassDialog({
     </Dialog>
   );
 }
+
+    
