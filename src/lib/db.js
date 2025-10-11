@@ -2,8 +2,9 @@
 // The standard architecture for this project uses Firebase for all database operations.
 // Database logic should be handled through Firebase services and Next.js API routes.
 import mongoose from 'mongoose';
+import config from '../../config/config.js';
 
-const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_URI = config.MONGODB_URI;
 
 if (!MONGODB_URI) {
   throw new Error(
