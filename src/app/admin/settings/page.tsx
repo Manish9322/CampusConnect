@@ -13,18 +13,23 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ItemPreviewDialog } from "@/components/admin/settings/item-preview-dialog";
 
-type ItemToEdit = {
+type Item = {
     _id: string;
     name: string;
     description?: string;
-} | null;
+}
+
+type ItemToModify = Item | null;
 
 export default function SettingsPage() {
     const [newItemName, setNewItemName] = React.useState("");
     const [newItemDescription, setNewItemDescription] = React.useState("");
-    const [itemToEdit, setItemToEdit] = React.useState<ItemToEdit>(null);
+    const [itemToEdit, setItemToEdit] = React.useState<ItemToModify>(null);
     const [editType, setEditType] = React.useState<"subject" | "department" | "designation" | null>(null);
+    const [itemToView, setItemToView] = React.useState<ItemToModify>(null);
+    const [viewType, setViewType] = React.useState<"subject" | "department" | "designation" | null>(null);
 
     const { toast } = useToast();
 
@@ -43,7 +48,7 @@ export default function SettingsPage() {
     const [updateDesignation, { isLoading: isUpdatingDesignation }] = useUpdateDesignationMutation();
     const [deleteDesignation] = useDeleteDesignationMutation();
 
-    const openEditDialog = (item: ItemToEdit, type: "subject" | "department" | "designation") => {
+    const openEditDialog = (item: ItemToModify, type: "subject" | "department" | "designation") => {
         setItemToEdit(item);
         setNewItemName(item?.name || "");
         setNewItemDescription(item?.description || "");
@@ -56,6 +61,17 @@ export default function SettingsPage() {
         setNewItemDescription("");
         setEditType(null);
     };
+    
+    const openPreviewDialog = (item: ItemToModify, type: "subject" | "department" | "designation") => {
+        setItemToView(item);
+        setViewType(type);
+    };
+
+    const closePreviewDialog = () => {
+        setItemToView(null);
+        setViewType(null);
+    };
+
 
     const handleSave = async () => {
         if (!itemToEdit || !editType) return;
@@ -146,12 +162,13 @@ export default function SettingsPage() {
     const renderCard = (
         title: string,
         description: string,
-        items: any[],
+        items: Item[],
         isLoading: boolean,
         isAdding: boolean,
         onAdd: () => void,
         onRemove: (item: any) => void,
         onEdit: (item: any) => void,
+        onView: (item: any) => void,
         type: "subject" | "department" | "designation"
     ) => (
         <Card className="flex flex-col">
@@ -172,8 +189,9 @@ export default function SettingsPage() {
                         onChange={(e) => setNewItemDescription(e.target.value)}
                         placeholder={`${type.charAt(0).toUpperCase() + type.slice(1)} description (optional)`}
                         disabled={isAdding}
+                        rows={2}
                     />
-                    <Button onClick={onAdd} disabled={isAdding}>
+                    <Button onClick={onAdd} disabled={isAdding || !newItemName.trim()}>
                         <PlusCircle className="mr-2 h-4 w-4" /> {isAdding ? "Adding..." : `Add ${type.charAt(0).toUpperCase() + type.slice(1)}`}
                     </Button>
                 </div>
@@ -190,7 +208,7 @@ export default function SettingsPage() {
                                             {item.description && <p className="text-sm text-muted-foreground truncate line-clamp-1">{item.description}</p>}
                                         </div>
                                         <div>
-                                            <Button variant="ghost" size="icon" onClick={() => onEdit(item)}>
+                                            <Button variant="ghost" size="icon" onClick={() => onView(item)}>
                                                 <Eye className="h-4 w-4" />
                                             </Button>
                                             <Button variant="ghost" size="icon" onClick={() => onEdit(item)}>
@@ -226,6 +244,7 @@ export default function SettingsPage() {
                     handleAddSubject,
                     handleRemoveSubject,
                     (item) => openEditDialog(item, "subject"),
+                    (item) => openPreviewDialog(item, "subject"),
                     "subject"
                 )}
                 {renderCard(
@@ -237,6 +256,7 @@ export default function SettingsPage() {
                     handleAddDepartment,
                     handleRemoveDepartment,
                     (item) => openEditDialog(item, "department"),
+                    (item) => openPreviewDialog(item, "department"),
                     "department"
                 )}
                 {renderCard(
@@ -248,6 +268,7 @@ export default function SettingsPage() {
                     handleAddDesignation,
                     handleRemoveDesignation,
                     (item) => openEditDialog(item, "designation"),
+                    (item) => openPreviewDialog(item, "designation"),
                     "designation"
                 )}
             </div>
@@ -278,6 +299,13 @@ export default function SettingsPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <ItemPreviewDialog
+                open={!!itemToView}
+                onOpenChange={closePreviewDialog}
+                item={itemToView}
+                type={viewType}
+            />
         </div>
     );
 }
