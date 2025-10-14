@@ -26,6 +26,12 @@ export async function POST(request) {
   await _db();
   try {
     const body = await request.json();
+    // The pre-save hook in the model should handle hashing, but we can be explicit.
+    // If a password is provided, hash it before creating the new student.
+    if (body.password) {
+        const salt = await bcrypt.genSalt(10);
+        body.password = await bcrypt.hash(body.password, salt);
+    }
     const newStudent = new Student(body);
     await newStudent.save();
     return NextResponse.json(newStudent, { status: 201 });
@@ -46,24 +52,19 @@ export async function PUT(request) {
             return NextResponse.json({ message: 'Student not found' }, { status: 404 });
         }
 
-        // If a new password is provided, we need to handle the password change
+        // If a new password is provided, it's a password change from the student's profile
         if (newPassword) {
-            // If it's a password change request, currentPassword is required
             if (!currentPassword) {
                 return NextResponse.json({ message: 'Current password is required to change password' }, { status: 400 });
             }
-
             const isMatch = await student.matchPassword(currentPassword);
-
             if (!isMatch) {
                 return NextResponse.json({ message: 'Invalid current password' }, { status: 401 });
             }
-            
-            // Hash the new password before saving
             const salt = await bcrypt.genSalt(10);
             updateData.password = await bcrypt.hash(newPassword, salt);
         } else if (updateData.password) {
-            // If password is in updateData but it's not a password change flow (e.g. admin reset)
+            // If only 'password' is in updateData, it's likely an admin resetting it
             const salt = await bcrypt.genSalt(10);
             updateData.password = await bcrypt.hash(updateData.password, salt);
         }
