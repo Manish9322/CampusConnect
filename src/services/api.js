@@ -4,7 +4,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment'],
+  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade'],
   endpoints: (builder) => ({
     testDBConnection: builder.query({
       query: () => 'connect',
@@ -301,6 +301,28 @@ export const api = createApi({
         }),
         invalidatesTags: ['Assignment'],
     }),
+
+    // Grade endpoints
+    getGrades: builder.query({
+        query: (studentId) => `grades${studentId ? `?studentId=${studentId}`: ''}`,
+        providesTags: ['Grade'],
+    }),
+    addGrade: builder.mutation({
+        query: (newGrade) => ({
+            url: 'grades',
+            method: 'POST',
+            body: newGrade,
+        }),
+        invalidatesTags: ['Grade'],
+    }),
+    updateGrade: builder.mutation({
+        query: (gradeToUpdate) => ({
+            url: 'grades',
+            method: 'PUT',
+            body: gradeToUpdate,
+        }),
+        invalidatesTags: ['Grade'],
+    }),
   }),
 });
 
@@ -345,4 +367,7 @@ export const {
     useAddAssignmentMutation,
     useUpdateAssignmentMutation,
     useDeleteAssignmentMutation,
+    useGetGradesQuery,
+    useAddGradeMutation,
+    useUpdateGradeMutation,
 } = api;

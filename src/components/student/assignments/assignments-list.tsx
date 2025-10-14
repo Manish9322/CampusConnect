@@ -6,18 +6,21 @@ import { Assignment, Grade, SubmissionStatus } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, CheckCircle, Upload, Award, AlertTriangle, ListFilter, CalendarClock, ChevronsUpDown } from "lucide-react";
+import { Clock, CheckCircle, Upload, Award, AlertTriangle, ListFilter, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/shared/empty-state";
 import { SubmitAssignmentDialog } from "./submit-assignment-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { mockStudents } from "@/lib/mock-data";
+import { useAddGradeMutation } from "@/services/api";
+
 
 interface AssignmentsListProps {
   assignments: Assignment[];
   grades: Grade[];
+  studentId: string;
+  onGradeUpdate: () => void;
 }
 
 const statusConfig: { [key in SubmissionStatus]: { icon: React.ElementType, className: string, variant: "default" | "secondary" | "destructive" | "outline" } } = {
@@ -26,13 +29,14 @@ const statusConfig: { [key in SubmissionStatus]: { icon: React.ElementType, clas
     'Late': { icon: AlertTriangle, className: 'text-red-600', variant: "destructive" },
 };
 
-export function AssignmentsList({ assignments, grades: initialGrades }: AssignmentsListProps) {
-    const [grades, setGrades] = React.useState(initialGrades);
+export function AssignmentsList({ assignments, grades, studentId, onGradeUpdate }: AssignmentsListProps) {
     const [isSubmitOpen, setSubmitOpen] = React.useState(false);
     const [selectedAssignment, setSelectedAssignment] = React.useState<Assignment | null>(null);
     const [courseFilter, setCourseFilter] = React.useState("all");
     const [sortOption, setSortOption] = React.useState("due-date-asc");
     const { toast } = useToast();
+
+    const [addGrade, { isLoading: isSubmitting }] = useAddGradeMutation();
 
     const getGradeInfo = (assignmentId: string) => {
         return grades.find(g => g.assignmentId === assignmentId);
@@ -43,33 +47,37 @@ export function AssignmentsList({ assignments, grades: initialGrades }: Assignme
         setSubmitOpen(true);
     };
 
-    const handleSubmitAssignment = (file: File) => {
+    const handleSubmitAssignment = async (file: File) => {
         if (!selectedAssignment) return;
         
-        const studentId = mockStudents[0].id;
-        const updatedGrade: Grade = {
+        // This would be a file upload to a service like S3 in a real app.
+        // For now, we simulate it and use a local blob URL.
+        const mockSubmissionUrl = URL.createObjectURL(file);
+
+        const newGrade: Partial<Grade> = {
             studentId: studentId,
-            assignmentId: selectedAssignment.id,
+            assignmentId: selectedAssignment._id,
             marks: null,
             status: new Date() > new Date(selectedAssignment.dueDate) ? 'Late' : 'Submitted',
             submittedAt: new Date().toISOString(),
-            submissionUrl: URL.createObjectURL(file),
+            submissionUrl: mockSubmissionUrl,
         };
 
-        setGrades(prev => {
-            const existing = prev.find(g => g.assignmentId === selectedAssignment.id);
-            if(existing) {
-                return prev.map(g => g.assignmentId === selectedAssignment.id ? updatedGrade : g);
-            }
-            return [...prev, updatedGrade];
-        });
-
-        toast({
-            title: "Assignment Submitted!",
-            description: `Your work for "${selectedAssignment.title}" has been submitted.`,
-        });
-
-        setSubmitOpen(false);
+        try {
+            await addGrade(newGrade).unwrap();
+            onGradeUpdate();
+            toast({
+                title: "Assignment Submitted!",
+                description: `Your work for "${selectedAssignment.title}" has been submitted.`,
+            });
+            setSubmitOpen(false);
+        } catch(error) {
+             toast({
+                title: "Submission Failed",
+                description: "There was an error submitting your assignment.",
+                variant: "destructive"
+            });
+        }
     };
 
     const processAssignments = (assignmentList: Assignment[]) => {
@@ -83,8 +91,8 @@ export function AssignmentsList({ assignments, grades: initialGrades }: Assignme
                 case 'due-date-desc':
                     return new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime();
                 case 'status':
-                    const statusA = getGradeInfo(a.id)?.status || 'Pending';
-                    const statusB = getGradeInfo(b.id)?.status || 'Pending';
+                    const statusA = getGradeInfo(a._id)?.status || 'Pending';
+                    const statusB = getGradeInfo(b._id)?.status || 'Pending';
                     return statusA.localeCompare(statusB);
                 case 'due-date-asc':
                 default:
@@ -94,12 +102,12 @@ export function AssignmentsList({ assignments, grades: initialGrades }: Assignme
     };
 
     const renderAssignmentCard = (assignment: Assignment) => {
-        const gradeInfo = getGradeInfo(assignment.id);
+        const gradeInfo = getGradeInfo(assignment._id);
         const status = gradeInfo?.status || 'Pending';
         const config = statusConfig[status];
 
         return (
-            <Card key={assignment.id} className="flex flex-col hover:shadow-md transition-shadow">
+            <Card key={assignment._id} className="flex flex-col hover:shadow-md transition-shadow">
                 <CardHeader>
                     <div className="flex justify-between items-start gap-2">
                         <CardTitle className="text-lg">{assignment.title}</CardTitle>
@@ -146,8 +154,8 @@ export function AssignmentsList({ assignments, grades: initialGrades }: Assignme
     };
 
     const allCourses = [...new Set(assignments.map(a => a.courseName))];
-    const pendingAssignments = processAssignments(assignments.filter(a => !getGradeInfo(a.id) || getGradeInfo(a.id)?.status === 'Pending'));
-    const submittedAssignments = processAssignments(assignments.filter(a => getGradeInfo(a.id) && getGradeInfo(a.id)?.status !== 'Pending'));
+    const pendingAssignments = processAssignments(assignments.filter(a => !getGradeInfo(a._id) || getGradeInfo(a._id)?.status === 'Pending'));
+    const submittedAssignments = processAssignments(assignments.filter(a => getGradeInfo(a._id) && getGradeInfo(a._id)?.status !== 'Pending'));
 
   return (
     <>
@@ -214,8 +222,10 @@ export function AssignmentsList({ assignments, grades: initialGrades }: Assignme
             onOpenChange={setSubmitOpen}
             assignment={selectedAssignment}
             onSubmit={handleSubmitAssignment}
+            isSubmitting={isSubmitting}
         />
       )}
     </>
   );
 }
+

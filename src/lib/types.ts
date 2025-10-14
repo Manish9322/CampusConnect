@@ -3,6 +3,7 @@ export type UserRole = 'admin' | 'teacher' | 'student';
 
 export interface User {
   id: string;
+  _id?: string;
   name: string;
   email: string;
   role: UserRole;
@@ -96,6 +97,7 @@ export interface FeeRecord {
 export type AssignmentType = 'Assignment' | 'Quiz' | 'Exam';
 
 export interface Assignment {
+  _id: string;
   id: string;
   courseId: string;
   courseName: string;
@@ -110,6 +112,7 @@ export interface Assignment {
 export type SubmissionStatus = 'Submitted' | 'Late' | 'Pending';
 
 export interface Grade {
+    _id: string;
     studentId: string;
     assignmentId: string;
     marks: number | null;

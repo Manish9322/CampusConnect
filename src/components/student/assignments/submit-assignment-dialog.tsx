@@ -15,13 +15,13 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Assignment } from "@/lib/types";
 import { Label } from "@/components/ui/label";
-import { Upload } from "lucide-react";
 
 interface SubmitAssignmentDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   assignment: Assignment;
   onSubmit: (file: File) => void;
+  isSubmitting: boolean;
 }
 
 export function SubmitAssignmentDialog({
@@ -29,9 +29,9 @@ export function SubmitAssignmentDialog({
   onOpenChange,
   assignment,
   onSubmit,
+  isSubmitting
 }: SubmitAssignmentDialogProps) {
     const [file, setFile] = React.useState<File | null>(null);
-    const [isProcessing, setIsProcessing] = React.useState(false);
     const { toast } = useToast();
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,13 +45,7 @@ export function SubmitAssignmentDialog({
             toast({ title: "No file selected", description: "Please select a file to submit.", variant: "destructive" });
             return;
         }
-
-        setIsProcessing(true);
-        // Simulate submission
-        setTimeout(() => {
-            setIsProcessing(false);
-            onSubmit(file);
-        }, 1500);
+        onSubmit(file);
     };
 
   return (
@@ -71,14 +65,15 @@ export function SubmitAssignmentDialog({
             {file && <p className="text-sm text-muted-foreground">Selected file: {file.name}</p>}
         </div>
         <DialogFooter>
-          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={isProcessing}>
+          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={!file || isProcessing}>
-            {isProcessing ? "Submitting..." : "Submit"}
+          <Button onClick={handleSubmit} disabled={!file || isSubmitting}>
+            {isSubmitting ? "Submitting..." : "Submit"}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
+

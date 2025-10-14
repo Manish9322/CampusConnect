@@ -34,6 +34,7 @@ interface GradeSubmissionDialogProps {
   assignment: Assignment;
   grade: Grade;
   onSave: (updatedGrade: Grade) => void;
+  isSaving: boolean;
 }
 
 export function GradeSubmissionDialog({
@@ -43,6 +44,7 @@ export function GradeSubmissionDialog({
   assignment,
   grade,
   onSave,
+  isSaving,
 }: GradeSubmissionDialogProps) {
   const { toast } = useToast();
 
@@ -59,13 +61,16 @@ export function GradeSubmissionDialog({
     },
   });
 
+  React.useEffect(() => {
+    form.reset({
+        marks: grade.marks,
+        feedback: grade.feedback || "",
+    })
+  }, [grade, form])
+
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     const updatedGrade: Grade = { ...grade, ...values, status: values.marks !== null ? 'Submitted' : grade.status };
     onSave(updatedGrade);
-    toast({
-      title: "Grade Updated",
-      description: `Grade for ${student.name} has been successfully updated.`,
-    });
   };
 
   return (
@@ -114,10 +119,12 @@ export function GradeSubmissionDialog({
                     )}
                     />
                      <DialogFooter>
-                        <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+                        <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={isSaving}>
                             Cancel
                         </Button>
-                        <Button type="submit">Save Grade</Button>
+                        <Button type="submit" disabled={isSaving}>
+                            {isSaving ? "Saving..." : "Save Grade"}
+                        </Button>
                     </DialogFooter>
                 </form>
             </Form>
@@ -126,3 +133,4 @@ export function GradeSubmissionDialog({
     </Dialog>
   );
 }
+

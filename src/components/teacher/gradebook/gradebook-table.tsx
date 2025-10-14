@@ -18,12 +18,15 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { GradeSubmissionDialog } from "./grade-submission-dialog";
+import { useUpdateGradeMutation } from "@/services/api";
+import { useToast } from "@/hooks/use-toast";
 
 interface GradebookTableProps {
   students: Student[];
   assignments: Assignment[];
   grades: Grade[];
   classes: Class[];
+  onGradeUpdate: () => void;
 }
 
 const statusColor: { [key in SubmissionStatus]: string } = {
@@ -32,36 +35,51 @@ const statusColor: { [key in SubmissionStatus]: string } = {
     'Late': 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300',
 };
 
-export function GradebookTable({ students, assignments, grades: initialGrades, classes }: GradebookTableProps) {
-  const [grades, setGrades] = React.useState(initialGrades);
+export function GradebookTable({ students, assignments, grades, classes, onGradeUpdate }: GradebookTableProps) {
   const [searchTerm, setSearchTerm] = React.useState("");
-  const [classFilter, setClassFilter] = React.useState<string>(classes[0]?.name || "all");
+  const [classFilter, setClassFilter] = React.useState<string>(classes[0]?._id || "all");
 
   const [isGradingDialogOpen, setGradingDialogOpen] = React.useState(false);
-  const [selectedGrade, setSelectedGrade] = React.useState<{ student: Student, grade: Grade, assignment: Assignment } | null>(null);
+  const [selectedGradeInfo, setSelectedGradeInfo] = React.useState<{ student: Student, grade: Grade, assignment: Assignment } | null>(null);
+
+  const [updateGrade, { isLoading: isUpdatingGrade }] = useUpdateGradeMutation();
+  const { toast } = useToast();
 
   const filteredStudents = students.filter(student =>
     student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     student.rollNo.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const filteredAssignments = assignments.filter(assignment => classFilter === 'all' || assignment.courseName === classFilter);
+  const filteredAssignments = assignments.filter(assignment => classFilter === 'all' || assignment.courseId === classFilter);
 
   const getStudentGrade = (studentId: string, assignmentId: string) => {
     return grades.find(g => g.studentId === studentId && g.assignmentId === assignmentId);
   };
   
   const handleViewSubmission = (student: Student, assignment: Assignment) => {
-    const grade = getStudentGrade(student.id, assignment.id);
+    const grade = getStudentGrade(student._id!, assignment._id);
     if(grade) {
-        setSelectedGrade({ student, grade, assignment });
+        setSelectedGradeInfo({ student, grade, assignment });
         setGradingDialogOpen(true);
     }
   };
 
-  const handleSaveGrade = (updatedGrade: Grade) => {
-    setGrades(grades.map(g => g.studentId === updatedGrade.studentId && g.assignmentId === updatedGrade.assignmentId ? updatedGrade : g));
-    setGradingDialogOpen(false);
+  const handleSaveGrade = async (updatedGrade: Grade) => {
+    try {
+        await updateGrade(updatedGrade).unwrap();
+        onGradeUpdate();
+        toast({
+            title: "Grade Updated",
+            description: `Grade for ${selectedGradeInfo?.student.name} has been successfully updated.`,
+        });
+        setGradingDialogOpen(false);
+    } catch(error) {
+        toast({
+            title: "Update Failed",
+            description: "There was an error updating the grade.",
+            variant: "destructive"
+        })
+    }
   };
 
   const calculateOverall = (studentId: string) => {
@@ -69,7 +87,7 @@ export function GradebookTable({ students, assignments, grades: initialGrades, c
     if(studentGrades.length === 0) return { score: "N/A", grade: "N/A"};
 
     const totalMarks = studentGrades.reduce((acc, grade) => {
-        const assignment = assignments.find(a => a.id === grade.assignmentId);
+        const assignment = assignments.find(a => a._id === grade.assignmentId);
         return acc + (assignment?.totalMarks || 0);
     }, 0);
     const earnedMarks = studentGrades.reduce((acc, grade) => acc + (grade.marks || 0), 0);
@@ -107,7 +125,7 @@ export function GradebookTable({ students, assignments, grades: initialGrades, c
               </SelectTrigger>
               <SelectContent>
                   <SelectItem value="all">All Classes</SelectItem>
-                  {classes.map(c => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)}
+                  {classes.map(c => <SelectItem key={c._id} value={c._id!}>{c.name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -125,19 +143,19 @@ export function GradebookTable({ students, assignments, grades: initialGrades, c
                     <TableRow>
                         <TableHead className="sticky left-0 bg-background z-10 min-w-40">Student Name</TableHead>
                         {filteredAssignments.map(assignment => (
-                            <TableHead key={assignment.id} className="text-center">{assignment.title}</TableHead>
+                            <TableHead key={assignment._id} className="text-center">{assignment.title}</TableHead>
                         ))}
                         <TableHead className="text-right sticky right-0 bg-background z-10">Overall</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {filteredStudents.map(student => (
-                        <TableRow key={student.id}>
+                        <TableRow key={student._id}>
                             <TableCell className="font-medium sticky left-0 bg-background z-10">{student.name}</TableCell>
                             {filteredAssignments.map(assignment => {
-                                const grade = getStudentGrade(student.id, assignment.id);
+                                const grade = getStudentGrade(student._id!, assignment._id);
                                 return (
-                                    <TableCell key={assignment.id} className="text-center">
+                                    <TableCell key={assignment._id} className="text-center">
                                         {grade ? (
                                             <div className="flex flex-col items-center gap-1 cursor-pointer" onClick={() => handleViewSubmission(student, assignment)}>
                                                 <span className={cn("font-semibold", grade.marks && grade.marks < (assignment.totalMarks / 2) && "text-destructive")}>{grade.marks !== null ? `${grade.marks}/${assignment.totalMarks}` : '-'}</span>
@@ -151,8 +169,8 @@ export function GradebookTable({ students, assignments, grades: initialGrades, c
                             })}
                             <TableCell className="text-right sticky right-0 bg-background z-10">
                                 <div className="flex flex-col items-end">
-                                    <span className="font-bold text-lg">{calculateOverall(student.id).grade}</span>
-                                    <span className="text-xs text-muted-foreground">{calculateOverall(student.id).score}</span>
+                                    <span className="font-bold text-lg">{calculateOverall(student._id!).grade}</span>
+                                    <span className="text-xs text-muted-foreground">{calculateOverall(student._id!).score}</span>
                                 </div>
                             </TableCell>
                         </TableRow>
@@ -165,14 +183,15 @@ export function GradebookTable({ students, assignments, grades: initialGrades, c
         </CardContent>
       </Card>
 
-      {selectedGrade && (
+      {selectedGradeInfo && (
         <GradeSubmissionDialog
           open={isGradingDialogOpen}
           onOpenChange={setGradingDialogOpen}
-          student={selectedGrade.student}
-          assignment={selectedGrade.assignment}
-          grade={selectedGrade.grade}
+          student={selectedGradeInfo.student}
+          assignment={selectedGradeInfo.assignment}
+          grade={selectedGradeInfo.grade}
           onSave={handleSaveGrade}
+          isSaving={isUpdatingGrade}
         />
       )}
     </>
