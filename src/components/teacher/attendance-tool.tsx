@@ -49,6 +49,13 @@ export function AttendanceTool() {
   }, [user, allClasses]);
 
   React.useEffect(() => {
+    if (user && teacherClasses.length > 0) {
+      console.log("Logged-in Teacher:", user);
+      console.log("Relevant Classes:", teacherClasses);
+    }
+  }, [user, teacherClasses]);
+
+  React.useEffect(() => {
     if (teacherClasses.length > 0 && !selectedClassId) {
         setSelectedClassId(teacherClasses[0]._id!);
     }
@@ -271,5 +278,3 @@ export function AttendanceTool() {
       </Card>
   );
 }
-
-    
