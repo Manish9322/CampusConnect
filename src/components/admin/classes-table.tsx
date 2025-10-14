@@ -41,7 +41,6 @@ export function ClassesTable({ classes: initialClasses, isLoading, isError, refe
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   
-  const { data: teachers = [] } = useGetTeachersQuery();
   const [addClass, { isLoading: isAdding }] = useAddClassMutation();
   const [updateClass, { isLoading: isUpdating }] = useUpdateClassMutation();
   const [deleteClass] = useDeleteClassMutation();
@@ -52,8 +51,8 @@ export function ClassesTable({ classes: initialClasses, isLoading, isError, refe
   };
   
   const classesWithTeacherNames = initialClasses.map(c => {
-    const teacher = teachers.find((t: Teacher) => t._id === c.teacherId);
-    return { ...c, teacher: teacher?.name || 'N/A' };
+    const teacherName = (c.teacherId as Teacher)?.name || 'N/A';
+    return { ...c, teacher: teacherName };
   });
 
   const filteredClasses = classesWithTeacherNames.filter(
@@ -116,7 +115,7 @@ export function ClassesTable({ classes: initialClasses, isLoading, isError, refe
    const handleSaveClass = async (classData: any) => {
     try {
         if(classToAction) {
-            await updateClass({ _id: classToAction._id, ...classData }).unwrap();
+            await updateClass({ _id: classToAction._id, teacherId: (classToAction.teacherId as Teacher)?._id || classToAction.teacherId, ...classData }).unwrap();
             toast({ title: "Class Updated", description: `${classData.name} has been updated.` });
         } else {
             await addClass(classData).unwrap();
