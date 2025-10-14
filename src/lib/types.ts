@@ -44,7 +44,7 @@ export interface Class {
   name: string;
   year: number;
   status: ClassStatus;
-  teacherId: string;
+  teacherId: Teacher | string;
   subjects: string[];
   studentCount: number;
 }
@@ -132,3 +132,5 @@ export interface AttendanceRecord {
   course: string;
   recordedBy: string;
 }
+
+    

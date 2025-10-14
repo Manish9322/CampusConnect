@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
 import { format } from "date-fns";
-import { useAddAttendanceMutation, useGetAttendanceQuery, useGetClassesQuery, useGetStudentsQuery, useGetTeachersQuery } from "@/services/api";
+import { useAddAttendanceMutation, useGetAttendanceQuery, useGetClassesQuery, useGetStudentsQuery } from "@/services/api";
 import { Skeleton } from "../ui/skeleton";
 import { EmptyState } from "../shared/empty-state";
 import { ThreeStateToggle } from "../shared/three-state-toggle";
@@ -32,7 +32,6 @@ export function AttendanceTool() {
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [date, setDate] = React.useState<Date | undefined>(new Date());
 
-  const { data: allTeachers = [], isLoading: isLoadingTeachers } = useGetTeachersQuery();
   const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery();
 
   React.useEffect(() => {
@@ -42,19 +41,12 @@ export function AttendanceTool() {
     }
   }, []);
 
-  const teacher = React.useMemo(() => {
-    if (user && allTeachers.length > 0) {
-      return allTeachers.find((t: Teacher) => t._id === user.id) || null;
-    }
-    return null;
-  }, [user, allTeachers]);
-
   const teacherClasses = React.useMemo(() => {
-    if (teacher && allClasses.length > 0) {
-      return allClasses.filter((c: any) => c.teacherId?._id === teacher._id);
+    if (user && allClasses.length > 0) {
+      return allClasses.filter((c: any) => c.teacherId?._id === user.id);
     }
     return [];
-  }, [teacher, allClasses]);
+  }, [user, allClasses]);
 
   React.useEffect(() => {
     if (teacherClasses.length > 0 && !selectedClassId) {
@@ -111,7 +103,7 @@ export function AttendanceTool() {
       classId: selectedClassId,
       date: formattedDate,
       status: attendance[student._id!] || 'present',
-      recordedBy: teacher?._id,
+      recordedBy: user?.id,
     }));
 
     try {
@@ -137,7 +129,7 @@ export function AttendanceTool() {
     setAttendance(newAttendance);
   }
 
-  const isLoading = isLoadingTeachers || isLoadingClasses;
+  const isLoading = isLoadingClasses;
 
   const renderTableBody = () => {
     if (isLoading || isLoadingStudents || isLoadingExistingAttendance) {
@@ -279,3 +271,5 @@ export function AttendanceTool() {
       </Card>
   );
 }
+
+    
