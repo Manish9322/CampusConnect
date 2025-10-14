@@ -64,11 +64,23 @@ const ThreeStateToggle = ({ status, onChange }: { status: AttendanceStatus, onCh
 export function AttendanceTool() {
   const { toast } = useToast();
   
+  const [user, setUser] = React.useState<any>(null);
+  React.useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
   const { data: allTeachers = [], isLoading: isLoadingTeachers } = useGetTeachersQuery();
-  const teacher = allTeachers.find((t: Teacher) => t.name === 'Alan Turing');
+  const teacher = React.useMemo(() => allTeachers.find((t: Teacher) => t._id === user?.id), [allTeachers, user]);
 
   const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery();
-  const teacherClasses = allClasses.filter((c: any) => c.teacherId._id === teacher?._id);
+
+  const teacherClasses = React.useMemo(() => {
+    if (!teacher || !allClasses) return [];
+    return allClasses.filter((c: any) => c.teacherId._id === teacher._id);
+  }, [teacher, allClasses]);
 
   const [selectedClassId, setSelectedClassId] = React.useState<string | undefined>();
   
