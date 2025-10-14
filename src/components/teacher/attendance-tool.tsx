@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Send, ChevronLeft, ChevronRight, CalendarIcon } from "lucide-react";
-import { AttendanceStatus, Student, Teacher, Class } from "@/lib/types";
+import { AttendanceRecord, AttendanceStatus, Student, Teacher, Class } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
@@ -25,14 +25,12 @@ type AttendanceState = {
 export function AttendanceTool() {
   const { toast } = useToast();
   
-  const [user, setUser] = React.useState<any>(null);
+  const [user, setUser] = React.useState<Teacher | null>(null);
   const [selectedClassId, setSelectedClassId] = React.useState<string>("");
   const [attendance, setAttendance] = React.useState<AttendanceState>({});
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [date, setDate] = React.useState<Date | undefined>(new Date());
-
-  const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery();
 
   React.useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -41,19 +39,14 @@ export function AttendanceTool() {
     }
   }, []);
 
+  const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery();
+  
   const teacherClasses = React.useMemo(() => {
     if (user && allClasses.length > 0) {
       return allClasses.filter((c: any) => c.teacherId?._id === user.id);
     }
     return [];
   }, [user, allClasses]);
-
-  React.useEffect(() => {
-    if (user && teacherClasses.length > 0) {
-      console.log("Logged-in Teacher:", user);
-      console.log("Relevant Classes:", teacherClasses);
-    }
-  }, [user, teacherClasses]);
 
   React.useEffect(() => {
     if (teacherClasses.length > 0 && !selectedClassId) {
@@ -67,7 +60,7 @@ export function AttendanceTool() {
   );
 
   const formattedDate = date ? format(date, "yyyy-MM-dd") : "";
-  const { data: existingAttendance = [], isLoading: isLoadingExistingAttendance } = useGetAttendanceQuery(
+  const { data: existingAttendance = [], isLoading: isLoadingExistingAttendance, refetch: refetchAttendance } = useGetAttendanceQuery(
     { classId: selectedClassId, date: formattedDate },
     { skip: !selectedClassId || !formattedDate }
   );
@@ -84,6 +77,10 @@ export function AttendanceTool() {
         setAttendance(newAttendance);
     }
   }, [studentsInCourse, existingAttendance]);
+  
+  React.useEffect(() => {
+    refetchAttendance();
+  }, [date, selectedClassId, refetchAttendance]);
 
 
   const totalPages = Math.ceil(studentsInCourse.length / rowsPerPage);
@@ -103,14 +100,14 @@ export function AttendanceTool() {
   };
 
   const handleSubmit = async () => {
-    if (!selectedClassId || !formattedDate) return;
+    if (!selectedClassId || !formattedDate || !user) return;
 
-    const attendanceData = studentsInCourse.map((student: Student) => ({
+    const attendanceData: AttendanceRecord[] = studentsInCourse.map((student: Student) => ({
       studentId: student._id!,
       classId: selectedClassId,
       date: formattedDate,
       status: attendance[student._id!] || 'present',
-      recordedBy: user?.id,
+      recordedBy: user.id,
     }));
 
     try {
@@ -136,7 +133,7 @@ export function AttendanceTool() {
     setAttendance(newAttendance);
   }
 
-  const isLoading = isLoadingClasses;
+  const isLoading = isLoadingClasses || !user;
 
   const renderTableBody = () => {
     if (isLoading || isLoadingStudents || isLoadingExistingAttendance) {
@@ -270,7 +267,7 @@ export function AttendanceTool() {
                       <ChevronRight className="h-4 w-4" />
                   </Button>
               </div>
-               <Button onClick={handleSubmit} disabled={isSubmitting || isLoadingStudents} className="bg-accent hover:bg-accent/90 w-full sm:w-auto">
+               <Button onClick={handleSubmit} disabled={isSubmitting || isLoadingStudents || paginatedStudents.length === 0} className="bg-accent hover:bg-accent/90 w-full sm:w-auto">
                   {isSubmitting ? "Submitting..." : <><Send className="mr-2 h-4 w-4" />Submit Attendance</>}
               </Button>
           </div>

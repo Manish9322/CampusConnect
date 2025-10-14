@@ -10,11 +10,11 @@ export async function GET(request) {
     const classId = searchParams.get('classId');
     const date = searchParams.get('date');
 
-    if (!classId || !date) {
-      return NextResponse.json({ message: 'classId and date are required query parameters' }, { status: 400 });
-    }
+    const filter = {};
+    if (classId) filter.classId = classId;
+    if (date) filter.date = date;
 
-    const attendanceRecords = await Attendance.find({ classId, date });
+    const attendanceRecords = await Attendance.find(filter);
     return NextResponse.json(attendanceRecords, { status: 200 });
   } catch (error) {
     return NextResponse.json({ message: 'Error fetching attendance records', error: error.message }, { status: 500 });
@@ -26,7 +26,6 @@ export async function POST(request) {
   try {
     const body = await request.json();
     
-    // Assuming body is an array of attendance records
     if (!Array.isArray(body) || body.length === 0) {
         return NextResponse.json({ message: 'Request body must be a non-empty array of attendance records' }, { status: 400 });
     }

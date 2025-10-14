@@ -126,14 +126,12 @@ export type AttendanceStatus = 'present' | 'late' | 'absent';
 
 export interface AttendanceRecord {
   _id?: string;
-  id: string;
+  id?: string;
   studentId: string;
-  studentName: string;
+  studentName?: string;
   classId: string;
-  date: string;
+  date: string; // YYYY-MM-DD
   status: AttendanceStatus;
-  course: string;
-  recordedBy: string;
+  course?: string;
+  recordedBy: string; // teacherId
 }
-
-    

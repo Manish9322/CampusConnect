@@ -3,12 +3,12 @@ import mongoose from 'mongoose';
 
 const attendanceSchema = new mongoose.Schema({
   studentId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     ref: 'Student',
     required: true,
   },
   classId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     ref: 'Class',
     required: true,
   },
@@ -22,7 +22,7 @@ const attendanceSchema = new mongoose.Schema({
     required: true,
   },
   recordedBy: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     ref: 'Teacher',
     required: true,
   },
