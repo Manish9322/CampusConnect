@@ -64,7 +64,7 @@ export function AddClassDialog({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: classData?.name || "",
-      teacherId: classData?.teacherId || "",
+      teacherId: (classData?.teacherId as Teacher)?._id || (classData?.teacherId as string) || "",
       subjects: classData?.subjects.map(s => ({ label: s, value: s })) || [],
       studentCount: classData?.studentCount || 0,
       status: classData?.status === 'active',
@@ -75,7 +75,7 @@ export function AddClassDialog({
   React.useEffect(() => {
     form.reset({
         name: classData?.name || "",
-        teacherId: classData?.teacherId || "",
+        teacherId: (classData?.teacherId as Teacher)?._id || (classData?.teacherId as string) || "",
         subjects: classData?.subjects.map(s => ({ label: s, value: s })) || [],
         studentCount: classData?.studentCount || 0,
         status: classData?.status === 'active',
@@ -228,5 +228,3 @@ export function AddClassDialog({
     </Dialog>
   );
 }
-
-    
