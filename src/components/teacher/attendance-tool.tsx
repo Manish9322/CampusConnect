@@ -84,6 +84,12 @@ export function AttendanceTool() {
 
   const [selectedClassId, setSelectedClassId] = React.useState<string | undefined>();
   
+  React.useEffect(() => {
+    if (teacherClasses.length > 0 && !selectedClassId) {
+        setSelectedClassId(teacherClasses[0]._id);
+    }
+  }, [teacherClasses, selectedClassId]);
+
   const [attendance, setAttendance] = React.useState<AttendanceState>({});
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
@@ -100,12 +106,6 @@ export function AttendanceTool() {
   );
 
   const [addAttendance, { isLoading: isSubmitting }] = useAddAttendanceMutation();
-
-  React.useEffect(() => {
-    if (teacherClasses.length > 0 && !selectedClassId) {
-        setSelectedClassId(teacherClasses[0]._id);
-    }
-  }, [teacherClasses, selectedClassId]);
 
   React.useEffect(() => {
     const newAttendance: AttendanceState = {};
@@ -309,5 +309,7 @@ export function AttendanceTool() {
     </TooltipProvider>
   );
 }
+
+    
 
     
