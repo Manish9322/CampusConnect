@@ -64,14 +64,13 @@ const ThreeStateToggle = ({ status, onChange }: { status: AttendanceStatus, onCh
 export function AttendanceTool() {
   const { toast } = useToast();
   
-  // Mock logged in teacher
   const { data: allTeachers = [], isLoading: isLoadingTeachers } = useGetTeachersQuery();
   const teacher = allTeachers.find((t: Teacher) => t.name === 'Alan Turing');
 
   const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery();
   const teacherClasses = allClasses.filter((c: any) => c.teacherId._id === teacher?._id);
 
-  const [selectedClassId, setSelectedClassId] = React.useState<string | undefined>(teacherClasses[0]?._id);
+  const [selectedClassId, setSelectedClassId] = React.useState<string | undefined>();
   
   const [attendance, setAttendance] = React.useState<AttendanceState>({});
   const [page, setPage] = React.useState(0);
@@ -91,9 +90,9 @@ export function AttendanceTool() {
   const [addAttendance, { isLoading: isSubmitting }] = useAddAttendanceMutation();
 
   React.useEffect(() => {
-      if (teacherClasses.length > 0 && !selectedClassId) {
-          setSelectedClassId(teacherClasses[0]._id);
-      }
+    if (teacherClasses.length > 0 && !selectedClassId) {
+        setSelectedClassId(teacherClasses[0]._id);
+    }
   }, [teacherClasses, selectedClassId]);
 
   React.useEffect(() => {
@@ -298,3 +297,5 @@ export function AttendanceTool() {
     </TooltipProvider>
   );
 }
+
+    
