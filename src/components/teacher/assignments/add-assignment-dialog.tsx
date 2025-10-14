@@ -20,6 +20,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -41,6 +42,7 @@ const formSchema = z.object({
   type: z.enum(['Assignment', 'Quiz', 'Exam']),
   dueDate: z.date({ required_error: "A due date is required." }),
   totalMarks: z.coerce.number().min(1, "Total marks must be at least 1."),
+  attachments: z.any().optional(),
 });
 
 interface AddAssignmentDialogProps {
@@ -71,6 +73,7 @@ export function AddAssignmentDialog({
       type: assignmentData?.type || "Assignment",
       dueDate: assignmentData ? new Date(assignmentData.dueDate) : undefined,
       totalMarks: assignmentData?.totalMarks || 100,
+      attachments: assignmentData?.attachments || [],
     },
   });
 
@@ -82,18 +85,21 @@ export function AddAssignmentDialog({
       type: assignmentData?.type || "Assignment",
       dueDate: assignmentData ? new Date(assignmentData.dueDate) : new Date(),
       totalMarks: assignmentData?.totalMarks || 100,
+      attachments: assignmentData?.attachments || [],
     });
   }, [assignmentData, form]);
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    const courseId = teacherClasses.find(c => c.name === values.courseName)?.id || '';
-    const saveData = { ...values, courseId, dueDate: values.dueDate.toISOString().split('T')[0] };
+    // In a real app, you'd handle file uploads to a storage service here.
+    // For now, we'll just mock the attachment data structure.
+    const attachments = values.attachments?.[0] 
+        ? [{ name: values.attachments[0].name, url: URL.createObjectURL(values.attachments[0]) }] 
+        : [];
+
+    const courseId = teacherClasses.find(c => c.name === values.courseName)?._id || '';
+    const saveData = { ...values, courseId, dueDate: values.dueDate.toISOString().split('T')[0], attachments };
+    
     onSave(saveData);
-    toast({
-      title: assignmentData ? "Assignment Updated" : "Assignment Created",
-      description: `The assignment "${values.title}" has been successfully ${assignmentData ? 'updated' : 'created'}.`,
-    });
-    onOpenChange(false);
   };
 
   return (
@@ -148,7 +154,7 @@ export function AddAssignmentDialog({
                         </FormControl>
                         <SelectContent>
                         {teacherClasses.map(c => (
-                            <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+                            <SelectItem key={c._id} value={c.name}>{c.name}</SelectItem>
                         ))}
                         </SelectContent>
                     </Select>
@@ -233,6 +239,22 @@ export function AddAssignmentDialog({
                     )}
                 />
              </div>
+              <FormField
+                control={form.control}
+                name="attachments"
+                render={({ field: { onChange, value, ...rest } }) => (
+                    <FormItem>
+                        <FormLabel>Attachment</FormLabel>
+                        <FormControl>
+                            <Input type="file" onChange={e => onChange(e.target.files)} {...rest} />
+                        </FormControl>
+                         <FormDescription>
+                            Attach a file for this assignment (e.g., worksheet, reading material).
+                        </FormDescription>
+                        <FormMessage />
+                    </FormItem>
+                )}
+             />
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
                 Cancel

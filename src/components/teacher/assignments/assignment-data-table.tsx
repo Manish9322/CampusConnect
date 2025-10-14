@@ -20,14 +20,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AddAssignmentDialog } from "./add-assignment-dialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/shared/empty-state";
+import { useAddAssignmentMutation, useDeleteAssignmentMutation, useUpdateAssignmentMutation } from "@/services/api";
+import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface AssignmentDataTableProps {
   initialAssignments: Assignment[];
   teacherClasses: Class[];
+  isLoading: boolean;
 }
 
-export function AssignmentDataTable({ initialAssignments, teacherClasses }: AssignmentDataTableProps) {
-  const [assignments, setAssignments] = React.useState(initialAssignments);
+export function AssignmentDataTable({ initialAssignments, teacherClasses, isLoading }: AssignmentDataTableProps) {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = React.useState("");
   const [isAddDialogOpen, setAddDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
@@ -36,12 +40,16 @@ export function AssignmentDataTable({ initialAssignments, teacherClasses }: Assi
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [classFilter, setClassFilter] = React.useState<string>("all");
 
+  const [addAssignment] = useAddAssignmentMutation();
+  const [updateAssignment] = useUpdateAssignmentMutation();
+  const [deleteAssignment] = useDeleteAssignmentMutation();
+
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
     setPage(0);
   };
 
-  const filteredAssignments = assignments
+  const filteredAssignments = initialAssignments
     .filter(item => classFilter === 'all' || item.courseName === classFilter)
     .filter(item => item.title.toLowerCase().includes(searchTerm.toLowerCase()));
 
@@ -68,25 +76,31 @@ export function AssignmentDataTable({ initialAssignments, teacherClasses }: Assi
     setDeleteDialogOpen(true);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (assignmentToAction) {
-      setAssignments(assignments.filter((item) => item.id !== assignmentToAction.id));
-      setAssignmentToAction(null);
-      setDeleteDialogOpen(false);
+      try {
+        await deleteAssignment(assignmentToAction._id).unwrap();
+        toast({ title: "Assignment Deleted" });
+        setDeleteDialogOpen(false);
+      } catch (error) {
+        toast({ title: "Error deleting assignment", variant: "destructive" });
+      }
     }
   };
 
-  const handleSave = (data: Omit<Assignment, 'id'>) => {
-    if (assignmentToAction) {
-        setAssignments(assignments.map(a => a.id === assignmentToAction.id ? { ...assignmentToAction, ...data } : a));
-    } else {
-        const newAssignment: Assignment = {
-            id: `ASG${Date.now()}`,
-            ...data
-        };
-        setAssignments([newAssignment, ...assignments]);
+  const handleSave = async (data: any) => {
+    try {
+        if (assignmentToAction) {
+            await updateAssignment({ _id: assignmentToAction._id, ...data }).unwrap();
+            toast({ title: "Assignment Updated" });
+        } else {
+            await addAssignment(data).unwrap();
+            toast({ title: "Assignment Created" });
+        }
+        setAddDialogOpen(false);
+    } catch (error) {
+        toast({ title: "Error saving assignment", variant: "destructive" });
     }
-    setAddDialogOpen(false);
   };
 
   return (
@@ -105,22 +119,49 @@ export function AssignmentDataTable({ initialAssignments, teacherClasses }: Assi
                 onChange={handleSearch}
                 className="w-full sm:max-w-sm"
               />
-              <Select value={classFilter} onValueChange={setClassFilter}>
+              <Select value={classFilter} onValueChange={setClassFilter} disabled={isLoading}>
                 <SelectTrigger className="w-full sm:w-48">
                     <SelectValue placeholder="Filter by class"/>
                 </SelectTrigger>
                 <SelectContent>
                     <SelectItem value="all">All Classes</SelectItem>
-                    {teacherClasses.map(c => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)}
+                    {teacherClasses.map(c => <SelectItem key={c._id} value={c.name}>{c.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={handleAdd} className="w-full sm:w-auto">
+            <Button onClick={handleAdd} className="w-full sm:w-auto" disabled={isLoading}>
               <PlusCircle className="mr-2 h-4 w-4" /> Add Assignment
             </Button>
           </div>
       
-          {paginatedAssignments.length === 0 ? (
+          {isLoading ? (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Class</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Due Date</TableHead>
+                    <TableHead>Total Marks</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {[...Array(5)].map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-12" /></TableCell>
+                      <TableCell className="text-right"><Skeleton className="h-8 w-20 ml-auto" /></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : paginatedAssignments.length === 0 ? (
             <EmptyState 
                 title="No Assignments Found"
                 description="You haven't created any assignments for the selected class yet."
@@ -141,7 +182,7 @@ export function AssignmentDataTable({ initialAssignments, teacherClasses }: Assi
                 </TableHeader>
                 <TableBody>
                     {paginatedAssignments.map((item) => (
-                    <TableRow key={item.id}>
+                    <TableRow key={item._id}>
                         <TableCell className="font-medium">{item.title}</TableCell>
                         <TableCell><Badge variant="outline">{item.courseName}</Badge></TableCell>
                         <TableCell><Badge variant="secondary">{item.type}</Badge></TableCell>

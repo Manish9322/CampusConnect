@@ -4,7 +4,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance'],
+  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment'],
   endpoints: (builder) => ({
     testDBConnection: builder.query({
       query: () => 'connect',
@@ -265,9 +265,41 @@ export const api = createApi({
             body: attendanceData,
         }),
         invalidatesTags: (result, error, arg) => {
-            const { classId, date } = arg[0] || { classId: 'UNKNOWN', date: 'UNKNOWN' };
-            return [{ type: 'Attendance', id: `${classId}-${date}` }];
+            if (Array.isArray(arg)) {
+                const { classId, date } = arg[0] || { classId: 'UNKNOWN', date: 'UNKNOWN' };
+                return [{ type: 'Attendance', id: `${classId}-${date}` }];
+            }
+            return [];
         },
+    }),
+
+    // Assignment endpoints
+    getAssignments: builder.query({
+        query: (params) => `assignments${params?.courseId ? `?courseId=${params.courseId}`: ''}`,
+        providesTags: ['Assignment'],
+    }),
+    addAssignment: builder.mutation({
+        query: (newAssignment) => ({
+            url: 'assignments',
+            method: 'POST',
+            body: newAssignment,
+        }),
+        invalidatesTags: ['Assignment'],
+    }),
+    updateAssignment: builder.mutation({
+        query: (assignmentToUpdate) => ({
+            url: 'assignments',
+            method: 'PUT',
+            body: assignmentToUpdate,
+        }),
+        invalidatesTags: ['Assignment'],
+    }),
+    deleteAssignment: builder.mutation({
+        query: (id) => ({
+            url: `assignments?id=${id}`,
+            method: 'DELETE',
+        }),
+        invalidatesTags: ['Assignment'],
     }),
   }),
 });
@@ -309,4 +341,8 @@ export const {
     useDeleteAnnouncementMutation,
     useGetAttendanceQuery,
     useAddAttendanceMutation,
+    useGetAssignmentsQuery,
+    useAddAssignmentMutation,
+    useUpdateAssignmentMutation,
+    useDeleteAssignmentMutation,
 } = api;
