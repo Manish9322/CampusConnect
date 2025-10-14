@@ -101,7 +101,7 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
     if (studentToAction) {
       try {
         await deleteStudent(studentToAction._id).unwrap();
-        toast({ title: "Student Deleted" });
+        toast({ title: "Student Deleted", description: `Student ${studentToAction.name} has been deleted.` });
         setDeleteDialogOpen(false);
       } catch {
         toast({ title: "Error deleting student", variant: "destructive" });
@@ -112,7 +112,7 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
   const handleToggleStatus = async (student: Student, newStatus: boolean) => {
     try {
       await updateStudent({ ...student, status: newStatus ? "active" : "inactive" }).unwrap();
-      toast({ title: "Status Updated" });
+      toast({ title: "Status Updated", description: `${student.name}'s status has been updated.` });
     } catch {
       toast({ title: "Error updating status", variant: "destructive" });
     }
@@ -126,10 +126,10 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
         };
         if(studentToAction) {
             await updateStudent({ _id: studentToAction._id, ...payload }).unwrap();
-            toast({ title: "Student Updated" });
+            toast({ title: "Student Updated", description: `Details for ${studentData.name} have been updated.` });
         } else {
             await addStudent(payload).unwrap();
-            toast({ title: "Student Added" });
+            toast({ title: "Student Added", description: `${studentData.name} has been added to the system.` });
         }
     } catch (error) {
         toast({ title: "Error saving student", variant: "destructive" });
