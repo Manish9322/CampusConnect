@@ -15,6 +15,7 @@ import { ClassWithDetails, Student } from "@/lib/types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { ScrollArea } from "../ui/scroll-area";
 import { Users, BookOpen, User } from "lucide-react";
+import { EmptyState } from "../shared/empty-state";
 
 interface ClassDetailsDialogProps {
   isOpen: boolean;
@@ -53,30 +54,36 @@ export function ClassDetailsDialog({ isOpen, onOpenChange, classData }: ClassDet
                 </div>
             </div>
         </div>
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden flex flex-col">
             <h4 className="font-semibold my-4">Enrolled Students</h4>
-            <ScrollArea className="h-full">
-                 <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Roll No.</TableHead>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Email</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {classData.students.map(student => (
-                            <TableRow key={student.id}>
-                                <TableCell>{student.rollNo}</TableCell>
-                                <TableCell className="font-medium">{student.name}</TableCell>
-                                <TableCell>{student.email}</TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </ScrollArea>
+            <div className="relative flex-1">
+                <ScrollArea className="absolute inset-0">
+                    {classData.students && classData.students.length > 0 ? (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Roll No.</TableHead>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead>Email</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {classData.students.map(student => (
+                                    <TableRow key={student._id}>
+                                        <TableCell>{student.rollNo}</TableCell>
+                                        <TableCell className="font-medium">{student.name}</TableCell>
+                                        <TableCell>{student.email}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    ) : (
+                        <EmptyState title="No Students Enrolled" description="There are no students currently enrolled in this class." />
+                    )}
+                </ScrollArea>
+            </div>
         </div>
-        <DialogFooter>
+        <DialogFooter className="mt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
         </DialogFooter>
       </DialogContent>
