@@ -23,7 +23,7 @@ const profileFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
   email: z.string().email("Please enter a valid email."),
   phone: z.string().regex(phoneRegex, "Invalid phone number format"),
-  profileImage: z.string().url("Please enter a valid URL.").or(z.literal("")),
+  profileImage: z.any(),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -49,8 +49,14 @@ export function UpdateProfileForm({ teacher, onProfileUpdate }: UpdateProfileFor
   });
 
   const onSubmit = async (data: ProfileFormValues) => {
+    // NOTE: In a real app, this is where you'd upload the file to a storage service
+    // and get a URL back. For this demo, we'll just use the preview URL if it's a new file.
+    const profileImage = data.profileImage instanceof File 
+      ? URL.createObjectURL(data.profileImage) 
+      : teacher.profileImage;
+      
     try {
-      const updatedTeacher = await updateTeacher({ _id: teacher._id, ...data }).unwrap();
+      const updatedTeacher = await updateTeacher({ _id: teacher._id, ...data, profileImage }).unwrap();
       onProfileUpdate(updatedTeacher);
       toast({
         title: "Profile Updated",
@@ -64,6 +70,16 @@ export function UpdateProfileForm({ teacher, onProfileUpdate }: UpdateProfileFor
       });
     }
   };
+  
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      form.setValue('profileImage', file);
+      const previewUrl = URL.createObjectURL(file);
+      setAvatarPreview(previewUrl);
+    }
+  };
+
 
   return (
     <Card>
@@ -79,22 +95,11 @@ export function UpdateProfileForm({ teacher, onProfileUpdate }: UpdateProfileFor
                     <AvatarImage src={avatarPreview} alt={teacher.name} />
                     <AvatarFallback>{teacher.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                 </Avatar>
-                <FormField
-                    control={form.control}
-                    name="profileImage"
-                    render={({ field }) => (
-                        <FormItem className="flex-1">
-                        <FormLabel>Profile Image URL</FormLabel>
-                        <FormControl>
-                            <Input placeholder="https://example.com/image.png" {...field} onChange={(e) => {
-                                field.onChange(e);
-                                setAvatarPreview(e.target.value);
-                            }}/>
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                <div className="flex-1">
+                    <FormLabel>Profile Picture</FormLabel>
+                    <Input type="file" accept="image/*" onChange={handleFileChange} />
+                    <FormMessage>{form.formState.errors.profileImage?.message as React.ReactNode}</FormMessage>
+                </div>
             </div>
             <FormField
               control={form.control}

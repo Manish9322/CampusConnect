@@ -52,7 +52,7 @@ const formSchema = z.object({
   courses: z.array(z.object({ label: z.string(), value: z.string() })).min(1, "At least one subject is required."),
   password: z.string().optional(),
   status: z.boolean(),
-  profileImage: z.string().url().optional().or(z.literal('')),
+  profileImage: z.any(),
 });
 
 interface AddTeacherDialogProps {
@@ -110,12 +110,18 @@ export function AddTeacherDialog({
         return;
     }
     
+    // NOTE: This would be where you upload the file. For now, we'll use a placeholder.
+    const profileImage = values.profileImage instanceof File 
+        ? URL.createObjectURL(values.profileImage) 
+        : teacher?.profileImage || "";
+        
     const newOrUpdatedTeacher = {
       teacherId: teacher?.teacherId || `TID${Date.now()}`,
       role: "teacher",
       ...values,
       status: values.status ? "active" : "inactive",
       courses: values.courses.map((c) => c.value),
+      profileImage: profileImage,
     };
 
     onSave(newOrUpdatedTeacher);
@@ -278,9 +284,9 @@ export function AddTeacherDialog({
               name="profileImage"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Profile Image URL</FormLabel>
+                  <FormLabel>Profile Image</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://example.com/image.png" {...field} />
+                    <Input type="file" accept="image/*" onChange={(e) => field.onChange(e.target.files ? e.target.files[0] : null)} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
