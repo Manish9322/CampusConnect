@@ -1,10 +1,11 @@
+
 "use client"
 
 import * as React from "react";
 import { ViewStudents } from "@/components/teacher/view-students";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Student, Class, Teacher } from "@/lib/types";
-import { useGetClassesQuery, useGetStudentsQuery, useGetTeachersQuery } from "@/services/api";
+import { useGetClassesQuery, useGetStudentsQuery } from "@/services/api";
 import { Users, UserCheck, TrendingUp, AlertTriangle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -24,14 +25,17 @@ export default function TeacherStudentsPage() {
     const isLoading = isLoadingClasses || isLoadingStudents || !user;
 
     const { teacherClasses, teacherStudents } = React.useMemo(() => {
-        if (isLoading) return { teacherClasses: [], teacherStudents: [] };
+        if (!user || !allClasses.length || !allStudents.length) return { teacherClasses: [], teacherStudents: [] };
 
         const classesForTeacher = allClasses.filter((c: Class) => c.teacherId?._id === user?._id);
         const classIdsForTeacher = classesForTeacher.map((c: Class) => c._id);
-        const studentsForTeacher = allStudents.filter((s: Student) => classIdsForTeacher.includes(s.classId));
+        
+        const studentsForTeacher = allStudents.filter((s: Student) => {
+            return classIdsForTeacher.includes(s.classId);
+        });
         
         return { teacherClasses: classesForTeacher, teacherStudents: studentsForTeacher };
-    }, [isLoading, user, allClasses, allStudents]);
+    }, [user, allClasses, allStudents]);
 
     const stats = React.useMemo(() => {
         if (teacherStudents.length === 0) {
@@ -49,12 +53,14 @@ export default function TeacherStudentsPage() {
         }));
 
         const totalStudents = studentsWithAttendance.length;
-        const avgAttendance = Math.round(
+        const avgAttendance = totalStudents > 0 ? Math.round(
             studentsWithAttendance.reduce((acc, s) => acc + s.attendancePercentage, 0) / totalStudents
-        );
-        const topStudent = studentsWithAttendance.reduce((prev, current) =>
-            prev.attendancePercentage > current.attendancePercentage ? prev : current
-        );
+        ) : 0;
+        
+        const topStudent = totalStudents > 0 ? studentsWithAttendance.reduce((prev, current) =>
+            (prev.attendancePercentage || 0) > (current.attendancePercentage || 0) ? prev : current
+        ) : null;
+        
         const lowAttendanceStudents = studentsWithAttendance.filter(s => s.attendancePercentage < 75).length;
 
         return { totalStudents, avgAttendance, topStudent, lowAttendanceStudents };
@@ -110,7 +116,7 @@ export default function TeacherStudentsPage() {
                         <TrendingUp className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{stats.topStudent?.name || 'N/A'}</div>
+                        <div className="text-2xl font-bold truncate">{stats.topStudent?.name || 'N/A'}</div>
                         <p className="text-xs text-muted-foreground">Highest attendance at {stats.topStudent?.attendancePercentage || 0}%</p>
                     </CardContent>
                 </Card>
