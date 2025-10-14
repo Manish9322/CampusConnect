@@ -77,10 +77,6 @@ export function AttendanceTool() {
         setAttendance(newAttendance);
     }
   }, [studentsInCourse, existingAttendance]);
-  
-  React.useEffect(() => {
-    refetchAttendance();
-  }, [date, selectedClassId, refetchAttendance]);
 
 
   const totalPages = Math.ceil(studentsInCourse.length / rowsPerPage);
