@@ -25,9 +25,11 @@ export default function TeacherStudentsPage() {
     const isLoading = isLoadingClasses || isLoadingStudents || !user;
 
     const { teacherClasses, teacherStudents } = React.useMemo(() => {
-        if (!user || !allClasses.length || !allStudents.length) return { teacherClasses: [], teacherStudents: [] };
+        if (!user || !allClasses.length || !allStudents.length) {
+            return { teacherClasses: [], teacherStudents: [] };
+        }
 
-        const classesForTeacher = allClasses.filter((c: Class) => c.teacherId?._id === user?._id);
+        const classesForTeacher = allClasses.filter((c: Class) => c.teacherId?._id === user.id);
         const classIdsForTeacher = classesForTeacher.map((c: Class) => c._id);
         
         const studentsForTeacher = allStudents.filter((s: Student) => {
