@@ -5,9 +5,9 @@ import * as React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import { Eye, PlusCircle } from "lucide-react";
+import { Eye } from "lucide-react";
 import { ClassDetailsDialog } from "./class-details-dialog";
-import { Class, ClassWithDetails, Student, Teacher } from "@/lib/types";
+import { ClassWithDetails, Student, Teacher } from "@/lib/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Input } from "../ui/input";
 import { AddClassDialog } from "../admin/add-class-dialog";
@@ -17,41 +17,31 @@ import { Skeleton } from "../ui/skeleton";
 import { useAddClassMutation } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 
+type EnrichedClass = ClassWithDetails & { students: Student[] };
+
 interface MyClassesProps {
     teacher: Teacher | null;
-    teacherClasses: Class[];
-    allStudents: Student[];
+    classesWithDetails: EnrichedClass[];
     isLoading: boolean;
 }
 
-export function MyClasses({ teacher, teacherClasses, allStudents, isLoading }: MyClassesProps) {
+export function MyClasses({ teacher, classesWithDetails, isLoading }: MyClassesProps) {
     const { toast } = useToast();
-    const [selectedClass, setSelectedClass] = React.useState<(ClassWithDetails & { students: Student[] }) | null>(null);
+    const [selectedClass, setSelectedClass] = React.useState<EnrichedClass | null>(null);
     const [isDetailsOpen, setDetailsOpen] = React.useState(false);
     const [isAddDialogOpen, setAddDialogOpen] = React.useState(false);
     const [searchTerm, setSearchTerm] = React.useState("");
 
     const [addClass] = useAddClassMutation();
 
-    const filteredClasses = teacherClasses.filter(c => 
+    const filteredClasses = classesWithDetails.filter(c => 
         c.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
     
-    const classesWithDetails = filteredClasses.map(c => {
-        const students = allStudents.filter(s => s.classId === c._id);
-        const teacherName = (c.teacherId as Teacher)?.name || teacher?.name || 'N/A';
-        return {
-            ...c,
-            teacher: teacherName,
-            studentCount: students.length,
-            students: students,
-        };
-    });
-    
-    const activeClasses = classesWithDetails.filter(c => c.status === 'active');
-    const pastClasses = classesWithDetails.filter(c => c.status === 'inactive');
+    const activeClasses = filteredClasses.filter(c => c.status === 'active');
+    const pastClasses = filteredClasses.filter(c => c.status === 'inactive');
 
-    const handleViewDetails = (c: ClassWithDetails & { students: Student[] }) => {
+    const handleViewDetails = (c: EnrichedClass) => {
         setSelectedClass(c);
         setDetailsOpen(true);
     };
@@ -67,7 +57,7 @@ export function MyClasses({ teacher, teacherClasses, allStudents, isLoading }: M
         setAddDialogOpen(false);
     };
 
-    const renderClassTable = (classes: (ClassWithDetails & { students: Student[] })[]) => {
+    const renderClassTable = (classes: EnrichedClass[]) => {
         if (isLoading) {
             return (
                 <div className="rounded-md border">

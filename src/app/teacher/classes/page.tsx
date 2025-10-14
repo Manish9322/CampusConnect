@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookCopy, Users, BarChart, Clock } from "lucide-react";
 import { useGetClassesQuery, useGetStudentsQuery } from "@/services/api";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Class } from "@/lib/types";
+import { Class, Student } from "@/lib/types";
 
 export default function TeacherClassesPage() {
     const [user, setUser] = React.useState<any>(null);
@@ -24,13 +24,24 @@ export default function TeacherClassesPage() {
 
     const isLoading = isLoadingClasses || isLoadingStudents || !user;
 
-    const teacherClasses = React.useMemo(() => {
+    const teacherClassesWithDetails = React.useMemo(() => {
         if (!user || allClasses.length === 0) return [];
-        return allClasses.filter((c: Class) => c.teacherId?._id === user.id);
-    }, [user, allClasses]);
+        
+        return allClasses
+            .filter((c: Class) => c.teacherId?._id === user.id)
+            .map((c: Class) => {
+                const studentsInClass = allStudents.filter((s: Student) => s.classId === c._id);
+                return {
+                    ...c,
+                    teacher: c.teacherId?.name || user.name,
+                    studentCount: studentsInClass.length,
+                    students: studentsInClass,
+                };
+            });
+    }, [user, allClasses, allStudents]);
 
     const stats = React.useMemo(() => {
-        if (isLoading || teacherClasses.length === 0) {
+        if (isLoading || teacherClassesWithDetails.length === 0) {
             return {
                 coursesAssigned: 0,
                 totalStudents: 0,
@@ -39,12 +50,9 @@ export default function TeacherClassesPage() {
             };
         }
 
-        const coursesAssigned = teacherClasses.length;
-        const activeCourses = teacherClasses.filter(c => c.status === 'active').length;
-
-        const classIds = teacherClasses.map(c => c._id);
-        const totalStudents = allStudents.filter((s: any) => classIds.includes(s.classId)).length;
-        
+        const coursesAssigned = teacherClassesWithDetails.length;
+        const activeCourses = teacherClassesWithDetails.filter(c => c.status === 'active').length;
+        const totalStudents = teacherClassesWithDetails.reduce((acc, c) => acc + c.studentCount, 0);
         const avgClassSize = coursesAssigned > 0 ? Math.round(totalStudents / coursesAssigned) : 0;
 
         return {
@@ -54,7 +62,7 @@ export default function TeacherClassesPage() {
             activeCourses,
         };
 
-    }, [isLoading, teacherClasses, allStudents]);
+    }, [isLoading, teacherClassesWithDetails]);
 
     const renderStatCards = () => {
         if(isLoading) {
@@ -86,7 +94,7 @@ export default function TeacherClassesPage() {
                     <CardContent>
                         <div className="text-2xl font-bold">{stats.coursesAssigned}</div>
                         <p className="text-xs text-muted-foreground">
-                            {teacherClasses.map((c: Class) => c.name).join(', ')}
+                            {teacherClassesWithDetails.map((c: Class) => c.name).join(', ')}
                         </p>
                     </CardContent>
                 </Card>
@@ -136,8 +144,7 @@ export default function TeacherClassesPage() {
             {renderStatCards()}
             <MyClasses 
                 teacher={user}
-                teacherClasses={teacherClasses} 
-                allStudents={allStudents}
+                classesWithDetails={teacherClassesWithDetails} 
                 isLoading={isLoading}
             />
         </div>
