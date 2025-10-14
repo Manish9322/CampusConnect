@@ -65,28 +65,28 @@ export function AttendanceTool() {
   const { toast } = useToast();
   
   const [user, setUser] = React.useState<any>(null);
+  const { data: allTeachers = [], isLoading: isLoadingTeachers } = useGetTeachersQuery();
+  const teacher = React.useMemo(() => allTeachers.find((t: Teacher) => t._id === user?.id), [allTeachers, user]);
+  
   React.useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
   }, []);
-
-  const { data: allTeachers = [], isLoading: isLoadingTeachers } = useGetTeachersQuery();
-  const teacher = React.useMemo(() => allTeachers.find((t: Teacher) => t._id === user?.id), [allTeachers, user]);
-
+  
   const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery();
 
   const teacherClasses = React.useMemo(() => {
     if (!teacher || !allClasses) return [];
-    return allClasses.filter((c: any) => c.teacherId._id === teacher._id);
+    return allClasses.filter((c: any) => c.teacherId?._id === teacher._id);
   }, [teacher, allClasses]);
 
   const [selectedClassId, setSelectedClassId] = React.useState<string | undefined>();
   
   React.useEffect(() => {
-    if (teacherClasses.length > 0 && !selectedClassId) {
-        setSelectedClassId(teacherClasses[0]._id);
+    if (!selectedClassId && teacherClasses.length > 0) {
+      setSelectedClassId(teacherClasses[0]._id);
     }
   }, [teacherClasses, selectedClassId]);
 
@@ -168,7 +168,7 @@ export function AttendanceTool() {
   }
 
   const renderTableBody = () => {
-    if (isLoadingStudents) {
+    if (isLoadingStudents || isLoadingClasses || isLoadingTeachers) {
       return [...Array(rowsPerPage)].map((_, i) => (
         <TableRow key={i}>
             <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-20"/></TableCell>
@@ -281,7 +281,7 @@ export function AttendanceTool() {
               </div>
               <div className="flex items-center space-x-2">
                   <span className="text-sm text-muted-foreground">
-                      Page {page + 1} of {totalPages}
+                      Page {page + 1} of {totalPages || 1}
                   </span>
                   <Button
                       variant="outline"
@@ -309,5 +309,3 @@ export function AttendanceTool() {
     </TooltipProvider>
   );
 }
-
-    
