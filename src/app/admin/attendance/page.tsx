@@ -46,7 +46,7 @@ export default function AttendancePage() {
     const [selectedClass, setSelectedClass] = React.useState<ClassWithStudentDetails | null>(null);
 
     const { data: classes = [], isLoading: isLoadingClasses } = useGetClassesQuery();
-    const { data: students = [], isLoading: isLoadingStudents } = useGetStudentsQuery();
+    const { data: students = [], isLoading: isLoadingStudents } = useGetStudentsQuery({});
 
     const isLoading = isLoadingClasses || isLoadingStudents;
 
@@ -133,3 +133,5 @@ export default function AttendancePage() {
         </div>
     );
 }
+
+    

@@ -7,94 +7,73 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Send, ChevronLeft, ChevronRight, CalendarIcon, Check, Clock, X } from "lucide-react";
-import { AttendanceStatus, Student, Teacher } from "@/lib/types";
+import { Send, ChevronLeft, ChevronRight, CalendarIcon } from "lucide-react";
+import { AttendanceStatus, Student, Teacher, Class } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
 import { format } from "date-fns";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
-import { useAddAttendanceMutation, useGetAttendanceQuery, useGetClassesQuery, useGetStudentsQuery, useGetTeachersQuery } from "@/services/api";
+import { useAddAttendanceMutation, useGetAttendanceQuery, useGetStudentsQuery } from "@/services/api";
 import { Skeleton } from "../ui/skeleton";
 import { EmptyState } from "../shared/empty-state";
+import { ThreeStateToggle } from "../shared/three-state-toggle";
 
 type AttendanceState = {
   [studentId: string]: AttendanceStatus;
 };
 
-const statusCycle: AttendanceStatus[] = ['present', 'late', 'absent'];
-
-const statusConfig: { [key in AttendanceStatus]: { icon: React.ElementType; className: string; text: string } } = {
-  present: { icon: Check, className: "bg-green-600 hover:bg-green-700 text-white border-green-600", text: "Present" },
-  late: { icon: Clock, className: "bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500", text: "Late" },
-  absent: { icon: X, className: "bg-destructive hover:bg-destructive/90 text-destructive-foreground border-destructive", text: "Absent" },
-};
-
-
-const ThreeStateToggle = ({ status, onChange }: { status: AttendanceStatus, onChange: (newStatus: AttendanceStatus) => void }) => {
-  const handleClick = () => {
-    const currentIndex = statusCycle.indexOf(status);
-    const nextIndex = (currentIndex + 1) % statusCycle.length;
-    onChange(statusCycle[nextIndex]);
-  };
-  const Icon = statusConfig[status].icon;
-  const config = statusConfig[status];
-
-  return (
-    <Tooltip>
-        <TooltipTrigger asChild>
-            <Button
-              onClick={handleClick}
-              variant="outline"
-              size="icon"
-              className={cn("transition-colors duration-200", config.className)}
-              aria-label={`Change status from ${config.text}`}
-            >
-              <Icon className="h-4 w-4" />
-            </Button>
-        </TooltipTrigger>
-        <TooltipContent>
-            <p>{config.text}</p>
-        </TooltipContent>
-    </Tooltip>
-  );
-};
-
-
 export function AttendanceTool() {
   const { toast } = useToast();
   
   const [user, setUser] = React.useState<any>(null);
-  const { data: allTeachers = [], isLoading: isLoadingTeachers } = useGetTeachersQuery();
-  const teacher = React.useMemo(() => allTeachers.find((t: Teacher) => t._id === user?.id), [allTeachers, user]);
-  
+  const [teacher, setTeacher] = React.useState<Teacher | null>(null);
+  const [teacherClasses, setTeacherClasses] = React.useState<Class[]>([]);
+  const [allClasses, setAllClasses] = React.useState<Class[]>([]);
+  const [allTeachers, setAllTeachers] = React.useState<Teacher[]>([]);
+
+  // Local state for the component
+  const [selectedClassId, setSelectedClassId] = React.useState<string | undefined>();
+  const [attendance, setAttendance] = React.useState<AttendanceState>({});
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [date, setDate] = React.useState<Date | undefined>(new Date());
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  // Fetch all necessary data
   React.useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
+    Promise.all([
+      fetch('/api/teachers').then(res => res.json()),
+      fetch('/api/classes').then(res => res.json())
+    ]).then(([teachersData, classesData]) => {
+      setAllTeachers(teachersData);
+      setAllClasses(classesData);
+    }).finally(() => {
+        setIsLoading(false);
+    });
   }, []);
-  
-  const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery();
 
-  const teacherClasses = React.useMemo(() => {
-    if (!teacher || !allClasses) return [];
-    return allClasses.filter((c: any) => c.teacherId?._id === teacher._id);
-  }, [teacher, allClasses]);
-
-  const [selectedClassId, setSelectedClassId] = React.useState<string | undefined>();
-  
+  // Determine teacher and their classes
   React.useEffect(() => {
-    if (!selectedClassId && teacherClasses.length > 0) {
-      setSelectedClassId(teacherClasses[0]._id);
+    if(user && allTeachers.length > 0) {
+        const foundTeacher = allTeachers.find((t: Teacher) => t._id === user.id);
+        setTeacher(foundTeacher || null);
     }
-  }, [teacherClasses, selectedClassId]);
+  }, [user, allTeachers]);
 
-  const [attendance, setAttendance] = React.useState<AttendanceState>({});
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(10);
-  const [date, setDate] = React.useState<Date | undefined>(new Date());
-  
+  React.useEffect(() => {
+     if(teacher && allClasses.length > 0) {
+        const foundClasses = allClasses.filter((c: any) => c.teacherId?._id === teacher._id);
+        setTeacherClasses(foundClasses);
+        if(foundClasses.length > 0 && !selectedClassId) {
+            setSelectedClassId(foundClasses[0]._id);
+        }
+    }
+  }, [teacher, allClasses, selectedClassId]);
+
   const { data: studentsInCourse = [], isLoading: isLoadingStudents } = useGetStudentsQuery({ classId: selectedClassId }, {
     skip: !selectedClassId,
   });
@@ -168,7 +147,7 @@ export function AttendanceTool() {
   }
 
   const renderTableBody = () => {
-    if (isLoadingStudents || isLoadingClasses || isLoadingTeachers) {
+    if (isLoading || isLoadingStudents) {
       return [...Array(rowsPerPage)].map((_, i) => (
         <TableRow key={i}>
             <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-20"/></TableCell>
@@ -199,7 +178,6 @@ export function AttendanceTool() {
   }
 
   return (
-    <TooltipProvider>
       <Card>
         <CardHeader>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -209,7 +187,7 @@ export function AttendanceTool() {
               </div>
                <div className="flex flex-col sm:flex-row items-center gap-2">
                    <Select value={selectedClassId} onValueChange={setSelectedClassId}>
-                      <SelectTrigger className="w-full sm:w-[200px]" disabled={isLoadingClasses}>
+                      <SelectTrigger className="w-full sm:w-[200px]" disabled={isLoading}>
                           <SelectValue placeholder="Select course" />
                       </SelectTrigger>
                       <SelectContent>
@@ -245,8 +223,8 @@ export function AttendanceTool() {
         </CardHeader>
         <CardContent>
            <div className="flex w-full sm:w-auto items-center gap-2 mb-4">
-              <Button variant="outline" className="w-full" onClick={() => markAll('present')} disabled={isLoadingStudents}>All Present</Button>
-              <Button variant="outline" className="w-full" onClick={() => markAll('absent')} disabled={isLoadingStudents}>All Absent</Button>
+              <Button variant="outline" className="w-full" onClick={() => markAll('present')} disabled={isLoading || isLoadingStudents}>All Present</Button>
+              <Button variant="outline" className="w-full" onClick={() => markAll('absent')} disabled={isLoading || isLoadingStudents}>All Absent</Button>
            </div>
           <div className="rounded-md border">
             <Table>
@@ -306,6 +284,7 @@ export function AttendanceTool() {
           </div>
         </CardContent>
       </Card>
-    </TooltipProvider>
   );
 }
+
+    
