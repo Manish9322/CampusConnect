@@ -37,6 +37,7 @@ import {
 import { useGetDepartmentsQuery, useGetDesignationsQuery, useGetSubjectsQuery } from "@/services/api";
 import { MultiSelect } from "react-multi-select-component";
 import { Skeleton } from "../ui/skeleton";
+import { FormDescription } from "../ui/form";
 
 const phoneRegex = new RegExp(
   /^([+]?[\s0-9]+)?(\d{3}|[(]\d{3}[)])?[\s-]?(\d{3})[\s-]?(\d{4})$/
@@ -49,6 +50,7 @@ const formSchema = z.object({
   phone: z.string().regex(phoneRegex, "Invalid phone number format"),
   department: z.string().min(2, "Department is required."),
   courses: z.array(z.object({ label: z.string(), value: z.string() })).min(1, "At least one subject is required."),
+  password: z.string().optional(),
   status: z.boolean(),
   profileImage: z.string().url().optional().or(z.literal('')),
 });
@@ -82,6 +84,7 @@ export function AddTeacherDialog({
       phone: teacher?.phone || "",
       department: teacher?.department || "",
       courses: teacher?.courses.map(c => ({ label: c, value: c })) || [],
+      password: "",
       status: teacher?.status === "active",
       profileImage: teacher?.profileImage || "",
     },
@@ -95,12 +98,18 @@ export function AddTeacherDialog({
       phone: teacher?.phone || "",
       department: teacher?.department || "",
       courses: teacher?.courses.map(c => ({ label: c, value: c })) || [],
+      password: "",
       status: teacher?.status === "active",
       profileImage: teacher?.profileImage || "",
     });
   }, [teacher, form]);
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    if (!teacher && !values.password) {
+        form.setError("password", { type: "manual", message: "Password is required for new teachers." });
+        return;
+    }
+    
     const newOrUpdatedTeacher = {
       teacherId: teacher?.teacherId || `TID${Date.now()}`,
       role: "teacher",
@@ -205,6 +214,22 @@ export function AddTeacherDialog({
                 )}
               />
             </div>
+             <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      {teacher ? "Leave blank to keep the current password." : "Set an initial password for the teacher."}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             <div className="grid md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}

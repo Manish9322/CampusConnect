@@ -93,11 +93,16 @@ export function TeachersTable({ data, isLoading }: TeachersTableProps) {
 
   const handleSaveTeacher = async (values: any) => {
     try {
+        const payload = { ...values };
+        if (!payload.password) {
+            delete payload.password;
+        }
+
         if(teacherToAction) {
-            await updateTeacher({ _id: teacherToAction._id, ...values }).unwrap();
+            await updateTeacher({ _id: teacherToAction._id, ...payload }).unwrap();
             toast({ title: "Teacher Updated", description: `${values.name} has been updated.` });
         } else {
-            await addTeacher(values).unwrap();
+            await addTeacher(payload).unwrap();
             toast({ title: "Teacher Added", description: `${values.name} has been added.` });
         }
     } catch(error) {
@@ -273,5 +278,3 @@ export function TeachersTable({ data, isLoading }: TeachersTableProps) {
     </div>
   )
 }
-
-    
