@@ -2,48 +2,48 @@
 "use client";
 
 import * as React from "react";
-import { mockClasses, mockStudents, mockTeachers } from "@/lib/mock-data";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { Eye, PlusCircle } from "lucide-react";
 import { ClassDetailsDialog } from "./class-details-dialog";
-import { ClassWithDetails, Student, Teacher } from "@/lib/types";
+import { Class, ClassWithDetails, Student, Teacher } from "@/lib/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Input } from "../ui/input";
 import { AddClassDialog } from "../admin/add-class-dialog";
 import { EmptyState } from "../shared/empty-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { Skeleton } from "../ui/skeleton";
+import { useAddClassMutation } from "@/services/api";
+import { useToast } from "@/hooks/use-toast";
 
-export function MyClasses() {
-    const [isLoading, setIsLoading] = React.useState(true);
+interface MyClassesProps {
+    teacher: Teacher | null;
+    teacherClasses: Class[];
+    allStudents: Student[];
+    isLoading: boolean;
+}
+
+export function MyClasses({ teacher, teacherClasses, allStudents, isLoading }: MyClassesProps) {
+    const { toast } = useToast();
     const [selectedClass, setSelectedClass] = React.useState<(ClassWithDetails & { students: Student[] }) | null>(null);
     const [isDetailsOpen, setDetailsOpen] = React.useState(false);
     const [isAddDialogOpen, setAddDialogOpen] = React.useState(false);
     const [searchTerm, setSearchTerm] = React.useState("");
 
-    React.useEffect(() => {
-        const timer = setTimeout(() => setIsLoading(false), 1000);
-        return () => clearTimeout(timer);
-    }, []);
-
-    const teacher = mockTeachers.find(t => t.name === "Alan Turing");
-    if (!teacher) return <div>Teacher not found.</div>;
-
-    const teacherClasses = mockClasses.filter(c => teacher.courses.some(course => c.name.includes(course)));
+    const [addClass] = useAddClassMutation();
 
     const filteredClasses = teacherClasses.filter(c => 
         c.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-
+    
     const classesWithDetails = filteredClasses.map(c => {
-        const students = mockStudents.filter(s => c.name.includes(s.major)); 
+        const students = allStudents.filter(s => s.classId === c._id);
+        const teacherName = (c.teacherId as Teacher)?.name || teacher?.name || 'N/A';
         return {
             ...c,
-            teacher: `${teacher.designation} ${teacher.name}`,
+            teacher: teacherName,
             studentCount: students.length,
-            subjects: [c.name],
             students: students,
         };
     });
@@ -56,8 +56,14 @@ export function MyClasses() {
         setDetailsOpen(true);
     };
     
-    const handleSaveClass = (classData: any) => {
-        console.log("Saving class:", classData);
+    const handleSaveClass = async (classData: any) => {
+        if (!teacher) return;
+        try {
+            await addClass({ ...classData, teacherId: teacher._id }).unwrap();
+            toast({ title: "Class Added", description: `Class ${classData.name} has been requested.` });
+        } catch (error) {
+            toast({ title: "Error", description: "Failed to add class.", variant: "destructive" });
+        }
         setAddDialogOpen(false);
     };
 
@@ -109,7 +115,7 @@ export function MyClasses() {
                     </TableHeader>
                     <TableBody>
                         {classes.map(c => (
-                            <TableRow key={c.id}>
+                            <TableRow key={c._id}>
                                 <TableCell className="font-medium">{c.name}</TableCell>
                                 <TableCell>{c.year}</TableCell>
                                 <TableCell>
@@ -148,9 +154,6 @@ export function MyClasses() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="max-w-sm"
                         />
-                        <Button onClick={() => setAddDialogOpen(true)}>
-                            <PlusCircle className="mr-2 h-4 w-4" /> Add New Class
-                        </Button>
                     </div>
 
                     <Tabs defaultValue="active">
@@ -175,12 +178,14 @@ export function MyClasses() {
                     classData={selectedClass}
                 />
             )}
-            <AddClassDialog 
-                open={isAddDialogOpen}
-                onOpenChange={setAddDialogOpen}
-                onSave={handleSaveClass}
-                allTeachers={[teacher]}
-            />
+            
+            {teacher && 
+                <AddClassDialog 
+                    open={isAddDialogOpen}
+                    onOpenChange={setAddDialogOpen}
+                    onSave={handleSaveClass}
+                />
+            }
         </>
     );
 }
