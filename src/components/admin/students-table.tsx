@@ -122,17 +122,32 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
     try {
         const payload = {
             ...studentData,
+            role: 'student',
             studentId: studentToAction?.studentId || `SID${Date.now()}`
         };
+
         if(studentToAction) {
+            if (!payload.password) {
+                delete payload.password;
+            }
             await updateStudent({ _id: studentToAction._id, ...payload }).unwrap();
-            toast({ title: "Student Updated", description: `Details for ${studentData.name} have been updated.` });
+            toast({ 
+              title: "Student Updated", 
+              description: `Details for ${studentData.name} have been updated.` 
+            });
         } else {
             await addStudent(payload).unwrap();
-            toast({ title: "Student Added", description: `${studentData.name} has been added to the system.` });
+            toast({ 
+              title: "Student Added", 
+              description: `${studentData.name} has been added to the system.` 
+            });
         }
     } catch (error) {
-        toast({ title: "Error saving student", variant: "destructive" });
+        toast({ 
+          title: "Error",
+          description: "An error occurred while saving the student.", 
+          variant: "destructive" 
+        });
     }
   };
 
@@ -329,7 +344,7 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
             itemName={studentToAction.name}
           />
           <StudentProfileDialog
-            open={isProfileOpen}
+            isOpen={isProfileOpen}
             onOpenChange={setProfileOpen}
             student={studentToAction}
             classes={classes}

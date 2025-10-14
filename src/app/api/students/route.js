@@ -26,12 +26,6 @@ export async function POST(request) {
   await _db();
   try {
     const body = await request.json();
-    // The pre-save hook in the model should handle hashing, but we can be explicit.
-    // If a password is provided, hash it before creating the new student.
-    if (body.password) {
-        const salt = await bcrypt.genSalt(10);
-        body.password = await bcrypt.hash(body.password, salt);
-    }
     const newStudent = new Student(body);
     await newStudent.save();
     return NextResponse.json(newStudent, { status: 201 });
