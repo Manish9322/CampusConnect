@@ -62,7 +62,7 @@ export function LoginForm() {
     defaultValues: {
       email: "",
       password: "",
-      role: "teacher",
+      role: "student",
       remember: false,
     },
   });
@@ -70,8 +70,8 @@ export function LoginForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
 
-    if (values.role !== 'teacher') {
-        // For this demo, we'll just redirect based on the selected role for admin and student.
+    if (values.role === 'admin') {
+        // For this demo, we'll just redirect for admin
         router.push(`/${values.role}`);
         return;
     }

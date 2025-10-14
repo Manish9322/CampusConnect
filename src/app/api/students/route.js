@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import _db from '@/lib/db';
 import { Student } from '@/models/student.model.js';
+import bcrypt from 'bcryptjs';
 
 export async function GET(request) {
   await _db();
@@ -37,11 +38,42 @@ export async function PUT(request) {
     await _db();
     try {
         const body = await request.json();
-        const { _id, ...updateData } = body;
-        const updatedStudent = await Student.findByIdAndUpdate(_id, updateData, { new: true });
-        if (!updatedStudent) {
+        const { _id, currentPassword, newPassword, ...updateData } = body;
+        
+        const student = await Student.findById(_id);
+
+        if (!student) {
             return NextResponse.json({ message: 'Student not found' }, { status: 404 });
         }
+
+        // If a new password is provided, we need to handle the password change
+        if (newPassword) {
+            // If it's a password change request, currentPassword is required
+            if (!currentPassword) {
+                return NextResponse.json({ message: 'Current password is required to change password' }, { status: 400 });
+            }
+
+            const isMatch = await student.matchPassword(currentPassword);
+
+            if (!isMatch) {
+                return NextResponse.json({ message: 'Invalid current password' }, { status: 401 });
+            }
+            
+            // Hash the new password before saving
+            const salt = await bcrypt.genSalt(10);
+            updateData.password = await bcrypt.hash(newPassword, salt);
+        } else if (updateData.password) {
+            // If password is in updateData but it's not a password change flow (e.g. admin reset)
+            const salt = await bcrypt.genSalt(10);
+            updateData.password = await bcrypt.hash(updateData.password, salt);
+        }
+
+        const updatedStudent = await Student.findByIdAndUpdate(_id, updateData, { new: true }).select('-password');
+        
+        if (!updatedStudent) {
+            return NextResponse.json({ message: 'Student not found during update' }, { status: 404 });
+        }
+
         return NextResponse.json(updatedStudent, { status: 200 });
     } catch (error) {
         return NextResponse.json({ message: 'Error updating student', error: error.message }, { status: 400 });

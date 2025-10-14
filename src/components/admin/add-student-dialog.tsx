@@ -18,6 +18,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -41,6 +42,7 @@ const formSchema = z.object({
   email: z.string().email("Please enter a valid email."),
   phone: z.string().regex(phoneRegex, "Invalid phone number format"),
   classId: z.string().nonempty("A class must be assigned."),
+  password: z.string().optional(),
   status: z.boolean(),
 });
 
@@ -67,6 +69,7 @@ export function AddStudentDialog({
       email: studentData?.email || "",
       phone: studentData?.phone || "",
       classId: studentData?.classId || undefined,
+      password: "",
       status: studentData?.status === 'active',
     },
   });
@@ -78,11 +81,17 @@ export function AddStudentDialog({
         email: studentData?.email || "",
         phone: studentData?.phone || "",
         classId: studentData?.classId || undefined,
+        password: "",
         status: studentData?.status === 'active',
     });
   }, [studentData, form]);
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    if (!studentData && !values.password) {
+        form.setError("password", { type: "manual", message: "Password is required for new students." });
+        return;
+    }
+    
     onSave({
       ...values,
       status: values.status ? 'active' : 'inactive'
@@ -164,28 +173,46 @@ export function AddStudentDialog({
                 )}
                 />
             </div>
-            <FormField
-              control={form.control}
-              name="classId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Class</FormLabel>
-                   <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a class" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {classes.map((c: Class) => (
-                        <SelectItem key={c._id} value={c._id!}>{c.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+             <div className="grid md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="classId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Class</FormLabel>
+                       <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a class" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {classes.map((c: Class) => (
+                            <SelectItem key={c._id} value={c._id!}>{c.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                        <Input type="password" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                        {studentData ? "Leave blank to keep the current password." : "Set an initial password for the student."}
+                        </FormDescription>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+            </div>
             <FormField
               control={form.control}
               name="status"

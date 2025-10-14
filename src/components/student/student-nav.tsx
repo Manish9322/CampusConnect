@@ -58,6 +58,8 @@ export function StudentNav({ user }: StudentNavProps) {
   ];
 
   const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
     router.push('/');
   };
 
@@ -111,9 +113,11 @@ export function StudentNav({ user }: StudentNavProps) {
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-56 mb-2" align="end">
-                        <DropdownMenuItem>
-                            <UserIcon className="mr-2 h-4 w-4" />
-                            <span>Profile</span>
+                        <DropdownMenuItem asChild>
+                           <Link href="/student/profile">
+                                <UserIcon className="mr-2 h-4 w-4" />
+                                <span>Profile</span>
+                            </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => setLogoutDialogOpen(true)}>

@@ -1,5 +1,6 @@
 
 import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 const studentSchema = new mongoose.Schema({
   studentId: {
@@ -25,6 +26,10 @@ const studentSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  password: {
+    type: String,
+    required: true,
+  },
   classId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Class',
@@ -39,6 +44,27 @@ const studentSchema = new mongoose.Schema({
     type: String,
     default: 'student',
   },
+  profileImage: {
+    type: String,
+    required: false,
+  }
 }, { timestamps: true });
+
+
+// Hash password before saving
+studentSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) {
+    return next();
+  }
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
+
+// Method to compare passwords
+studentSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
+
 
 export const Student = mongoose.models.Student || mongoose.model('Student', studentSchema);

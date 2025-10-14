@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import _db from '@/lib/db';
 import { Teacher } from '@/models/teacher.model.js';
+import { Student } from '@/models/student.model.js';
 import jwt from 'jsonwebtoken';
 
 export async function POST(request) {
@@ -8,17 +9,20 @@ export async function POST(request) {
   try {
     const { email, password, role } = await request.json();
 
-    if (role !== 'teacher') {
-        // For now, we only support teacher login
-        // We can add other roles later
+    let user;
+    if (role === 'teacher') {
+      user = await Teacher.findOne({ email });
+    } else if (role === 'student') {
+      user = await Student.findOne({ email });
+    } else {
+        // For now, we only support teacher and student login
+        // We can add other roles like admin later
         return NextResponse.json({ message: 'Invalid role' }, { status: 400 });
     }
 
-    const teacher = await Teacher.findOne({ email });
-
-    if (teacher && (await teacher.matchPassword(password))) {
+    if (user && (await user.matchPassword(password))) {
       const token = jwt.sign(
-        { id: teacher._id, role: teacher.role, name: teacher.name, email: teacher.email },
+        { id: user._id, role: user.role, name: user.name, email: user.email },
         process.env.JWT_SECRET || 'your_default_secret_key',
         { expiresIn: '1h' }
       );
@@ -27,10 +31,10 @@ export async function POST(request) {
         message: "Login successful",
         token,
         user: {
-            id: teacher._id,
-            name: teacher.name,
-            email: teacher.email,
-            role: teacher.role
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role
         }
       }, { status: 200 });
 
