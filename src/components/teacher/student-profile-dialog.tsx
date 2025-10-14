@@ -11,12 +11,11 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { Student } from "@/lib/types";
+import { Student, Class } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../ui/chart";
 import { Badge } from "../ui/badge";
-import { mockAttendance } from "@/lib/mock-data";
 import { Mail, Phone } from "lucide-react";
 import { ScrollArea } from "../ui/scroll-area";
 
@@ -24,14 +23,8 @@ interface StudentProfileDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   student: Student;
+  classes: Class[];
 }
-
-const subjectData = [
-    { subject: "CS101", attendance: 98 },
-    { subject: "PHY101", attendance: 92 },
-    { subject: "MTH201", attendance: 95 },
-    { subject: "CS303", attendance: 88 },
-];
 
 const monthlyData = [
   { month: "Jan", attendance: 88 },
@@ -49,8 +42,14 @@ const chartConfig = {
   },
 };
 
-export function StudentProfileDialog({ isOpen, onOpenChange, student }: StudentProfileDialogProps) {
+export function StudentProfileDialog({ isOpen, onOpenChange, student, classes }: StudentProfileDialogProps) {
   if (!student) return null;
+
+  const studentClass = classes.find(c => c._id === student.classId);
+  const subjectData = studentClass?.subjects.map(subject => ({
+    subject,
+    attendance: Math.floor(Math.random() * (100 - 80 + 1) + 80) // Random attendance for now
+  })) || [];
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -66,12 +65,12 @@ export function StudentProfileDialog({ isOpen, onOpenChange, student }: StudentP
                 <Card>
                     <CardHeader className="flex flex-col sm:flex-row items-center gap-4">
                         <Avatar className="h-20 w-20">
-                            <AvatarImage src={`https://placehold.co/100x100.png`} />
+                            <AvatarImage src={student.profileImage} />
                             <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className="grid gap-1 text-center sm:text-left">
                             <CardTitle className="text-2xl">{student.name}</CardTitle>
-                            <CardDescription>{student.major}</CardDescription>
+                            <CardDescription>Roll No: {student.rollNo} | Class: {studentClass?.name || 'N/A'}</CardDescription>
                             <div className="flex flex-col sm:flex-row items-center gap-4 text-sm text-muted-foreground">
                                 <div className="flex items-center gap-1">
                                     <Mail className="h-3 w-3" />

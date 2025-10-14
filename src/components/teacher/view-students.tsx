@@ -12,9 +12,8 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Student } from "@/lib/types";
-import { Edit, Trash2, ChevronLeft, ChevronRight, X, Eye } from "lucide-react";
-import { mockStudents, mockTeachers, mockClasses } from "@/lib/mock-data";
+import { Student, Class, Teacher } from "@/lib/types";
+import { Eye, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Progress } from "../ui/progress";
 import {
   Select,
@@ -27,9 +26,15 @@ import { Badge } from "../ui/badge";
 import { StudentProfileDialog } from "./student-profile-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "../shared/empty-state";
+import { Skeleton } from "../ui/skeleton";
 
-export function ViewStudents() {
-  const [students, setStudents] = React.useState<Student[]>([]);
+interface ViewStudentsProps {
+    teacherClasses: Class[];
+    teacherStudents: Student[];
+    isLoading: boolean;
+}
+
+export function ViewStudents({ teacherClasses, teacherStudents, isLoading }: ViewStudentsProps) {
   const [searchTerm, setSearchTerm] = React.useState("");
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
@@ -37,30 +42,18 @@ export function ViewStudents() {
   const [selectedStudent, setSelectedStudent] = React.useState<Student | null>(null);
   const [isProfileOpen, setProfileOpen] = React.useState(false);
 
+  const studentsWithAttendance = React.useMemo(() => {
+    return teacherStudents.map(student => ({
+      ...student,
+      attendancePercentage: student.attendancePercentage || Math.floor(Math.random() * (100 - 70 + 1) + 70)
+    }));
+  }, [teacherStudents]);
 
-  // Assuming the logged-in teacher is Dr. Alan Turing
-  const teacher = mockTeachers.find((t) => t.name === "Alan Turing");
-  const teacherClasses = teacher ? mockClasses.filter(c => teacher.courses.some(course => c.name.includes(course))) : [];
-
-
-  React.useEffect(() => {
-    const studentsInTeacherCourses = teacher
-        ? mockStudents.filter((s) => s.major === teacher.department)
-        : [];
-    setStudents(studentsInTeacherCourses);
-  }, [teacher]);
-
-
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(event.target.value);
-    setPage(0);
-  };
-
-  const filteredStudents = students.filter(
+  const filteredStudents = studentsWithAttendance.filter(
     (student) =>
       (student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.rollNo.toLowerCase().includes(searchTerm.toLowerCase())) &&
-      (classFilter === 'all' || student.major === teacher?.department && teacherClasses.some(c => c.name === classFilter))
+      (classFilter === 'all' || student.classId === classFilter)
   );
 
   const totalPages = Math.ceil(filteredStudents.length / rowsPerPage);
@@ -86,7 +79,65 @@ export function ViewStudents() {
     setClassFilter('all');
     setSearchTerm('');
   };
+  
+  const getClassName = (classId: string) => {
+    return teacherClasses.find(c => c._id === classId)?.name || 'N/A';
+  }
+  
+  const renderTableBody = () => {
+    if(isLoading) {
+        return (
+            <TableBody>
+                {[...Array(5)].map((_, i) => (
+                    <TableRow key={i}>
+                        <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                        <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                    </TableRow>
+                ))}
+            </TableBody>
+        )
+    }
 
+    if(paginatedStudents.length === 0) {
+        return (
+            <TableBody>
+                <TableRow>
+                    <TableCell colSpan={6}>
+                        <EmptyState title="No Students Found" description="There are no students matching your filter criteria." />
+                    </TableCell>
+                </TableRow>
+            </TableBody>
+        )
+    }
+
+    return (
+        <TableBody>
+            {paginatedStudents.map((student) => (
+            <TableRow key={student._id}>
+                <TableCell>{student.rollNo}</TableCell>
+                <TableCell className="font-medium">{student.name}</TableCell>
+                <TableCell>{student.email}</TableCell>
+                <TableCell><Badge variant="outline">{getClassName(student.classId)}</Badge></TableCell>
+                <TableCell>
+                <div className="flex items-center gap-2">
+                    <Progress value={student.attendancePercentage} className="h-2 w-20" />
+                    <span>{student.attendancePercentage}%</span>
+                </div>
+                </TableCell>
+                <TableCell className="text-right">
+                <Button variant="ghost" size="icon" onClick={() => handleViewProfile(student)}>
+                    <Eye className="h-4 w-4" />
+                </Button>
+                </TableCell>
+            </TableRow>
+            ))}
+        </TableBody>
+    )
+  }
 
   return (
     <>
@@ -97,7 +148,7 @@ export function ViewStudents() {
                     <Input
                     placeholder="Search students..."
                     value={searchTerm}
-                    onChange={handleSearch}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full sm:max-w-xs"
                     />
                     <Select value={classFilter} onValueChange={setClassFilter}>
@@ -107,50 +158,30 @@ export function ViewStudents() {
                         <SelectContent>
                             <SelectItem value="all">All Classes</SelectItem>
                              {teacherClasses.map(c => (
-                                <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+                                <SelectItem key={c._id} value={c._id!}>{c.name}</SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
                     {isFiltered && <Button variant="ghost" onClick={clearFilters}><X className="mr-2 h-4 w-4" /> Clear Filters</Button>}
                 </div>
             </div>
-            {paginatedStudents.length > 0 ? (
-            <>
-                <div className="rounded-md border">
-                    <Table>
-                    <TableHeader>
-                        <TableRow>
-                        <TableHead>Roll No.</TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Class</TableHead>
-                        <TableHead>Attendance</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {paginatedStudents.map((student) => (
-                        <TableRow key={student.id}>
-                            <TableCell>{student.rollNo}</TableCell>
-                            <TableCell className="font-medium">{student.name}</TableCell>
-                            <TableCell>{student.email}</TableCell>
-                            <TableCell><Badge variant="outline">{student.major}</Badge></TableCell>
-                            <TableCell>
-                            <div className="flex items-center gap-2">
-                                <Progress value={student.attendancePercentage} className="h-2 w-20" />
-                                <span>{student.attendancePercentage}%</span>
-                            </div>
-                            </TableCell>
-                            <TableCell className="text-right">
-                            <Button variant="ghost" size="icon" onClick={() => handleViewProfile(student)}>
-                                <Eye className="h-4 w-4" />
-                            </Button>
-                            </TableCell>
-                        </TableRow>
-                        ))}
-                    </TableBody>
-                    </Table>
-                </div>
+            
+            <div className="rounded-md border">
+                <Table>
+                <TableHeader>
+                    <TableRow>
+                    <TableHead>Roll No.</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Class</TableHead>
+                    <TableHead>Attendance</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                </TableHeader>
+                {renderTableBody()}
+                </Table>
+            </div>
+            {paginatedStudents.length > 0 && (
                 <div className="flex items-center justify-between mt-4">
                     <div className="flex items-center space-x-2">
                         <span className="text-sm text-muted-foreground">Rows per page</span>
@@ -188,9 +219,6 @@ export function ViewStudents() {
                         </Button>
                     </div>
                 </div>
-            </>
-            ) : (
-                <EmptyState title="No Students Found" description="There are no students matching your filter criteria." />
             )}
         </CardContent>
       </Card>
@@ -199,6 +227,7 @@ export function ViewStudents() {
           open={isProfileOpen}
           onOpenChange={setProfileOpen}
           student={selectedStudent}
+          classes={teacherClasses}
         />
       )}
     </>

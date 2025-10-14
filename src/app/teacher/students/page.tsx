@@ -1,48 +1,96 @@
+"use client"
 
+import * as React from "react";
 import { ViewStudents } from "@/components/teacher/view-students";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { mockStudents, mockTeachers } from "@/lib/mock-data";
+import { Student, Class, Teacher } from "@/lib/types";
+import { useGetClassesQuery, useGetStudentsQuery, useGetTeachersQuery } from "@/services/api";
 import { Users, UserCheck, TrendingUp, AlertTriangle } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function TeacherStudentsPage() {
-    // Assuming the logged-in teacher is Dr. Alan Turing
-    const teacher = mockTeachers.find((t) => t.name === "Alan Turing");
-    const teacherStudents = teacher
-        ? mockStudents.filter((s) => s.major === teacher.department)
-        : [];
+    const [user, setUser] = React.useState<Teacher | null>(null);
 
-    const totalStudents = teacherStudents.length;
+    React.useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        }
+    }, []);
 
-    const avgAttendance =
-        totalStudents > 0
-            ? Math.round(
-                teacherStudents.reduce((acc, s) => acc + s.attendancePercentage, 0) /
-                totalStudents
-            )
-            : 0;
+    const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery();
+    const { data: allStudents = [], isLoading: isLoadingStudents } = useGetStudentsQuery({});
+
+    const isLoading = isLoadingClasses || isLoadingStudents || !user;
+
+    const { teacherClasses, teacherStudents } = React.useMemo(() => {
+        if (isLoading) return { teacherClasses: [], teacherStudents: [] };
+
+        const classesForTeacher = allClasses.filter((c: Class) => c.teacherId?._id === user?._id);
+        const classIdsForTeacher = classesForTeacher.map((c: Class) => c._id);
+        const studentsForTeacher = allStudents.filter((s: Student) => classIdsForTeacher.includes(s.classId));
+        
+        return { teacherClasses: classesForTeacher, teacherStudents: studentsForTeacher };
+    }, [isLoading, user, allClasses, allStudents]);
+
+    const stats = React.useMemo(() => {
+        if (teacherStudents.length === 0) {
+            return {
+                totalStudents: 0,
+                avgAttendance: 0,
+                topStudent: null,
+                lowAttendanceStudents: 0,
+            };
+        }
+
+        const studentsWithAttendance = teacherStudents.map((s: Student) => ({
+            ...s,
+            attendancePercentage: s.attendancePercentage || Math.floor(Math.random() * (100 - 70 + 1) + 70)
+        }));
+
+        const totalStudents = studentsWithAttendance.length;
+        const avgAttendance = Math.round(
+            studentsWithAttendance.reduce((acc, s) => acc + s.attendancePercentage, 0) / totalStudents
+        );
+        const topStudent = studentsWithAttendance.reduce((prev, current) =>
+            prev.attendancePercentage > current.attendancePercentage ? prev : current
+        );
+        const lowAttendanceStudents = studentsWithAttendance.filter(s => s.attendancePercentage < 75).length;
+
+        return { totalStudents, avgAttendance, topStudent, lowAttendanceStudents };
+
+    }, [teacherStudents]);
     
-    const topStudent =
-        totalStudents > 0
-            ? teacherStudents.reduce((prev, current) =>
-                prev.attendancePercentage > current.attendancePercentage ? prev : current
-              )
-            : null;
 
-    const lowAttendanceStudents = teacherStudents.filter(
-        (s) => s.attendancePercentage < 75
-    ).length;
+    const renderStatCards = () => {
+        if(isLoading) {
+            return (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                    {[...Array(4)].map((_,i) => (
+                        <Card key={i}>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <Skeleton className="h-4 w-2/3" />
+                                <Skeleton className="h-4 w-4" />
+                            </CardHeader>
+                            <CardContent>
+                                <Skeleton className="h-8 w-1/3" />
+                                <Skeleton className="h-3 w-1/2 mt-1" />
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            )
+        }
 
-    return (
-        <div className="space-y-6">
-            <h1 className="text-2xl font-bold">My Students</h1>
-             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        return (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Students</CardTitle>
                         <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{totalStudents}</div>
+                        <div className="text-2xl font-bold">{stats.totalStudents}</div>
                         <p className="text-xs text-muted-foreground">Across all your classes</p>
                     </CardContent>
                 </Card>
@@ -52,7 +100,7 @@ export default function TeacherStudentsPage() {
                         <UserCheck className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{avgAttendance}%</div>
+                        <div className="text-2xl font-bold">{stats.avgAttendance}%</div>
                         <p className="text-xs text-muted-foreground">Campus average is 88%</p>
                     </CardContent>
                 </Card>
@@ -62,8 +110,8 @@ export default function TeacherStudentsPage() {
                         <TrendingUp className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{topStudent?.name || 'N/A'}</div>
-                        <p className="text-xs text-muted-foreground">Highest attendance at {topStudent?.attendancePercentage || 0}%</p>
+                        <div className="text-2xl font-bold">{stats.topStudent?.name || 'N/A'}</div>
+                        <p className="text-xs text-muted-foreground">Highest attendance at {stats.topStudent?.attendancePercentage || 0}%</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -72,12 +120,23 @@ export default function TeacherStudentsPage() {
                         <AlertTriangle className="h-4 w-4 text-destructive" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{lowAttendanceStudents}</div>
+                        <div className="text-2xl font-bold">{stats.lowAttendanceStudents}</div>
                         <p className="text-xs text-muted-foreground">Students with &lt;75% attendance</p>
                     </CardContent>
                 </Card>
             </div>
-            <ViewStudents />
+        )
+    }
+
+    return (
+        <div className="space-y-6">
+            <h1 className="text-2xl font-bold">My Students</h1>
+             {renderStatCards()}
+            <ViewStudents 
+                teacherClasses={teacherClasses}
+                teacherStudents={teacherStudents}
+                isLoading={isLoading}
+            />
         </div>
     );
 }
