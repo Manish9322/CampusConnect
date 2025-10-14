@@ -28,7 +28,9 @@ export async function POST(request) {
     const body = await request.json();
     const newStudent = new Student(body);
     await newStudent.save();
-    return NextResponse.json(newStudent, { status: 201 });
+    const studentObj = newStudent.toObject();
+    delete studentObj.password;
+    return NextResponse.json(studentObj, { status: 201 });
   } catch (error) {
     return NextResponse.json({ message: 'Error creating student', error: error.message }, { status: 400 });
   }
@@ -40,7 +42,8 @@ export async function PUT(request) {
         const body = await request.json();
         const { _id, currentPassword, newPassword, ...updateData } = body;
         
-        const student = await Student.findById(_id);
+        // Use .select('+password') to include the password field in the query
+        const student = await Student.findById(_id).select('+password');
 
         if (!student) {
             return NextResponse.json({ message: 'Student not found' }, { status: 404 });
@@ -56,14 +59,27 @@ export async function PUT(request) {
                 return NextResponse.json({ message: 'Invalid current password' }, { status: 401 });
             }
             const salt = await bcrypt.genSalt(10);
-            updateData.password = await bcrypt.hash(newPassword, salt);
+            student.password = await bcrypt.hash(newPassword, salt);
+            await student.save();
+            
+            // remove password fields from updateData if they exist
+            delete updateData.password;
+            delete updateData.newPassword;
+            delete updateData.currentPassword;
+            
         } else if (updateData.password) {
             // If only 'password' is in updateData, it's likely an admin resetting it
             const salt = await bcrypt.genSalt(10);
-            updateData.password = await bcrypt.hash(updateData.password, salt);
+            student.password = await bcrypt.hash(updateData.password, salt);
+            await student.save();
         }
 
-        const updatedStudent = await Student.findByIdAndUpdate(_id, updateData, { new: true }).select('-password');
+        // Update other fields
+        Object.assign(student, updateData);
+        await student.save();
+
+
+        const updatedStudent = await Student.findById(_id).select('-password');
         
         if (!updatedStudent) {
             return NextResponse.json({ message: 'Student not found during update' }, { status: 404 });
