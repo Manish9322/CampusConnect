@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { Assignment, Grade, SubmissionStatus } from "@/lib/types";
+import { Assignment, Grade, SubmissionStatus, Student } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,14 +13,11 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { SubmitAssignmentDialog } from "./submit-assignment-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useAddGradeMutation } from "@/services/api";
+import { useAddGradeMutation, useGetAssignmentsForStudentQuery, useGetGradesQuery } from "@/services/api";
 
 
 interface AssignmentsListProps {
-  assignments: Assignment[];
-  grades: Grade[];
-  studentId: string;
-  onGradeUpdate: () => void;
+  student: Student;
 }
 
 const statusConfig: { [key in SubmissionStatus]: { icon: React.ElementType, className: string, variant: "default" | "secondary" | "destructive" | "outline" } } = {
@@ -29,17 +26,20 @@ const statusConfig: { [key in SubmissionStatus]: { icon: React.ElementType, clas
     'Late': { icon: AlertTriangle, className: 'text-red-600', variant: "destructive" },
 };
 
-export function AssignmentsList({ assignments, grades, studentId, onGradeUpdate }: AssignmentsListProps) {
+export function AssignmentsList({ student }: AssignmentsListProps) {
     const [isSubmitOpen, setSubmitOpen] = React.useState(false);
     const [selectedAssignment, setSelectedAssignment] = React.useState<Assignment | null>(null);
     const [courseFilter, setCourseFilter] = React.useState("all");
     const [sortOption, setSortOption] = React.useState("due-date-asc");
     const { toast } = useToast();
+    
+    const { data: assignments = [], isLoading: isLoadingAssignments } = useGetAssignmentsForStudentQuery(student?._id, { skip: !student?._id });
+    const { data: grades = [], isLoading: isLoadingGrades, refetch: refetchGrades } = useGetGradesQuery(student?._id, { skip: !student?._id });
 
     const [addGrade, { isLoading: isSubmitting }] = useAddGradeMutation();
 
     const getGradeInfo = (assignmentId: string) => {
-        return grades.find(g => g.assignmentId === assignmentId);
+        return grades.find((g: Grade) => g.assignmentId === assignmentId);
     };
 
     const handleOpenSubmit = (assignment: Assignment) => {
@@ -52,10 +52,10 @@ export function AssignmentsList({ assignments, grades, studentId, onGradeUpdate 
         
         // This would be a file upload to a service like S3 in a real app.
         // For now, we simulate it and use a local blob URL.
-        const mockSubmissionUrl = URL.createObjectURL(file);
+        const mockSubmissionUrl = file ? URL.createObjectURL(file) : undefined;
 
         const newGrade: Partial<Grade> = {
-            studentId: studentId,
+            studentId: student._id!,
             assignmentId: selectedAssignment._id,
             marks: null,
             status: new Date() > new Date(selectedAssignment.dueDate) ? 'Late' : 'Submitted',
@@ -65,7 +65,7 @@ export function AssignmentsList({ assignments, grades, studentId, onGradeUpdate 
 
         try {
             await addGrade(newGrade).unwrap();
-            onGradeUpdate();
+            refetchGrades();
             toast({
                 title: "Assignment Submitted!",
                 description: `Your work for "${selectedAssignment.title}" has been submitted.`,
@@ -154,8 +154,10 @@ export function AssignmentsList({ assignments, grades, studentId, onGradeUpdate 
     };
 
     const allCourses = [...new Set(assignments.map(a => a.courseName))];
-    const pendingAssignments = processAssignments(assignments.filter(a => !getGradeInfo(a._id) || getGradeInfo(a._id)?.status === 'Pending'));
-    const submittedAssignments = processAssignments(assignments.filter(a => getGradeInfo(a._id) && getGradeInfo(a._id)?.status !== 'Pending'));
+    const pendingAssignments = processAssignments(assignments.filter(a => !getGradeInfo(a._id)));
+    const submittedAssignments = processAssignments(assignments.filter(a => getGradeInfo(a._id)));
+    
+    const isLoading = isLoadingAssignments || isLoadingGrades;
 
   return (
     <>
@@ -196,7 +198,9 @@ export function AssignmentsList({ assignments, grades, studentId, onGradeUpdate 
                 </div>
             </div>
             <TabsContent value="pending">
-                {pendingAssignments.length > 0 ? (
+                {isLoading ? (
+                    <div className="text-center p-8">Loading assignments...</div>
+                ) : pendingAssignments.length > 0 ? (
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {pendingAssignments.map(renderAssignmentCard)}
                     </div>
@@ -205,7 +209,9 @@ export function AssignmentsList({ assignments, grades, studentId, onGradeUpdate 
                 )}
             </TabsContent>
             <TabsContent value="submitted">
-                 {submittedAssignments.length > 0 ? (
+                 {isLoading ? (
+                    <div className="text-center p-8">Loading assignments...</div>
+                ) : submittedAssignments.length > 0 ? (
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {submittedAssignments.map(renderAssignmentCard)}
                     </div>
@@ -228,4 +234,3 @@ export function AssignmentsList({ assignments, grades, studentId, onGradeUpdate 
     </>
   );
 }
-

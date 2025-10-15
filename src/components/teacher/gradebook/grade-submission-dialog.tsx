@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
 import { Assignment, Grade, Student } from "@/lib/types";
 
 interface GradeSubmissionDialogProps {
@@ -46,7 +45,6 @@ export function GradeSubmissionDialog({
   onSave,
   isSaving,
 }: GradeSubmissionDialogProps) {
-  const { toast } = useToast();
 
   const formSchema = z.object({
     marks: z.coerce.number().min(0, "Marks cannot be negative.").max(assignment.totalMarks, `Marks cannot exceed ${assignment.totalMarks}.`).nullable(),

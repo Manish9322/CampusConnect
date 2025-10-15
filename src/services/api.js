@@ -194,6 +194,10 @@ export const api = createApi({
         }),
         invalidatesTags: (result, error, id) => [{ type: 'Student', id }, { type: 'Student', id: 'LIST' }, 'Class'],
     }),
+    getAssignmentsForStudent: builder.query({
+        query: (studentId) => `students/${studentId}/assignments`,
+        providesTags: (result, error, studentId) => [{ type: 'Assignment', studentId }],
+    }),
 
     // Announcement Category CRUD endpoints
     getAnnouncementCategories: builder.query({
@@ -380,6 +384,7 @@ export const {
     useAddStudentMutation,
     useUpdateStudentMutation,
     useDeleteStudentMutation,
+    useGetAssignmentsForStudentQuery,
     useGetAnnouncementCategoriesQuery,
     useAddAnnouncementCategoryMutation,
     useUpdateAnnouncementCategoryMutation,

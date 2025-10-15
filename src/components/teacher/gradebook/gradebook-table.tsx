@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { GradeSubmissionDialog } from "./grade-submission-dialog";
 import { useUpdateGradeMutation } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface GradebookTableProps {
   students: Student[];
@@ -46,8 +47,9 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
   const { toast } = useToast();
 
   const filteredStudents = students.filter(student =>
-    student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.rollNo.toLowerCase().includes(searchTerm.toLowerCase())
+    (student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (student.rollNo && student.rollNo.toLowerCase().includes(searchTerm.toLowerCase()))) &&
+    (classFilter === 'all' || student.classId === classFilter)
   );
 
   const filteredAssignments = assignments.filter(assignment => classFilter === 'all' || assignment.courseId === classFilter);
@@ -83,7 +85,9 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
   };
 
   const calculateOverall = (studentId: string) => {
-    const studentGrades = grades.filter(g => g.studentId === studentId && g.marks !== null);
+    const studentAssignments = filteredAssignments.filter(a => a.courseId === students.find(s => s._id === studentId)?.classId);
+    const studentGrades = grades.filter(g => g.studentId === studentId && g.marks !== null && studentAssignments.some(a => a._id === g.assignmentId));
+
     if(studentGrades.length === 0) return { score: "N/A", grade: "N/A"};
 
     const totalMarks = studentGrades.reduce((acc, grade) => {
@@ -124,16 +128,16 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
                   <SelectValue placeholder="Filter by class"/>
               </SelectTrigger>
               <SelectContent>
-                  <SelectItem value="all">All Classes</SelectItem>
+                  <SelectItem value="all">All My Classes</SelectItem>
                   {classes.map(c => <SelectItem key={c._id} value={c._id!}>{c.name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
       
-          {filteredStudents.length === 0 ? (
+          {(filteredStudents.length === 0 || filteredAssignments.length === 0) ? (
             <EmptyState 
-                title="No Students Found"
-                description="There are no students matching your search criteria."
+                title="No Data to Display"
+                description="There are no students or assignments for the selected class."
             />
           ) : (
           <>
@@ -143,7 +147,7 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
                     <TableRow>
                         <TableHead className="sticky left-0 bg-background z-10 min-w-40">Student Name</TableHead>
                         {filteredAssignments.map(assignment => (
-                            <TableHead key={assignment._id} className="text-center">{assignment.title}</TableHead>
+                            <TableHead key={assignment._id} className="text-center min-w-36">{assignment.title}</TableHead>
                         ))}
                         <TableHead className="text-right sticky right-0 bg-background z-10">Overall</TableHead>
                     </TableRow>
