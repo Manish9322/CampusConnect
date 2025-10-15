@@ -7,16 +7,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Send, ChevronLeft, ChevronRight, CalendarIcon } from "lucide-react";
+import { Send, ChevronLeft, ChevronRight, CalendarIcon, AlertTriangle } from "lucide-react";
 import { AttendanceRecord, AttendanceStatus, Student, Teacher, Class } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
-import { format } from "date-fns";
+import { format, differenceInDays } from "date-fns";
 import { useAddAttendanceMutation, useGetAttendanceQuery, useGetClassesQuery, useGetStudentsQuery } from "@/services/api";
 import { Skeleton } from "../ui/skeleton";
 import { EmptyState } from "../shared/empty-state";
 import { ThreeStateToggle } from "../shared/three-state-toggle";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 
 type AttendanceState = {
   [studentId: string]: AttendanceStatus;
@@ -31,6 +32,8 @@ export function AttendanceTool() {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [date, setDate] = React.useState<Date | undefined>(new Date());
+
+  const isDateLocked = date ? differenceInDays(new Date(), date) > 6 : false;
 
   React.useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -92,11 +95,12 @@ export function AttendanceTool() {
   };
 
   const handleAttendanceChange = (studentId: string, status: AttendanceStatus) => {
+    if(isDateLocked) return;
     setAttendance((prev) => ({ ...prev, [studentId]: status }));
   };
 
   const handleSubmit = async () => {
-    if (!selectedClassId || !formattedDate || !user) return;
+    if (!selectedClassId || !formattedDate || !user || isDateLocked) return;
 
     const attendanceData: AttendanceRecord[] = studentsInCourse.map((student: Student) => ({
       studentId: student._id!,
@@ -122,6 +126,7 @@ export function AttendanceTool() {
   };
   
   const markAll = (status: AttendanceStatus) => {
+    if(isDateLocked) return;
     const newAttendance: AttendanceState = {};
     studentsInCourse.forEach((student: Student) => {
       newAttendance[student._id!] = status;
@@ -139,7 +144,7 @@ export function AttendanceTool() {
             <TableCell><Skeleton className="h-5 w-32"/></TableCell>
             <TableCell className="hidden lg:table-cell"><Skeleton className="h-5 w-48"/></TableCell>
             <TableCell className="hidden sm:table-cell"><Skeleton className="h-5 w-16"/></TableCell>
-            <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto rounded-full"/></TableCell>
+            <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto rounded-md"/></TableCell>
         </TableRow>
       ));
     }
@@ -156,6 +161,7 @@ export function AttendanceTool() {
             <ThreeStateToggle 
                 status={attendance[student._id!] || 'present'}
                 onChange={(newStatus) => handleAttendanceChange(student._id!, newStatus)}
+                disabled={isDateLocked}
             />
           </TableCell>
         </TableRow>
@@ -207,9 +213,18 @@ export function AttendanceTool() {
           </div>
         </CardHeader>
         <CardContent>
+            {isDateLocked && (
+                <Alert variant="destructive" className="mb-4">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Editing Locked</AlertTitle>
+                    <AlertDescription>
+                        Attendance records can only be modified for up to 6 days. This record is now read-only.
+                    </AlertDescription>
+                </Alert>
+            )}
            <div className="flex w-full sm:w-auto items-center gap-2 mb-4">
-              <Button variant="outline" className="w-full" onClick={() => markAll('present')} disabled={isLoading || isLoadingStudents}>All Present</Button>
-              <Button variant="outline" className="w-full" onClick={() => markAll('absent')} disabled={isLoading || isLoadingStudents}>All Absent</Button>
+              <Button variant="outline" className="w-full" onClick={() => markAll('present')} disabled={isLoading || isLoadingStudents || isDateLocked}>All Present</Button>
+              <Button variant="outline" className="w-full" onClick={() => markAll('absent')} disabled={isLoading || isLoadingStudents || isDateLocked}>All Absent</Button>
            </div>
           <div className="rounded-md border">
             <Table>
@@ -263,7 +278,7 @@ export function AttendanceTool() {
                       <ChevronRight className="h-4 w-4" />
                   </Button>
               </div>
-               <Button onClick={handleSubmit} disabled={isSubmitting || isLoadingStudents || paginatedStudents.length === 0} className="bg-accent hover:bg-accent/90 w-full sm:w-auto">
+               <Button onClick={handleSubmit} disabled={isSubmitting || isLoadingStudents || paginatedStudents.length === 0 || isDateLocked} className="bg-accent hover:bg-accent/90 w-full sm:w-auto">
                   {isSubmitting ? "Submitting..." : <><Send className="mr-2 h-4 w-4" />Submit Attendance</>}
               </Button>
           </div>
