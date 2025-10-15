@@ -4,7 +4,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade'],
+  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest'],
   endpoints: (builder) => ({
     testDBConnection: builder.query({
       query: () => 'connect',
@@ -255,7 +255,12 @@ export const api = createApi({
 
     // Attendance endpoints
     getAttendance: builder.query({
-        query: ({ classId, date }) => `attendance?classId=${classId}&date=${date}`,
+        query: (params) => {
+            const urlParams = new URLSearchParams();
+            if (params.classId) urlParams.append('classId', params.classId);
+            if (params.date) urlParams.append('date', params.date);
+            return `attendance?${urlParams.toString()}`;
+        },
         providesTags: (result, error, { classId, date }) => [{ type: 'Attendance', id: `${classId}-${date}` }],
     }),
     addAttendance: builder.mutation({
@@ -265,11 +270,11 @@ export const api = createApi({
             body: attendanceData,
         }),
         invalidatesTags: (result, error, arg) => {
-            if (Array.isArray(arg)) {
+            if (Array.isArray(arg) && arg.length > 0) {
                 const { classId, date } = arg[0] || { classId: 'UNKNOWN', date: 'UNKNOWN' };
                 return [{ type: 'Attendance', id: `${classId}-${date}` }];
             }
-            return [];
+            return ['Attendance'];
         },
     }),
 
@@ -323,6 +328,28 @@ export const api = createApi({
         }),
         invalidatesTags: ['Grade'],
     }),
+
+    // Attendance Request endpoints
+    getAttendanceRequests: builder.query({
+        query: () => 'attendance-requests',
+        providesTags: ['AttendanceRequest'],
+    }),
+    addAttendanceRequest: builder.mutation({
+        query: (newRequest) => ({
+            url: 'attendance-requests',
+            method: 'POST',
+            body: newRequest,
+        }),
+        invalidatesTags: ['AttendanceRequest'],
+    }),
+    updateAttendanceRequest: builder.mutation({
+        query: (requestToUpdate) => ({
+            url: 'attendance-requests',
+            method: 'PUT',
+            body: requestToUpdate,
+        }),
+        invalidatesTags: ['AttendanceRequest', 'Attendance'],
+    }),
   }),
 });
 
@@ -370,4 +397,7 @@ export const {
     useGetGradesQuery,
     useAddGradeMutation,
     useUpdateGradeMutation,
+    useGetAttendanceRequestsQuery,
+    useAddAttendanceRequestMutation,
+    useUpdateAttendanceRequestMutation,
 } = api;

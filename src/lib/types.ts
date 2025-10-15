@@ -1,4 +1,5 @@
 
+
 export type UserRole = 'admin' | 'teacher' | 'student';
 
 export interface User {
@@ -134,4 +135,14 @@ export interface AttendanceRecord {
   status: AttendanceStatus;
   course?: string;
   recordedBy: string; // teacherId
+}
+
+export interface AttendanceRequest {
+    _id: string;
+    studentId: string;
+    attendanceId: string;
+    currentStatus: AttendanceStatus;
+    requestedStatus: AttendanceStatus;
+    reason: string;
+    status: 'pending' | 'approved' | 'denied';
 }
