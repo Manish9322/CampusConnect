@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Home, Users, BookCopy, CalendarCheck, LogOut, User as UserIcon, PanelLeft, FileText, BookCheck } from "lucide-react";
+import { Home, Users, BookCopy, CalendarCheck, LogOut, User as UserIcon, PanelLeft, FileText, BookCheck, ClipboardCheck } from "lucide-react";
 import * as React from "react";
 
 import {
@@ -51,6 +51,7 @@ export function TeacherNav({ user }: TeacherNavProps) {
   const menuItems = [
     { href: "/teacher", label: "Dashboard", icon: Home },
     { href: "/teacher/attendance", label: "Take Attendance", icon: CalendarCheck },
+    { href: "/teacher/attendance-requests", label: "Attendance Requests", icon: ClipboardCheck },
     { href: "/teacher/classes", label: "My Classes", icon: BookCopy },
     { href: "/teacher/students", label: "Students", icon: Users },
     { href: "/teacher/assignments", label: "Assignments", icon: FileText },

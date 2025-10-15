@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Send, ChevronLeft, ChevronRight, CalendarIcon, AlertTriangle } from "lucide-react";
+import { Send, ChevronLeft, ChevronRight, CalendarIcon, AlertTriangle, Lock } from "lucide-react";
 import { AttendanceRecord, AttendanceStatus, Student, Teacher, Class } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
@@ -32,8 +32,6 @@ export function AttendanceTool() {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [date, setDate] = React.useState<Date | undefined>(new Date());
-
-  const isDateLocked = date ? differenceInDays(new Date(), date) > 6 : false;
 
   React.useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -69,6 +67,8 @@ export function AttendanceTool() {
   );
 
   const [addAttendance, { isLoading: isSubmitting }] = useAddAttendanceMutation();
+  
+  const isLocked = existingAttendance.length > 0;
 
   React.useEffect(() => {
     const newAttendance: AttendanceState = {};
@@ -95,12 +95,12 @@ export function AttendanceTool() {
   };
 
   const handleAttendanceChange = (studentId: string, status: AttendanceStatus) => {
-    if(isDateLocked) return;
+    if(isLocked) return;
     setAttendance((prev) => ({ ...prev, [studentId]: status }));
   };
 
   const handleSubmit = async () => {
-    if (!selectedClassId || !formattedDate || !user || isDateLocked) return;
+    if (!selectedClassId || !formattedDate || !user || isLocked) return;
 
     const attendanceData: AttendanceRecord[] = studentsInCourse.map((student: Student) => ({
       studentId: student._id!,
@@ -116,6 +116,7 @@ export function AttendanceTool() {
         title: "Attendance Submitted",
         description: `Attendance for class on ${format(date!, "PPP")} has been recorded.`,
       });
+      refetchAttendance();
     } catch (error) {
       toast({
         title: "Error",
@@ -126,7 +127,7 @@ export function AttendanceTool() {
   };
   
   const markAll = (status: AttendanceStatus) => {
-    if(isDateLocked) return;
+    if(isLocked) return;
     const newAttendance: AttendanceState = {};
     studentsInCourse.forEach((student: Student) => {
       newAttendance[student._id!] = status;
@@ -161,7 +162,7 @@ export function AttendanceTool() {
             <ThreeStateToggle 
                 status={attendance[student._id!] || 'present'}
                 onChange={(newStatus) => handleAttendanceChange(student._id!, newStatus)}
-                disabled={isDateLocked}
+                disabled={isLocked}
             />
           </TableCell>
         </TableRow>
@@ -213,18 +214,18 @@ export function AttendanceTool() {
           </div>
         </CardHeader>
         <CardContent>
-            {isDateLocked && (
-                <Alert variant="destructive" className="mb-4">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Editing Locked</AlertTitle>
-                    <AlertDescription>
-                        Attendance records can only be modified for up to 6 days. This record is now read-only.
+            {isLocked && (
+                <Alert variant="default" className="mb-4 bg-yellow-50 border-yellow-200 dark:bg-yellow-950 dark:border-yellow-800">
+                    <Lock className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                    <AlertTitle className="text-yellow-800 dark:text-yellow-300">Attendance Locked</AlertTitle>
+                    <AlertDescription className="text-yellow-700 dark:text-yellow-500">
+                        Attendance for this date has been submitted. To make changes, a student must submit a request, which you can review on the 'Attendance Requests' page.
                     </AlertDescription>
                 </Alert>
             )}
            <div className="flex w-full sm:w-auto items-center gap-2 mb-4">
-              <Button variant="outline" className="w-full" onClick={() => markAll('present')} disabled={isLoading || isLoadingStudents || isDateLocked}>All Present</Button>
-              <Button variant="outline" className="w-full" onClick={() => markAll('absent')} disabled={isLoading || isLoadingStudents || isDateLocked}>All Absent</Button>
+              <Button variant="outline" className="w-full" onClick={() => markAll('present')} disabled={isLoading || isLoadingStudents || isLocked}>All Present</Button>
+              <Button variant="outline" className="w-full" onClick={() => markAll('absent')} disabled={isLoading || isLoadingStudents || isLocked}>All Absent</Button>
            </div>
           <div className="rounded-md border">
             <Table>
@@ -278,7 +279,7 @@ export function AttendanceTool() {
                       <ChevronRight className="h-4 w-4" />
                   </Button>
               </div>
-               <Button onClick={handleSubmit} disabled={isSubmitting || isLoadingStudents || paginatedStudents.length === 0 || isDateLocked} className="bg-accent hover:bg-accent/90 w-full sm:w-auto">
+               <Button onClick={handleSubmit} disabled={isSubmitting || isLoadingStudents || paginatedStudents.length === 0 || isLocked} className="bg-accent hover:bg-accent/90 w-full sm:w-auto">
                   {isSubmitting ? "Submitting..." : <><Send className="mr-2 h-4 w-4" />Submit Attendance</>}
               </Button>
           </div>
