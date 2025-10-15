@@ -16,7 +16,7 @@ export default function TeacherAssignmentsPage() {
     }, []);
 
     const { data: allAssignments = [], isLoading: isLoadingAssignments } = useGetAssignmentsQuery({});
-    const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery();
+    const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery(undefined);
 
     const teacherClasses = React.useMemo(() => {
         if (user && allClasses.length > 0) {
