@@ -225,13 +225,10 @@ export function AttendanceTool() {
                 </Alert>
             )}
             {existingAttendance.length > 0 && !isDateOutOfRange && (
-                <Alert variant="default" className="mb-4 bg-yellow-50 border-yellow-200 dark:bg-yellow-950 dark:border-yellow-800">
-                    <Lock className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-                    <AlertTitle className="text-yellow-800 dark:text-yellow-300">Attendance Locked</AlertTitle>
-                    <AlertDescription className="text-yellow-700 dark:text-yellow-500">
-                        Attendance for this date is locked. To make changes, please review student requests.
-                    </AlertDescription>
-                </Alert>
+                <div className="flex items-center gap-2 mb-4 p-3 rounded-md bg-muted text-muted-foreground text-sm">
+                    <Lock className="h-4 w-4" />
+                    <span>Attendance is locked. Changes must be initiated by a student request.</span>
+                </div>
             )}
            <div className="flex w-full sm:w-auto items-center gap-2 mb-4">
               <Button variant="outline" className="w-full" onClick={() => markAll('present')} disabled={isLoading || isLoadingStudents || isLocked}>All Present</Button>
