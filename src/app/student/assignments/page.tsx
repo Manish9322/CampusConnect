@@ -2,7 +2,6 @@
 "use client"
 import * as React from "react";
 import { AssignmentsList } from "@/components/student/assignments/assignments-list";
-import { useGetAssignmentsQuery, useGetGradesQuery } from "@/services/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Student } from "@/lib/types";
 
@@ -26,13 +25,8 @@ export default function StudentAssignmentsPage() {
         };
         setUser(loggedInUser);
     }, []);
-    
-    const { data: assignments = [], isLoading: isLoadingAssignments } = useGetAssignmentsQuery({});
-    const { data: grades = [], isLoading: isLoadingGrades, refetch: refetchGrades } = useGetGradesQuery(user?.id, { skip: !user });
 
-    const isLoading = isLoadingAssignments || isLoadingGrades || !user;
-
-    if(isLoading) {
+    if(!user) {
         return (
              <div className="space-y-6">
                 <Skeleton className="h-40 w-full" />
@@ -47,12 +41,7 @@ export default function StudentAssignmentsPage() {
 
     return (
         <div className="space-y-6">
-            <AssignmentsList 
-                assignments={assignments}
-                grades={grades}
-                studentId={user!.id}
-                onGradeUpdate={refetchGrades}
-            />
+            <AssignmentsList student={user} />
         </div>
     );
 }

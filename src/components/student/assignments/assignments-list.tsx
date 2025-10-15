@@ -104,7 +104,7 @@ export function AssignmentsList({ student }: AssignmentsListProps) {
     const renderAssignmentCard = (assignment: Assignment) => {
         const gradeInfo = getGradeInfo(assignment._id);
         const status = gradeInfo?.status || 'Pending';
-        const config = statusConfig[status];
+        const config = statusConfig[status as SubmissionStatus];
 
         return (
             <Card key={assignment._id} className="flex flex-col hover:shadow-md transition-shadow">
@@ -153,10 +153,10 @@ export function AssignmentsList({ student }: AssignmentsListProps) {
         );
     };
 
-    const allCourses = [...new Set(assignments.map(a => a.courseName))];
-    const pendingAssignments = processAssignments(assignments.filter(a => !getGradeInfo(a._id)));
-    const submittedAssignments = processAssignments(assignments.filter(a => getGradeInfo(a._id)));
-    
+    const allCourses = [...new Set(assignments.map((a : Assignment) => a.courseName))];
+    const pendingAssignments = processAssignments(assignments.filter((a : Assignment) => !getGradeInfo(a._id)));
+    const submittedAssignments = processAssignments(assignments.filter((a : Assignment) => getGradeInfo(a._id)));
+
     const isLoading = isLoadingAssignments || isLoadingGrades;
 
   return (
@@ -181,14 +181,14 @@ export function AssignmentsList({ student }: AssignmentsListProps) {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Courses</SelectItem>
-                            {allCourses.map(course => <SelectItem key={course} value={course}>{course}</SelectItem>)}
+                            {allCourses.map((course, index) => <SelectItem key={course || index} value={course as string}>{course as string}</SelectItem>)}
                         </SelectContent>
                     </Select>
                      <Select value={sortOption} onValueChange={setSortOption}>
                         <SelectTrigger className="w-full sm:w-[150px]">
                              <ChevronsUpDown className="h-4 w-4 mr-2"/>
                             <SelectValue placeholder="Sort by" />
-                        </SelectTrigger>
+                        </SelectTrigger>    
                         <SelectContent>
                             <SelectItem value="due-date-asc">Due Date</SelectItem>
                             <SelectItem value="due-date-desc">Due Date (Desc)</SelectItem>
