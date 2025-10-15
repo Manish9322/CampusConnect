@@ -11,9 +11,9 @@ export async function POST(request) {
 
     let user;
     if (role === 'teacher') {
-      user = await Teacher.findOne({ email });
+      user = await Teacher.findOne({ email }).select('+password');
     } else if (role === 'student') {
-      user = await Student.findOne({ email });
+      user = await Student.findOne({ email }).select('+password');
     } else {
         // For now, we only support teacher and student login
         // We can add other roles like admin later
