@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Button } from "../ui/button";
 import { ChevronLeft, ChevronRight, Download, Edit } from "lucide-react";
 import { DatePickerWithRange } from "./date-picker-range";
-import { useGetAttendanceQuery, useGetTeachersQuery, useAddAttendanceRequestMutation } from "@/services/api";
+import { useGetAttendanceQuery, useAddAttendanceRequestMutation, useGetTeachersQuery } from "@/services/api";
 import { Skeleton } from "../ui/skeleton";
 import { RequestChangeDialog } from "./attendance/request-change-dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -47,13 +47,18 @@ export function AttendanceDetails() {
   const isLoading = isLoadingAttendance || isLoadingTeachers || !user;
 
   const studentRecords = React.useMemo(() => {
-    if (isLoading) return [];
+    if (isLoading || !user) return [];
+    
     return allAttendance
-      .filter((record: AttendanceRecord) => record.studentId === user?._id)
-      .map((record: AttendanceRecord) => ({
-        ...record,
-        teacherName: teachers.find((t: any) => t._id === record.recordedBy)?.name || 'N/A'
-      }));
+      .filter((record: any) => record.studentId === user.id)
+      .map((record: any) => {
+        const teacher = teachers.find((t: any) => t._id === record.recordedBy);
+        return {
+            ...record,
+            teacherName: teacher ? teacher.name : 'N/A',
+            course: record.classId // Assuming classId is the course name for now
+        }
+      });
   }, [allAttendance, user, teachers, isLoading]);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,7 +89,7 @@ export function AttendanceDetails() {
     if (!selectedRecord || !user) return;
     try {
         await addAttendanceRequest({
-            studentId: user._id,
+            studentId: user.id,
             attendanceId: selectedRecord._id,
             currentStatus: selectedRecord.status,
             requestedStatus: data.requestedStatus,
