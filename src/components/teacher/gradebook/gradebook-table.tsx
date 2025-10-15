@@ -46,10 +46,11 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
   const [updateGrade, { isLoading: isUpdatingGrade }] = useUpdateGradeMutation();
   const { toast } = useToast();
 
-  const filteredStudents = students.filter(student =>
+  const filteredStudentsForClass = students.filter(student => classFilter === 'all' || student.classId === classFilter);
+
+  const filteredStudents = filteredStudentsForClass.filter(student =>
     (student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (student.rollNo && student.rollNo.toLowerCase().includes(searchTerm.toLowerCase()))) &&
-    (classFilter === 'all' || student.classId === classFilter)
+    (student.rollNo && student.rollNo.toLowerCase().includes(searchTerm.toLowerCase())))
   );
 
   const filteredAssignments = assignments.filter(assignment => classFilter === 'all' || assignment.courseId === classFilter);
