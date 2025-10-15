@@ -68,7 +68,8 @@ export function AttendanceTool() {
 
   const [addAttendance, { isLoading: isSubmitting }] = useAddAttendanceMutation();
   
-  const isLocked = existingAttendance.length > 0;
+  const isDateOutOfRange = date ? differenceInDays(new Date(), date) > 6 : false;
+  const isLocked = existingAttendance.length > 0 || isDateOutOfRange;
 
   React.useEffect(() => {
     const newAttendance: AttendanceState = {};
@@ -214,12 +215,21 @@ export function AttendanceTool() {
           </div>
         </CardHeader>
         <CardContent>
-            {isLocked && (
+            {isDateOutOfRange && (
+                <Alert variant="destructive" className="mb-4">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Date Out of Range</AlertTitle>
+                    <AlertDescription>
+                        Attendance can only be recorded or edited for dates within the last 6 days.
+                    </AlertDescription>
+                </Alert>
+            )}
+            {existingAttendance.length > 0 && !isDateOutOfRange && (
                 <Alert variant="default" className="mb-4 bg-yellow-50 border-yellow-200 dark:bg-yellow-950 dark:border-yellow-800">
                     <Lock className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
                     <AlertTitle className="text-yellow-800 dark:text-yellow-300">Attendance Locked</AlertTitle>
                     <AlertDescription className="text-yellow-700 dark:text-yellow-500">
-                        Attendance for this date has been submitted. To make changes, a student must submit a request, which you can review on the 'Attendance Requests' page.
+                        Attendance for this date is locked. To make changes, please review student requests.
                     </AlertDescription>
                 </Alert>
             )}
