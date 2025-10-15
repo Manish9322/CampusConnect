@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import _db from '@/lib/db';
 import { Class } from '@/models/class.model.js';
+import { Teacher } from '@/models/teacher.model.js';
 
 export async function GET() {
   await _db();
