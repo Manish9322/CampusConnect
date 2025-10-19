@@ -15,11 +15,16 @@ export default function TeacherStudentsPage() {
     React.useEffect(() => {
         const storedUser = localStorage.getItem('teacher_user');
         if (storedUser) {
-            setUser(JSON.parse(storedUser));
+            const parsedUser = JSON.parse(storedUser);
+            // Ensure both id and _id are set for compatibility
+            if (parsedUser.id && !parsedUser._id) {
+                parsedUser._id = parsedUser.id;
+            }
+            setUser(parsedUser);
         }
     }, []);
 
-    const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery();
+    const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery(undefined);
     const { data: allStudents = [], isLoading: isLoadingStudents } = useGetStudentsQuery({});
 
     const isLoading = isLoadingClasses || isLoadingStudents || !user;
@@ -29,7 +34,11 @@ export default function TeacherStudentsPage() {
             return { teacherClasses: [], teacherStudents: [] };
         }
 
-        const classesForTeacher = allClasses.filter((c: Class) => c.teacherId?._id === user._id);
+        const userId = user._id || user.id;
+        const classesForTeacher = allClasses.filter((c: Class) => {
+            const classTeacherId = (c.teacherId as any)?._id || c.teacherId;
+            return classTeacherId === userId;
+        });
         const classIdsForTeacher = classesForTeacher.map((c: Class) => c._id);
         
         const studentsForTeacher = allStudents.filter((s: Student) => {

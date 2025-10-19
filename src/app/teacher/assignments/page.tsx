@@ -11,7 +11,11 @@ export default function TeacherAssignmentsPage() {
     React.useEffect(() => {
         const storedUser = localStorage.getItem('teacher_user');
         if (storedUser) {
-            setUser(JSON.parse(storedUser));
+            const parsedUser = JSON.parse(storedUser);
+            if (parsedUser.id && !parsedUser._id) {
+                parsedUser._id = parsedUser.id;
+            }
+            setUser(parsedUser);
         }
     }, []);
 
@@ -20,7 +24,11 @@ export default function TeacherAssignmentsPage() {
 
     const teacherClasses = React.useMemo(() => {
         if (user && allClasses.length > 0) {
-            return allClasses.filter((c: any) => c.teacherId?._id === user._id);
+            const userId = user._id || user.id;
+            return allClasses.filter((c: any) => {
+                const classTeacherId = c.teacherId?._id || c.teacherId;
+                return classTeacherId === userId;
+            });
         }
         return [];
     }, [user, allClasses]);

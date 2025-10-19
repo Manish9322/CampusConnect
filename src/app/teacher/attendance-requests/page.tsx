@@ -19,7 +19,11 @@ export default function TeacherAttendanceRequestsPage() {
      React.useEffect(() => {
         const storedUser = localStorage.getItem('teacher_user');
         if (storedUser) {
-            setUser(JSON.parse(storedUser));
+            const parsedUser = JSON.parse(storedUser);
+            if (parsedUser.id && !parsedUser._id) {
+                parsedUser._id = parsedUser.id;
+            }
+            setUser(parsedUser);
         }
     }, []);
 
@@ -35,7 +39,11 @@ export default function TeacherAttendanceRequestsPage() {
 
     const teacherClassIds = React.useMemo(() => {
         if (!user || !classes) return [];
-        return classes.filter((c: any) => c.teacherId?._id === user._id).map((c: any) => c._id);
+        const userId = user._id || user.id;
+        return classes.filter((c: any) => {
+            const classTeacherId = c.teacherId?._id || c.teacherId;
+            return classTeacherId === userId;
+        }).map((c: any) => c._id);
     }, [user, classes]);
 
     const teacherRequests = React.useMemo(() => {

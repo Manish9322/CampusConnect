@@ -15,7 +15,12 @@ export default function TeacherClassesPage() {
     React.useEffect(() => {
         const storedUser = localStorage.getItem('teacher_user');
         if (storedUser) {
-            setUser(JSON.parse(storedUser));
+            const parsedUser = JSON.parse(storedUser);
+            // Ensure both id and _id are set for compatibility
+            if (parsedUser.id && !parsedUser._id) {
+                parsedUser._id = parsedUser.id;
+            }
+            setUser(parsedUser);
         }
     }, []);
     
@@ -27,8 +32,12 @@ export default function TeacherClassesPage() {
     const teacherClassesWithDetails = React.useMemo(() => {
         if (!user || allClasses.length === 0) return [];
         
+        const userId = user._id || user.id;
         return allClasses
-            .filter((c: Class) => c.teacherId?._id === user._id)
+            .filter((c: Class) => {
+                const classTeacherId = c.teacherId?._id || c.teacherId;
+                return classTeacherId === userId;
+            })
             .map((c: Class) => {
                 const studentsInClass = allStudents.filter((s: Student) => s.classId === c._id);
                 return {

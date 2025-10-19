@@ -12,7 +12,11 @@ export default function TeacherGradebookPage() {
     React.useEffect(() => {
         const storedUser = localStorage.getItem('teacher_user');
         if (storedUser) {
-            setUser(JSON.parse(storedUser));
+            const parsedUser = JSON.parse(storedUser);
+            if (parsedUser.id && !parsedUser._id) {
+                parsedUser._id = parsedUser.id;
+            }
+            setUser(parsedUser);
         }
     }, []);
 
@@ -25,7 +29,11 @@ export default function TeacherGradebookPage() {
 
     const teacherClasses = React.useMemo(() => {
         if (!user || !allClasses) return [];
-        return allClasses.filter((c: Class) => c.teacherId?._id === user._id);
+        const userId = user._id || user.id;
+        return allClasses.filter((c: Class) => {
+            const classTeacherId = (c.teacherId as any)?._id || c.teacherId;
+            return classTeacherId === userId;
+        });
     }, [user, allClasses]);
 
     const teacherClassIds = React.useMemo(() => teacherClasses.map((c: Class) => c._id), [teacherClasses]);
