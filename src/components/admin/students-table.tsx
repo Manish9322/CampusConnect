@@ -47,6 +47,12 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
   const [addStudent] = useAddStudentMutation();
   const [updateStudent] = useUpdateStudentMutation();
   const [deleteStudent] = useDeleteStudentMutation();
+  
+  // Debug logging
+  console.log('StudentsTable - initialStudents:', initialStudents);
+  console.log('StudentsTable - initialStudents length:', initialStudents?.length);
+  console.log('StudentsTable - classes:', classes);
+  console.log('StudentsTable - isLoading:', isLoading);
 
   const studentsWithRandomAttendance = React.useMemo(() => {
     return initialStudents.map(student => ({

@@ -10,6 +10,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function ManageClassesPage() {
     const { data: classes = [], isLoading: isLoadingClasses, isError, refetch } = useGetClassesQuery();
     const { data: students = [], isLoading: isLoadingStudents } = useGetStudentsQuery();
+    
+    // Debug logging
+    console.log('Classes data:', classes);
+    console.log('Classes length:', classes.length);
+    console.log('Is loading classes:', isLoadingClasses);
+    console.log('Is error:', isError);
 
     const totalClasses = classes.length;
     const activeClasses = classes.filter((c: { status: string; }) => c.status === 'active').length;

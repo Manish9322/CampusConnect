@@ -9,6 +9,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ManageTeachersPage() {
     const { data: teachers = [], isLoading } = useGetTeachersQuery();
+    
+    // Debug logging
+    console.log('Teachers data:', teachers);
+    console.log('Teachers length:', teachers.length);
+    console.log('Is loading:', isLoading);
 
     const totalTeachers = teachers.length;
     const activeTeachers = teachers.filter(t => t.status === 'active').length;

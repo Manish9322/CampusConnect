@@ -15,7 +15,12 @@ export default function StudentProfilePage() {
         const storedUser = localStorage.getItem('student_user');
         if (storedUser) {
             setTimeout(() => {
-                setStudent(JSON.parse(storedUser));
+                const parsedUser = JSON.parse(storedUser);
+                // Ensure both id and _id are set for compatibility
+                if (parsedUser.id && !parsedUser._id) {
+                    parsedUser._id = parsedUser.id;
+                }
+                setStudent(parsedUser);
             }, 300);
         }
     }, []);

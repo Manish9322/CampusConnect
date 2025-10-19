@@ -41,7 +41,7 @@ export function AttendanceDetails() {
   }, []);
   
   const { data: allAttendance = [], isLoading: isLoadingAttendance } = useGetAttendanceQuery({}, { skip: !user });
-  const { data: teachers = [], isLoading: isLoadingTeachers } = useGetTeachersQuery();
+  const { data: teachers = [], isLoading: isLoadingTeachers } = useGetTeachersQuery(undefined);
   const [addAttendanceRequest] = useAddAttendanceRequestMutation();
 
   const isLoading = isLoadingAttendance || isLoadingTeachers || !user;

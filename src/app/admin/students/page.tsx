@@ -8,10 +8,28 @@ import { GraduationCap, Users, UserCheck, UserX } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ManageStudentsPage() {
-    const { data: students = [], isLoading: isLoadingStudents } = useGetStudentsQuery();
-    const { data: classes = [], isLoading: isLoadingClasses } = useGetClassesQuery();
-
-    const isLoading = isLoadingStudents || isLoadingClasses;
+    const studentsQuery = useGetStudentsQuery();
+    const classesQuery = useGetClassesQuery();
+    
+    // Debug logging - check the entire query result
+    console.log('=== STUDENTS QUERY DEBUG ===');
+    console.log('Full studentsQuery object:', studentsQuery);
+    console.log('studentsQuery.data:', studentsQuery.data);
+    console.log('studentsQuery.isLoading:', studentsQuery.isLoading);
+    console.log('studentsQuery.isSuccess:', studentsQuery.isSuccess);
+    console.log('studentsQuery.isError:', studentsQuery.isError);
+    console.log('studentsQuery.error:', studentsQuery.error);
+    console.log('=== CLASSES QUERY DEBUG ===');
+    console.log('Full classesQuery object:', classesQuery);
+    console.log('classesQuery.data:', classesQuery.data);
+    console.log('classesQuery.isLoading:', classesQuery.isLoading);
+    console.log('classesQuery.isSuccess:', classesQuery.isSuccess);
+    console.log('classesQuery.isError:', classesQuery.isError);
+    console.log('classesQuery.error:', classesQuery.error);
+    
+    const students = studentsQuery.data || [];
+    const classes = classesQuery.data || [];
+    const isLoading = studentsQuery.isLoading || classesQuery.isLoading;
 
     const totalStudents = students.length;
     const activeStudents = students.filter((s: { status: string; }) => s.status === 'active').length;
@@ -74,7 +92,7 @@ export default function ManageStudentsPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <StudentsTable students={students} classes={classes} isLoading={isLoading} />
+                    <StudentsTable key={students.length} students={students} classes={classes} isLoading={isLoading} />
                 </CardContent>
             </Card>
         </div>

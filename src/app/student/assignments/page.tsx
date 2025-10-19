@@ -7,26 +7,34 @@ import { Student } from "@/lib/types";
 
 export default function StudentAssignmentsPage() {
     const [user, setUser] = React.useState<Student | null>(null);
+    const [isLoading, setIsLoading] = React.useState(true);
     
     React.useEffect(() => {
-        // Mocking user login. In a real app, this would come from an auth context.
-        const loggedInUser: Student = {
-            id: '1', // Alice Johnson's ID from mock-data
-            _id: '1',
-            studentId: 'S001',
-            name: 'Alice Johnson',
-            email: 'alice@example.com',
-            role: 'student',
-            classId: '', // These details aren't strictly needed for this page's logic
-            rollNo: '',
-            phone: '',
-            status: 'active',
-            attendancePercentage: 0
-        };
-        setUser(loggedInUser);
+        // Get the logged-in student from localStorage
+        const storedUser = localStorage.getItem('student_user');
+        console.log('=== STUDENT ASSIGNMENTS PAGE DEBUG ===');
+        console.log('Stored user from localStorage:', storedUser);
+        if (storedUser) {
+            try {
+                const parsedUser = JSON.parse(storedUser);
+                console.log('Parsed user:', parsedUser);
+                // Ensure both id and _id are set for compatibility
+                if (parsedUser.id && !parsedUser._id) {
+                    parsedUser._id = parsedUser.id;
+                    console.log('Added _id field from id:', parsedUser._id);
+                }
+                console.log('Final user object:', parsedUser);
+                setUser(parsedUser);
+            } catch (error) {
+                console.error('Error parsing stored user:', error);
+            }
+        } else {
+            console.log('No student_user found in localStorage. Please log in.');
+        }
+        setIsLoading(false);
     }, []);
 
-    if(!user) {
+    if(isLoading || !user) {
         return (
              <div className="space-y-6">
                 <Skeleton className="h-40 w-full" />

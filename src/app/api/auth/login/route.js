@@ -32,6 +32,7 @@ export async function POST(request) {
         token,
         user: {
             id: user._id,
+            _id: user._id,
             name: user.name,
             email: user.email,
             role: user.role
