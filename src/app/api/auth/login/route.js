@@ -26,17 +26,14 @@ export async function POST(request) {
         process.env.JWT_SECRET || 'your_default_secret_key',
         { expiresIn: '1h' }
       );
+      
+      const userPayload = user.toObject();
+      delete userPayload.password;
 
       return NextResponse.json({
         message: "Login successful",
         token,
-        user: {
-            id: user._id,
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            role: user.role
-        }
+        user: userPayload
       }, { status: 200 });
 
     } else {
