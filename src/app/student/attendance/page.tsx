@@ -10,7 +10,7 @@ export default function StudentAttendancePage() {
     const [user, setUser] = React.useState<Student | null>(null);
 
     React.useEffect(() => {
-        const storedUser = localStorage.getItem('user');
+        const storedUser = localStorage.getItem('student_user');
         if (storedUser) {
             setUser(JSON.parse(storedUser));
         }

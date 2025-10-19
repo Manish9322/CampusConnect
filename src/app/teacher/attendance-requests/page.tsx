@@ -17,7 +17,7 @@ export default function TeacherAttendanceRequestsPage() {
     const [user, setUser] = React.useState<Teacher | null>(null);
 
      React.useEffect(() => {
-        const storedUser = localStorage.getItem('user');
+        const storedUser = localStorage.getItem('teacher_user');
         if (storedUser) {
             setUser(JSON.parse(storedUser));
         }
@@ -35,7 +35,7 @@ export default function TeacherAttendanceRequestsPage() {
 
     const teacherClassIds = React.useMemo(() => {
         if (!user || !classes) return [];
-        return classes.filter((c: any) => c.teacherId?._id === user.id).map((c: any) => c._id);
+        return classes.filter((c: any) => c.teacherId?._id === user._id).map((c: any) => c._id);
     }, [user, classes]);
 
     const teacherRequests = React.useMemo(() => {

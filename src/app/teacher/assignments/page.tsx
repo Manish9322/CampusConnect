@@ -9,7 +9,7 @@ export default function TeacherAssignmentsPage() {
     const [user, setUser] = React.useState<Teacher | null>(null);
 
     React.useEffect(() => {
-        const storedUser = localStorage.getItem('user');
+        const storedUser = localStorage.getItem('teacher_user');
         if (storedUser) {
             setUser(JSON.parse(storedUser));
         }
@@ -20,7 +20,7 @@ export default function TeacherAssignmentsPage() {
 
     const teacherClasses = React.useMemo(() => {
         if (user && allClasses.length > 0) {
-            return allClasses.filter((c: any) => c.teacherId?._id === user.id);
+            return allClasses.filter((c: any) => c.teacherId?._id === user._id);
         }
         return [];
     }, [user, allClasses]);

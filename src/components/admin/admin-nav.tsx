@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import Link from "next/link";
@@ -39,12 +38,12 @@ interface AdminNavProps {
         email: string;
         initials: string;
         profileImage?: string;
-    }
+    },
+    onLogout: () => void;
 }
 
-export function AdminNav({ user }: AdminNavProps) {
+export function AdminNav({ user, onLogout }: AdminNavProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const { state, isMobile } = useSidebar();
   const [isLogoutDialogOpen, setLogoutDialogOpen] = React.useState(false);
 
@@ -59,10 +58,6 @@ export function AdminNav({ user }: AdminNavProps) {
     { href: "/admin/attendance-requests", label: "Attendance Requests", icon: ClipboardCheck },
     { href: "/admin/settings", label: "Settings", icon: Settings },
   ];
-
-  const handleLogout = () => {
-    router.push('/');
-  };
 
   return (
     <>
@@ -150,7 +145,7 @@ export function AdminNav({ user }: AdminNavProps) {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleLogout}>Log Out</AlertDialogAction>
+                <AlertDialogAction onClick={onLogout}>Log Out</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>

@@ -10,7 +10,7 @@ export default function TeacherGradebookPage() {
     const [user, setUser] = React.useState<Teacher | null>(null);
 
     React.useEffect(() => {
-        const storedUser = localStorage.getItem('user');
+        const storedUser = localStorage.getItem('teacher_user');
         if (storedUser) {
             setUser(JSON.parse(storedUser));
         }
@@ -25,7 +25,7 @@ export default function TeacherGradebookPage() {
 
     const teacherClasses = React.useMemo(() => {
         if (!user || !allClasses) return [];
-        return allClasses.filter((c: Class) => c.teacherId?._id === user.id);
+        return allClasses.filter((c: Class) => c.teacherId?._id === user._id);
     }, [user, allClasses]);
 
     const teacherClassIds = React.useMemo(() => teacherClasses.map((c: Class) => c._id), [teacherClasses]);
@@ -60,4 +60,3 @@ export default function TeacherGradebookPage() {
         </div>
     );
 }
-

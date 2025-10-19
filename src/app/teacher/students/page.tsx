@@ -13,7 +13,7 @@ export default function TeacherStudentsPage() {
     const [user, setUser] = React.useState<Teacher | null>(null);
 
     React.useEffect(() => {
-        const storedUser = localStorage.getItem('user');
+        const storedUser = localStorage.getItem('teacher_user');
         if (storedUser) {
             setUser(JSON.parse(storedUser));
         }
@@ -29,7 +29,7 @@ export default function TeacherStudentsPage() {
             return { teacherClasses: [], teacherStudents: [] };
         }
 
-        const classesForTeacher = allClasses.filter((c: Class) => c.teacherId?._id === user.id);
+        const classesForTeacher = allClasses.filter((c: Class) => c.teacherId?._id === user._id);
         const classIdsForTeacher = classesForTeacher.map((c: Class) => c._id);
         
         const studentsForTeacher = allStudents.filter((s: Student) => {

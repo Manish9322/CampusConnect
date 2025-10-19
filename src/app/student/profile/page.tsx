@@ -12,7 +12,7 @@ export default function StudentProfilePage() {
     const [student, setStudent] = React.useState<Student | null>(null);
 
     React.useEffect(() => {
-        const storedUser = localStorage.getItem('user');
+        const storedUser = localStorage.getItem('student_user');
         if (storedUser) {
             setTimeout(() => {
                 setStudent(JSON.parse(storedUser));
@@ -88,7 +88,7 @@ export default function StudentProfilePage() {
 
     const handleProfileUpdate = (updatedStudent: Student) => {
         setStudent(updatedStudent);
-        localStorage.setItem('user', JSON.stringify(updatedStudent));
+        localStorage.setItem('student_user', JSON.stringify(updatedStudent));
     };
 
     return (
@@ -104,7 +104,7 @@ export default function StudentProfilePage() {
                     <UpdateProfileForm student={student} onProfileUpdate={handleProfileUpdate} />
                 </div>
                 <div>
-                    <ChangePasswordForm studentId={student.id!} />
+                    <ChangePasswordForm studentId={student._id!} />
                 </div>
             </div>
         </div>

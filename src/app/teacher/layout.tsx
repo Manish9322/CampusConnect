@@ -4,7 +4,6 @@
 import { TeacherNav } from "@/components/teacher/teacher-nav";
 import { Header } from "@/components/shared/header";
 import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar";
-import { useGetTeachersQuery } from "@/services/api";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,8 +23,8 @@ export default function TeacherLayout({
   });
 
   React.useEffect(() => {
-    const token = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
+    const token = localStorage.getItem('teacher_token');
+    const storedUser = localStorage.getItem('teacher_user');
 
     if (!token || !storedUser) {
       router.push('/login');
@@ -65,11 +64,14 @@ export default function TeacherLayout({
     );
   }
 
-
   return (
     <SidebarProvider>
        <Sidebar collapsible="icon">
-        <TeacherNav user={user} />
+        <TeacherNav user={user} onLogout={() => {
+            localStorage.removeItem('teacher_token');
+            localStorage.removeItem('teacher_user');
+            router.push('/');
+        }} />
       </Sidebar>
       <SidebarInset>
         <div className="flex h-full flex-col">

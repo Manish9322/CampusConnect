@@ -23,8 +23,8 @@ export default function StudentLayout({
   });
 
   React.useEffect(() => {
-    const token = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
+    const token = localStorage.getItem('student_token');
+    const storedUser = localStorage.getItem('student_user');
 
     if (!token || !storedUser) {
       router.push('/login');
@@ -68,11 +68,14 @@ export default function StudentLayout({
     );
   }
 
-
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon">
-        <StudentNav user={user} />
+        <StudentNav user={user} onLogout={() => {
+            localStorage.removeItem('student_token');
+            localStorage.removeItem('student_user');
+            router.push('/');
+        }}/>
       </Sidebar>
       <SidebarInset>
         <div className="flex h-full flex-col">

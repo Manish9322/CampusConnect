@@ -1,10 +1,9 @@
 
-
 "use client"
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { Home, CalendarCheck, BarChart2, BookOpen, LogOut, User as UserIcon, Building2, PanelLeft, DollarSign, FileText } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { Home, CalendarCheck, BarChart2, BookOpen, LogOut, User as UserIcon, PanelLeft, DollarSign, FileText } from "lucide-react";
 import * as React from "react";
 
 import {
@@ -39,12 +38,12 @@ interface StudentNavProps {
         email: string;
         initials: string;
         profileImage?: string;
-    }
+    };
+    onLogout: () => void;
 }
 
-export function StudentNav({ user }: StudentNavProps) {
+export function StudentNav({ user, onLogout }: StudentNavProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const { state, isMobile } = useSidebar();
   const [isLogoutDialogOpen, setLogoutDialogOpen] = React.useState(false);
 
@@ -56,12 +55,6 @@ export function StudentNav({ user }: StudentNavProps) {
     { href: "/student/fees", label: "Fees", icon: DollarSign },
     { href: "/student/reports", label: "Reports", icon: BarChart2 },
   ];
-
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    router.push('/');
-  };
 
   return (
     <>
@@ -151,7 +144,7 @@ export function StudentNav({ user }: StudentNavProps) {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleLogout}>Log Out</AlertDialogAction>
+                <AlertDialogAction onClick={onLogout}>Log Out</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>

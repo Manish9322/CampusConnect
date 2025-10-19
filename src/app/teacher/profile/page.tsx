@@ -12,7 +12,7 @@ export default function TeacherProfilePage() {
     const [teacher, setTeacher] = React.useState<Teacher | null>(null);
 
     React.useEffect(() => {
-        const storedUser = localStorage.getItem('user');
+        const storedUser = localStorage.getItem('teacher_user');
         if (storedUser) {
             // Add a small delay to better visualize the skeleton
             setTimeout(() => {
@@ -89,7 +89,7 @@ export default function TeacherProfilePage() {
 
     const handleProfileUpdate = (updatedTeacher: Teacher) => {
         setTeacher(updatedTeacher);
-        localStorage.setItem('user', JSON.stringify(updatedTeacher));
+        localStorage.setItem('teacher_user', JSON.stringify(updatedTeacher));
     };
 
     return (

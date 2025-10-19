@@ -60,9 +60,9 @@ export function LoginForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
-      password: "",
-      role: "student",
+      email: "admin@campus.edu",
+      password: "password123",
+      role: "admin",
       remember: false,
     },
   });
@@ -71,9 +71,22 @@ export function LoginForm() {
     setIsLoading(true);
 
     if (values.role === 'admin') {
-        // For this demo, we'll just redirect for admin
-        router.push(`/${values.role}`);
-        return;
+      // For demo, we'll mock admin login
+      const adminUser = {
+        id: 'admin01',
+        _id: 'admin01',
+        name: "Admin User",
+        email: "admin@campus.edu",
+        role: "admin",
+      };
+      localStorage.setItem('admin_token', 'mock_admin_token');
+      localStorage.setItem('admin_user', JSON.stringify(adminUser));
+      toast({
+        title: "Login Successful",
+        description: "Welcome, Admin!",
+      });
+      router.push(`/${values.role}`);
+      return;
     }
 
     try {
@@ -90,8 +103,10 @@ export function LoginForm() {
           title: "Login Successful",
           description: "Welcome back!",
         });
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        const tokenKey = `${values.role}_token`;
+        const userKey = `${values.role}_user`;
+        localStorage.setItem(tokenKey, data.token);
+        localStorage.setItem(userKey, JSON.stringify(data.user));
         router.push(`/${values.role}`);
       } else {
         throw new Error(data.message || "Login failed");

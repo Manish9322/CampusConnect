@@ -34,7 +34,7 @@ export function AttendanceTool() {
   const [date, setDate] = React.useState<Date | undefined>(new Date());
 
   React.useEffect(() => {
-    const storedUser = localStorage.getItem('user');
+    const storedUser = localStorage.getItem('teacher_user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
@@ -44,7 +44,7 @@ export function AttendanceTool() {
   
   const teacherClasses = React.useMemo(() => {
     if (user && allClasses.length > 0) {
-      return allClasses.filter((c: any) => c.teacherId?._id === user.id);
+      return allClasses.filter((c: any) => c.teacherId?._id === user._id);
     }
     return [];
   }, [user, allClasses]);
@@ -103,12 +103,12 @@ export function AttendanceTool() {
   const handleSubmit = async () => {
     if (!selectedClassId || !formattedDate || !user || isLocked) return;
 
-    const attendanceData: AttendanceRecord[] = studentsInCourse.map((student: Student) => ({
+    const attendanceData: Omit<AttendanceRecord, '_id' | 'id'>[] = studentsInCourse.map((student: Student) => ({
       studentId: student._id!,
       classId: selectedClassId,
       date: formattedDate,
       status: attendance[student._id!] || 'present',
-      recordedBy: user.id,
+      recordedBy: user._id!,
     }));
 
     try {
