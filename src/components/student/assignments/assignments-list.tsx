@@ -12,6 +12,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/shared/empty-state";
 import { SubmitAssignmentDialog } from "./submit-assignment-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useFileUpload } from "@/hooks/use-file-upload";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAddGradeMutation, useGetAssignmentsForStudentQuery, useGetGradesQuery } from "@/services/api";
 
@@ -33,6 +34,12 @@ export function AssignmentsList({ student }: AssignmentsListProps) {
     const [sortOption, setSortOption] = React.useState("due-date-asc");
     const { toast } = useToast();
     
+    const { uploadFile, uploading: uploadingFile } = useFileUpload({
+        type: 'assignment',
+        maxSizeInMB: 10,
+        allowedTypes: ['*'], // Allow all file types for assignments
+    });
+    
     const { data: assignments = [], isLoading: isLoadingAssignments } = useGetAssignmentsForStudentQuery(student?._id, { skip: !student?._id });
     const { data: grades = [], isLoading: isLoadingGrades, refetch: refetchGrades } = useGetGradesQuery(student?._id, { skip: !student?._id });
 
@@ -50,20 +57,19 @@ export function AssignmentsList({ student }: AssignmentsListProps) {
     const handleSubmitAssignment = async (file: File) => {
         if (!selectedAssignment) return;
         
-        // This would be a file upload to a service like S3 in a real app.
-        // For now, we simulate it and use a local blob URL.
-        const mockSubmissionUrl = file ? URL.createObjectURL(file) : undefined;
-
-        const newGrade: Partial<Grade> = {
-            studentId: student._id!,
-            assignmentId: selectedAssignment._id,
-            marks: null,
-            status: new Date() > new Date(selectedAssignment.dueDate) ? 'Late' : 'Submitted',
-            submittedAt: new Date().toISOString(),
-            submissionUrl: mockSubmissionUrl,
-        };
-
         try {
+            // Upload file to server
+            const fileUrl = await uploadFile(file);
+
+            const newGrade: Partial<Grade> = {
+                studentId: student._id!,
+                assignmentId: selectedAssignment._id,
+                marks: null,
+                status: new Date() > new Date(selectedAssignment.dueDate) ? 'Late' : 'Submitted',
+                submittedAt: new Date().toISOString(),
+                submissionUrl: fileUrl,
+            };
+
             await addGrade(newGrade).unwrap();
             refetchGrades();
             toast({
@@ -74,7 +80,7 @@ export function AssignmentsList({ student }: AssignmentsListProps) {
         } catch(error) {
              toast({
                 title: "Submission Failed",
-                description: "There was an error submitting your assignment.",
+                description: error instanceof Error ? error.message : "There was an error submitting your assignment.",
                 variant: "destructive"
             });
         }
@@ -181,7 +187,7 @@ export function AssignmentsList({ student }: AssignmentsListProps) {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Courses</SelectItem>
-                            {allCourses.map((course, index) => <SelectItem key={course || index} value={course as string}>{course as string}</SelectItem>)}
+                            {allCourses.map((course, index) => <SelectItem key={`course-${course || index}`} value={course as string}>{course as string}</SelectItem>)}
                         </SelectContent>
                     </Select>
                      <Select value={sortOption} onValueChange={setSortOption}>
@@ -228,7 +234,7 @@ export function AssignmentsList({ student }: AssignmentsListProps) {
             onOpenChange={setSubmitOpen}
             assignment={selectedAssignment}
             onSubmit={handleSubmitAssignment}
-            isSubmitting={isSubmitting}
+            isSubmitting={isSubmitting || uploadingFile}
         />
       )}
     </>

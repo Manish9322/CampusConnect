@@ -65,14 +65,14 @@ export default function TeacherStudentsPage() {
 
         const totalStudents = studentsWithAttendance.length;
         const avgAttendance = totalStudents > 0 ? Math.round(
-            studentsWithAttendance.reduce((acc, s) => acc + s.attendancePercentage, 0) / totalStudents
+            studentsWithAttendance.reduce((acc: number, s: Student) => acc + s.attendancePercentage, 0) / totalStudents
         ) : 0;
         
-        const topStudent = totalStudents > 0 ? studentsWithAttendance.reduce((prev, current) =>
+        const topStudent = totalStudents > 0 ? studentsWithAttendance.reduce((prev: Student, current: Student) =>
             (prev.attendancePercentage || 0) > (current.attendancePercentage || 0) ? prev : current
         ) : null;
         
-        const lowAttendanceStudents = studentsWithAttendance.filter(s => s.attendancePercentage < 75).length;
+        const lowAttendanceStudents = studentsWithAttendance.filter((s: Student) => s.attendancePercentage < 75).length;
 
         return { totalStudents, avgAttendance, topStudent, lowAttendanceStudents };
 
@@ -147,7 +147,10 @@ export default function TeacherStudentsPage() {
 
     return (
         <div className="space-y-6">
-            <h1 className="text-2xl font-bold">My Students</h1>
+            <div>
+                <h1 className="text-2xl font-bold">My Students</h1>
+                <p className="text-muted-foreground mt-1">View and manage all students across your classes</p>
+            </div>
              {renderStatCards()}
             <ViewStudents 
                 teacherClasses={teacherClasses}

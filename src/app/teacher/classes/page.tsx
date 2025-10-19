@@ -24,7 +24,7 @@ export default function TeacherClassesPage() {
         }
     }, []);
     
-    const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery();
+    const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery(undefined);
     const { data: allStudents = [], isLoading: isLoadingStudents } = useGetStudentsQuery({});
 
     const isLoading = isLoadingClasses || isLoadingStudents || !user;
@@ -35,14 +35,14 @@ export default function TeacherClassesPage() {
         const userId = user._id || user.id;
         return allClasses
             .filter((c: Class) => {
-                const classTeacherId = c.teacherId?._id || c.teacherId;
+                const classTeacherId = typeof c.teacherId === 'object' ? c.teacherId?._id : c.teacherId;
                 return classTeacherId === userId;
             })
             .map((c: Class) => {
                 const studentsInClass = allStudents.filter((s: Student) => s.classId === c._id);
                 return {
                     ...c,
-                    teacher: c.teacherId?.name || user.name,
+                    teacher: typeof c.teacherId === 'object' ? c.teacherId?.name : user.name,
                     studentCount: studentsInClass.length,
                     students: studentsInClass,
                 };
@@ -60,8 +60,8 @@ export default function TeacherClassesPage() {
         }
 
         const coursesAssigned = teacherClassesWithDetails.length;
-        const activeCourses = teacherClassesWithDetails.filter(c => c.status === 'active').length;
-        const totalStudents = teacherClassesWithDetails.reduce((acc, c) => acc + c.studentCount, 0);
+        const activeCourses = teacherClassesWithDetails.filter((c: any) => c.status === 'active').length;
+        const totalStudents = teacherClassesWithDetails.reduce((acc: number, c: any) => acc + c.studentCount, 0);
         const avgClassSize = coursesAssigned > 0 ? Math.round(totalStudents / coursesAssigned) : 0;
 
         return {
@@ -149,7 +149,10 @@ export default function TeacherClassesPage() {
 
     return (
         <div className="space-y-6">
-            <h1 className="text-2xl font-bold">My Classes</h1>
+            <div>
+                <h1 className="text-2xl font-bold">My Classes</h1>
+                <p className="text-muted-foreground mt-1">Manage your classes and view enrolled students</p>
+            </div>
             {renderStatCards()}
             <MyClasses 
                 teacher={user}

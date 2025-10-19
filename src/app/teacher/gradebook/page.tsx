@@ -20,10 +20,10 @@ export default function TeacherGradebookPage() {
         }
     }, []);
 
-    const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery();
+    const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery(undefined);
     const { data: assignments = [], isLoading: isLoadingAssignments } = useGetAssignmentsQuery({});
     const { data: allStudents = [], isLoading: isLoadingStudents } = useGetStudentsQuery({});
-    const { data: grades = [], isLoading: isLoadingGrades, refetch: refetchGrades } = useGetGradesQuery();
+    const { data: grades = [], isLoading: isLoadingGrades, refetch: refetchGrades } = useGetGradesQuery(undefined);
 
     const isLoading = isLoadingClasses || isLoadingAssignments || isLoadingStudents || isLoadingGrades || !user;
 
@@ -58,6 +58,10 @@ export default function TeacherGradebookPage() {
 
     return (
         <div className="space-y-6">
+            <div>
+                <h1 className="text-2xl font-bold">Gradebook</h1>
+                <p className="text-muted-foreground mt-1">Review and grade student submissions</p>
+            </div>
             <GradebookTable 
                 students={teacherStudents}
                 assignments={assignments}

@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { Assignment, Grade, Student } from "@/lib/types";
 
 interface GradeSubmissionDialogProps {
@@ -81,10 +82,40 @@ export function GradeSubmissionDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-4">
+            <div className="bg-muted p-4 rounded-lg space-y-2">
+                <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Student:</span>
+                    <span className="font-medium">{student.name} ({student.rollNo})</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Assignment:</span>
+                    <span className="font-medium">{assignment.title}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Total Marks:</span>
+                    <span className="font-medium">{assignment.totalMarks}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Status:</span>
+                    <span className={`font-medium ${grade.status === 'Late' ? 'text-destructive' : 'text-green-600'}`}>
+                        {grade.status}
+                    </span>
+                </div>
+                {grade.submittedAt && (
+                    <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Submitted At:</span>
+                        <span className="font-medium">{new Date(grade.submittedAt).toLocaleString()}</span>
+                    </div>
+                )}
+            </div>
+            
             {grade.submissionUrl ? (
-                <a href={grade.submissionUrl} target="_blank" rel="noopener noreferrer">
-                    <Button variant="outline">Download Submission</Button>
-                </a>
+                <div>
+                    <p className="text-sm font-medium mb-2">Submitted File:</p>
+                    <a href={grade.submissionUrl} target="_blank" rel="noopener noreferrer">
+                        <Button variant="outline" className="w-full">Download Submission</Button>
+                    </a>
+                </div>
             ) : (
                 <p className="text-sm text-muted-foreground">No file submitted.</p>
             )}
