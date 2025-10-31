@@ -10,19 +10,38 @@ export async function POST(request) {
     const { email, password, role } = await request.json();
 
     let user;
-    if (role === 'teacher') {
+    if (role === 'admin') {
+      if (email === 'admin@campus.edu' && password === 'password123') {
+        const adminUser = {
+          _id: 'admin01',
+          name: 'Admin User',
+          email: 'admin@campus.edu',
+          role: 'admin',
+        };
+        const token = jwt.sign(
+          { id: adminUser._id, role: adminUser.role, name: adminUser.name, email: adminUser.email },
+          process.env.JWT_SECRET || 'your_default_secret_key',
+          { expiresIn: '1h' }
+        );
+        return NextResponse.json({
+          message: 'Login successful',
+          token,
+          user: adminUser,
+        });
+      } else {
+        return NextResponse.json({ message: 'Invalid admin credentials' }, { status: 401 });
+      }
+    } else if (role === 'teacher') {
       user = await Teacher.findOne({ email }).select('+password');
     } else if (role === 'student') {
       user = await Student.findOne({ email }).select('+password');
     } else {
-        // For now, we only support teacher and student login
-        // We can add other roles like admin later
         return NextResponse.json({ message: 'Invalid role' }, { status: 400 });
     }
 
     if (user && (await user.matchPassword(password))) {
       const token = jwt.sign(
-        { id: user._id, role: user.role, name: user.name, email: user.email },
+        { id: user._id, role: user.role, name: user.name, email: user.email, classId: user.classId },
         process.env.JWT_SECRET || 'your_default_secret_key',
         { expiresIn: '1h' }
       );
