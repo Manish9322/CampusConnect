@@ -39,7 +39,19 @@ export default function TeacherClassesPage() {
                 return classTeacherId === userId;
             })
             .map((c: Class) => {
-                const studentsInClass = allStudents.filter((s: Student) => s.classId === c._id);
+                // Filter students by matching classId (handle both string and object ID)
+                const studentsInClass = allStudents.filter((s: Student) => {
+                    const studentClassId = typeof s.classId === 'object' ? (s.classId as any)?._id : s.classId;
+                    return studentClassId === c._id || studentClassId === (c._id as any)?.toString();
+                });
+                
+                console.log(`Class ${c.name}:`, {
+                    classId: c._id,
+                    totalStudents: allStudents.length,
+                    studentsInClass: studentsInClass.length,
+                    studentIds: studentsInClass.map(s => s._id)
+                });
+                
                 return {
                     ...c,
                     teacher: typeof c.teacherId === 'object' ? c.teacherId?.name : user.name,

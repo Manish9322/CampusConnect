@@ -115,7 +115,7 @@ export function MyClasses({ teacher, classesWithDetails, isLoading }: MyClassesP
                                         ))}
                                     </div>
                                 </TableCell>
-                                <TableCell>{c.studentCount}</TableCell>
+                                <TableCell className="font-medium">{c.studentCount || 0}</TableCell>
                                 <TableCell className="text-right">
                                     <Button variant="ghost" size="icon" onClick={() => handleViewDetails(c)}>
                                         <Eye className="h-4 w-4" />

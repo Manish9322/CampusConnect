@@ -53,29 +53,28 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
     (student.rollNo && student.rollNo.toLowerCase().includes(searchTerm.toLowerCase())))
   );
 
-  // Show ALL assignments for the selected class(es), not just those with submissions
+  // Show assignments that either belong to teacher's classes OR have submissions from their students
   const filteredAssignments = React.useMemo(() => {
-    const classFilteredAssignments = assignments.filter(assignment => 
-      classFilter === 'all' || assignment.courseId === classFilter
+    // Get all unique assignment IDs from grades for the filtered students
+    const submittedAssignmentIds = new Set(
+      grades
+        .filter(grade => filteredStudentsForClass.some(s => s._id === grade.studentId))
+        .map(grade => grade.assignmentId)
     );
     
-    // Count submissions for each assignment
-    const submissionCounts = classFilteredAssignments.map(assignment => {
-      const submissionCount = grades.filter(grade => 
-        grade.assignmentId === assignment._id && 
-        (grade.status === 'Submitted' || grade.status === 'Late')
-      ).length;
-      return {
-        assignmentId: assignment._id,
-        count: submissionCount
-      };
+    // Filter assignments: show if they belong to the selected class OR have submissions
+    const classFilteredAssignments = assignments.filter(assignment => {
+      const belongsToClass = classFilter === 'all' || assignment.courseId === classFilter;
+      const hasSubmissions = submittedAssignmentIds.has(assignment._id);
+      return belongsToClass || hasSubmissions;
     });
     
     console.log('Gradebook Debug:', {
       totalAssignments: assignments.length,
       classFilteredAssignments: classFilteredAssignments.length,
       totalGrades: grades.length,
-      submissionCounts: submissionCounts,
+      submittedAssignmentIds: Array.from(submittedAssignmentIds),
+      filteredStudentsCount: filteredStudentsForClass.length,
       classFilter,
     });
     
@@ -83,7 +82,7 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
     return classFilteredAssignments.sort((a, b) => 
       new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
     );
-  }, [assignments, grades, classFilter]);
+  }, [assignments, grades, classFilter, filteredStudentsForClass]);
 
   const getStudentGrade = (studentId: string, assignmentId: string) => {
     return grades.find(g => g.studentId === studentId && g.assignmentId === assignmentId);

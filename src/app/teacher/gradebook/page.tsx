@@ -23,6 +23,7 @@ export default function TeacherGradebookPage() {
     const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery(undefined);
     const { data: assignments = [], isLoading: isLoadingAssignments } = useGetAssignmentsQuery({});
     const { data: allStudents = [], isLoading: isLoadingStudents } = useGetStudentsQuery({});
+    // Fetch ALL grades without filtering by studentId to see all submissions
     const { data: grades = [], isLoading: isLoadingGrades, refetch: refetchGrades } = useGetGradesQuery(undefined);
 
     const isLoading = isLoadingClasses || isLoadingAssignments || isLoadingStudents || isLoadingGrades || !user;
