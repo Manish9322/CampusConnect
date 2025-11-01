@@ -42,7 +42,8 @@ export default function TeacherStudentsPage() {
         const classIdsForTeacher = classesForTeacher.map((c: Class) => c._id);
         
         const studentsForTeacher = allStudents.filter((s: Student) => {
-            return classIdsForTeacher.includes(s.classId);
+            const studentClassId = s.classId;
+            return classIdsForTeacher.includes(studentClassId);
         });
         
         return { teacherClasses: classesForTeacher, teacherStudents: studentsForTeacher };
@@ -65,14 +66,14 @@ export default function TeacherStudentsPage() {
 
         const totalStudents = studentsWithAttendance.length;
         const avgAttendance = totalStudents > 0 ? Math.round(
-            studentsWithAttendance.reduce((acc: number, s: Student) => acc + s.attendancePercentage, 0) / totalStudents
+            studentsWithAttendance.reduce((acc: number, s: Student) => acc + (s.attendancePercentage || 0), 0) / totalStudents
         ) : 0;
         
         const topStudent = totalStudents > 0 ? studentsWithAttendance.reduce((prev: Student, current: Student) =>
             (prev.attendancePercentage || 0) > (current.attendancePercentage || 0) ? prev : current
         ) : null;
         
-        const lowAttendanceStudents = studentsWithAttendance.filter((s: Student) => s.attendancePercentage < 75).length;
+        const lowAttendanceStudents = studentsWithAttendance.filter((s: Student) => (s.attendancePercentage || 0) < 75).length;
 
         return { totalStudents, avgAttendance, topStudent, lowAttendanceStudents };
 

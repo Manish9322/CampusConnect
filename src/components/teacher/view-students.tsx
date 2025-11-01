@@ -52,7 +52,7 @@ export function ViewStudents({ teacherClasses, teacherStudents, isLoading }: Vie
   const filteredStudents = studentsWithAttendance.filter(
     (student) =>
       (student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.rollNo.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (student.rollNo && student.rollNo.toLowerCase().includes(searchTerm.toLowerCase()))) &&
       (classFilter === 'all' || student.classId === classFilter)
   );
 

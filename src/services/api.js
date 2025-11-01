@@ -166,10 +166,10 @@ export const api = createApi({
     // Student CRUD endpoints
     getStudents: builder.query({
       query: ({ classId } = {}) => classId ? `students?classId=${classId}` : 'students',
-      providesTags: (result, error, arg) =>
-        result
-          ? [...result.map(({ _id }) => ({ type: 'Student', id: _id })), { type: 'Student', id: 'LIST' }]
-          : [{ type: 'Student', id: 'LIST' }],
+      providesTags: (result = [], error, arg) => [
+        { type: 'Student', id: 'LIST' },
+        ...result.map(({ _id }) => ({ type: 'Student', id: _id })),
+      ],
     }),
     addStudent: builder.mutation({
         query: (newStudent) => ({
