@@ -194,7 +194,7 @@ export function AttendanceTool() {
           <TableCell className="hidden md:table-cell">{student.rollNo}</TableCell>
           <TableCell className="font-medium">{student.name}</TableCell>
           <TableCell className="hidden lg:table-cell">{student.email}</TableCell>
-          <TableCell className="hidden sm:table-cell">{(student.attendancePercentage || Math.floor(Math.random() * (100-70+1)+70))}%</TableCell>
+          <TableCell className="hidden sm:table-cell">{student.attendancePercentage || 0}%</TableCell>
           <TableCell className="text-right">
             <ThreeStateToggle 
                 status={attendance[student._id!] || 'present'}

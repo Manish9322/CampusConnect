@@ -37,13 +37,36 @@ export default function TeacherStudentsPage() {
         const userId = user._id || user.id;
         const classesForTeacher = allClasses.filter((c: Class) => {
             const classTeacherId = (c.teacherId as any)?._id || c.teacherId;
-            return classTeacherId === userId;
+            return classTeacherId === userId || classTeacherId?.toString() === userId?.toString();
         });
         const classIdsForTeacher = classesForTeacher.map((c: Class) => c._id);
         
+        console.log('Teacher Students Filter Debug:', {
+            userId,
+            totalClasses: allClasses.length,
+            teacherClasses: classesForTeacher.length,
+            classIdsForTeacher,
+            totalStudents: allStudents.length,
+            sampleStudent: allStudents[0] ? {
+                id: allStudents[0]._id,
+                name: allStudents[0].name,
+                classId: allStudents[0].classId,
+                classIdType: typeof allStudents[0].classId
+            } : null
+        });
+        
         const studentsForTeacher = allStudents.filter((s: Student) => {
-            const studentClassId = s.classId;
-            return classIdsForTeacher.includes(studentClassId);
+            // Handle both string and object ID comparisons
+            const studentClassId = typeof s.classId === 'object' ? (s.classId as any)?._id : s.classId;
+            const match = classIdsForTeacher.some((classId: string) => 
+                classId === studentClassId || classId?.toString() === studentClassId?.toString()
+            );
+            return match;
+        });
+        
+        console.log('Filtered Students Result:', {
+            studentsForTeacher: studentsForTeacher.length,
+            studentNames: studentsForTeacher.map((s: Student) => s.name)
         });
         
         return { teacherClasses: classesForTeacher, teacherStudents: studentsForTeacher };
@@ -59,21 +82,17 @@ export default function TeacherStudentsPage() {
             };
         }
 
-        const studentsWithAttendance = teacherStudents.map((s: Student) => ({
-            ...s,
-            attendancePercentage: s.attendancePercentage || Math.floor(Math.random() * (100 - 70 + 1) + 70)
-        }));
-
-        const totalStudents = studentsWithAttendance.length;
+        // Use real attendance data from API (already calculated in students query)
+        const totalStudents = teacherStudents.length;
         const avgAttendance = totalStudents > 0 ? Math.round(
-            studentsWithAttendance.reduce((acc: number, s: Student) => acc + (s.attendancePercentage || 0), 0) / totalStudents
+            teacherStudents.reduce((acc: number, s: Student) => acc + (s.attendancePercentage || 0), 0) / totalStudents
         ) : 0;
         
-        const topStudent = totalStudents > 0 ? studentsWithAttendance.reduce((prev: Student, current: Student) =>
+        const topStudent = totalStudents > 0 ? teacherStudents.reduce((prev: Student, current: Student) =>
             (prev.attendancePercentage || 0) > (current.attendancePercentage || 0) ? prev : current
         ) : null;
         
-        const lowAttendanceStudents = studentsWithAttendance.filter((s: Student) => (s.attendancePercentage || 0) < 75).length;
+        const lowAttendanceStudents = teacherStudents.filter((s: Student) => (s.attendancePercentage || 0) < 75).length;
 
         return { totalStudents, avgAttendance, topStudent, lowAttendanceStudents };
 

@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Assignment, Class, Grade, Student, SubmissionStatus } from "@/lib/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -21,6 +22,7 @@ import { GradeSubmissionDialog } from "./grade-submission-dialog";
 import { useUpdateGradeMutation } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface GradebookTableProps {
   students: Student[];
@@ -39,6 +41,8 @@ const statusColor: { [key in SubmissionStatus]: string } = {
 export function GradebookTable({ students, assignments, grades, classes, onGradeUpdate }: GradebookTableProps) {
   const [searchTerm, setSearchTerm] = React.useState("");
   const [classFilter, setClassFilter] = React.useState<string>(classes[0]?._id || "all");
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
   const [isGradingDialogOpen, setGradingDialogOpen] = React.useState(false);
   const [selectedGradeInfo, setSelectedGradeInfo] = React.useState<{ student: Student, grade: Grade, assignment: Assignment } | null>(null);
@@ -69,6 +73,20 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
       classId: students[0].classId
     } : null
   });
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredStudents.length / rowsPerPage);
+  const paginatedStudents = filteredStudents.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
+
+  const handleRowsPerPageChange = (value: string) => {
+    setRowsPerPage(Number(value));
+    setPage(0);
+  };
+
+  // Reset page when search or filter changes
+  React.useEffect(() => {
+    setPage(0);
+  }, [searchTerm, classFilter]);
 
   // Filter assignments based on selected class
   const filteredAssignments = React.useMemo(() => {
@@ -246,38 +264,57 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
                         <TableHead className="sticky left-0 bg-background z-10 min-w-40">Student Name</TableHead>
                         {filteredAssignments.map(assignment => {
                             const submissionCount = getSubmissionCount(assignment._id);
-                            const totalStudents = filteredStudents.length;
+                            const totalStudents = filteredStudentsForClass.length;
                             return (
-                                <TableHead key={assignment._id} className="text-center min-w-36">
-                                    <div className="flex flex-col items-center gap-1">
-                                        <span className="font-semibold">{assignment.title}</span>
-                                        <span className="text-xs text-muted-foreground font-normal">
-                                            {submissionCount}/{totalStudents} submitted
-                                        </span>
-                                    </div>
-                                </TableHead>
+                                <React.Fragment key={assignment._id}>
+                                    <TableHead className="text-center min-w-28">
+                                        <div className="flex flex-col items-center gap-1">
+                                            <span className="font-semibold">{assignment.title}</span>
+                                            <span className="text-xs text-muted-foreground font-normal">
+                                                Marks ({submissionCount}/{totalStudents})
+                                            </span>
+                                        </div>
+                                    </TableHead>
+                                    <TableHead className="text-center min-w-24">
+                                        <div className="flex flex-col items-center gap-1">
+                                            <span className="font-semibold">Status</span>
+                                        </div>
+                                    </TableHead>
+                                </React.Fragment>
                             );
                         })}
-                        <TableHead className="text-right sticky right-0 bg-background z-10">Overall</TableHead>
+                        <TableHead className="text-right sticky right-0 bg-background z-10 min-w-24">Overall</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {filteredStudents.map(student => (
+                    {paginatedStudents.map(student => (
                         <TableRow key={student._id}>
                             <TableCell className="font-medium sticky left-0 bg-background z-10">{student.name}</TableCell>
                             {filteredAssignments.map(assignment => {
                                 const grade = getStudentGrade(student._id!, assignment._id);
                                 return (
-                                    <TableCell key={assignment._id} className="text-center">
-                                        {grade ? (
-                                            <div className="flex flex-col items-center gap-1 cursor-pointer" onClick={() => handleViewSubmission(student, assignment)}>
-                                                <span className={cn("font-semibold", grade.marks && grade.marks < (assignment.totalMarks / 2) && "text-destructive")}>{grade.marks !== null ? `${grade.marks}/${assignment.totalMarks}` : '-'}</span>
-                                                <Badge className={cn("text-xs", statusColor[grade.status])}>{grade.status}</Badge>
-                                            </div>
-                                        ) : (
-                                            <span className="text-muted-foreground text-xs">Not Submitted</span>
-                                        )}
-                                    </TableCell>
+                                    <React.Fragment key={assignment._id}>
+                                        <TableCell className="text-center cursor-pointer hover:bg-muted/50" onClick={() => grade && handleViewSubmission(student, assignment)}>
+                                            {grade ? (
+                                                <span className={cn("font-semibold", grade.marks && grade.marks < (assignment.totalMarks / 2) && "text-destructive")}>
+                                                    {grade.marks !== null ? `${grade.marks}/${assignment.totalMarks}` : '-'}
+                                                </span>
+                                            ) : (
+                                                <span className="text-muted-foreground text-xs">-</span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                            {grade ? (
+                                                <Badge className={cn("text-xs", statusColor[grade.status])}>
+                                                    {grade.status}
+                                                </Badge>
+                                            ) : (
+                                                <Badge variant="outline" className="text-xs">
+                                                    Not Submitted
+                                                </Badge>
+                                            )}
+                                        </TableCell>
+                                    </React.Fragment>
                                 )
                             })}
                             <TableCell className="text-right sticky right-0 bg-background z-10">
@@ -290,6 +327,43 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
                     ))}
                 </TableBody>
                 </Table>
+            </div>
+            <div className="flex items-center justify-between mt-4">
+                <div className="flex items-center space-x-2">
+                    <span className="text-sm text-muted-foreground">Rows per page</span>
+                    <Select onValueChange={handleRowsPerPageChange} defaultValue={`${rowsPerPage}`}>
+                        <SelectTrigger className="w-20">
+                            <SelectValue placeholder={`${rowsPerPage}`} />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="5">5</SelectItem>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="20">20</SelectItem>
+                            <SelectItem value="50">50</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="flex items-center space-x-2">
+                    <span className="text-sm text-muted-foreground">
+                        Page {totalPages > 0 ? page + 1 : 0} of {totalPages || 1}
+                    </span>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setPage(p => Math.max(0, p - 1))}
+                        disabled={page === 0}
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                        disabled={page >= totalPages - 1 || totalPages === 0}
+                    >
+                        <ChevronRight className="h-4 w-4" />
+                    </Button>
+                </div>
             </div>
            </>
           )}

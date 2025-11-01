@@ -42,18 +42,25 @@ export function ViewStudents({ teacherClasses, teacherStudents, isLoading }: Vie
   const [selectedStudent, setSelectedStudent] = React.useState<Student | null>(null);
   const [isProfileOpen, setProfileOpen] = React.useState(false);
 
+  // Use real attendance data from API (no more mock data)
   const studentsWithAttendance = React.useMemo(() => {
     return teacherStudents.map(student => ({
       ...student,
-      attendancePercentage: student.attendancePercentage || Math.floor(Math.random() * (100 - 70 + 1) + 70)
+      attendancePercentage: student.attendancePercentage || 0 // Default to 0 if no attendance recorded
     }));
   }, [teacherStudents]);
 
   const filteredStudents = studentsWithAttendance.filter(
-    (student) =>
-      (student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (student.rollNo && student.rollNo.toLowerCase().includes(searchTerm.toLowerCase()))) &&
-      (classFilter === 'all' || student.classId === classFilter)
+    (student) => {
+      const nameMatch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (student.rollNo && student.rollNo.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+      // Handle both string and object ID comparisons for classId
+      const studentClassId = typeof student.classId === 'object' ? (student.classId as any)?._id : student.classId;
+      const classMatch = classFilter === 'all' || studentClassId === classFilter || studentClassId?.toString() === classFilter?.toString();
+      
+      return nameMatch && classMatch;
+    }
   );
 
   const totalPages = Math.ceil(filteredStudents.length / rowsPerPage);
@@ -80,8 +87,10 @@ export function ViewStudents({ teacherClasses, teacherStudents, isLoading }: Vie
     setSearchTerm('');
   };
   
-  const getClassName = (classId: string) => {
-    return teacherClasses.find(c => c._id === classId)?.name || 'N/A';
+  const getClassName = (classId: string | any) => {
+    // Handle both string and object ID comparisons
+    const actualClassId = typeof classId === 'object' ? classId?._id : classId;
+    return teacherClasses.find(c => c._id === actualClassId || c._id?.toString() === actualClassId?.toString())?.name || 'N/A';
   }
   
   const renderTableBody = () => {
@@ -224,7 +233,7 @@ export function ViewStudents({ teacherClasses, teacherStudents, isLoading }: Vie
       </Card>
       {selectedStudent && (
         <StudentProfileDialog
-          open={isProfileOpen}
+          isOpen={isProfileOpen}
           onOpenChange={setProfileOpen}
           student={selectedStudent}
           classes={teacherClasses}

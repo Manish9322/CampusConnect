@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Check, X } from "lucide-react";
+import { Check, X, Clock, CheckCircle, XCircle, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Student, Teacher } from "@/lib/types";
 
@@ -27,10 +27,10 @@ export default function TeacherAttendanceRequestsPage() {
         }
     }, []);
 
-    const { data: requests = [], isLoading: isLoadingRequests, refetch } = useGetAttendanceRequestsQuery();
+    const { data: requests = [], isLoading: isLoadingRequests, refetch } = useGetAttendanceRequestsQuery({});
     const { data: students = [], isLoading: isLoadingStudents } = useGetStudentsQuery({});
     const { data: attendanceRecords = [], isLoading: isLoadingAttendance } = useGetAttendanceQuery({});
-    const { data: classes = [], isLoading: isLoadingClasses } = useGetClassesQuery();
+    const { data: classes = [], isLoading: isLoadingClasses } = useGetClassesQuery(undefined);
 
     const [updateAttendanceRequest, { isLoading: isUpdating }] = useUpdateAttendanceRequestMutation();
     const { toast } = useToast();
@@ -54,6 +54,28 @@ export default function TeacherAttendanceRequestsPage() {
         });
     }, [requests, attendanceRecords, teacherClassIds, isLoading]);
 
+    const stats = React.useMemo(() => {
+        if (isLoading || teacherRequests.length === 0) {
+            return {
+                totalRequests: 0,
+                pendingRequests: 0,
+                approvedRequests: 0,
+                deniedRequests: 0,
+            };
+        }
+
+        const totalRequests = teacherRequests.length;
+        const pendingRequests = teacherRequests.filter((req: any) => req.status === 'pending').length;
+        const approvedRequests = teacherRequests.filter((req: any) => req.status === 'approved').length;
+        const deniedRequests = teacherRequests.filter((req: any) => req.status === 'denied').length;
+
+        return {
+            totalRequests,
+            pendingRequests,
+            approvedRequests,
+            deniedRequests,
+        };
+    }, [isLoading, teacherRequests]);
 
     const handleUpdateRequest = async (requestId: string, status: 'approved' | 'denied') => {
         try {
@@ -75,6 +97,80 @@ export default function TeacherAttendanceRequestsPage() {
     const getStudentName = (studentId: string) => students.find((s: any) => s._id === studentId)?.name || "Unknown";
     const getClassName = (classId: string) => classes.find((c: any) => c._id === classId)?.name || "Unknown";
     const getAttendanceDetails = (attendanceId: string) => attendanceRecords.find((a: any) => a._id === attendanceId);
+
+    const renderStatCards = () => {
+        if(isLoading) {
+            return (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                    {[...Array(4)].map((_, i) => (
+                        <Card key={i}>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <Skeleton className="h-4 w-2/3" />
+                                <Skeleton className="h-4 w-4" />
+                            </CardHeader>
+                            <CardContent>
+                                <Skeleton className="h-8 w-1/3" />
+                                <Skeleton className="h-3 w-1/2 mt-1" />
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            )
+        }
+
+        return (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{stats.totalRequests}</div>
+                        <p className="text-xs text-muted-foreground">
+                            All attendance requests
+                        </p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Pending</CardTitle>
+                        <Clock className="h-4 w-4 text-yellow-600" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{stats.pendingRequests}</div>
+                        <p className="text-xs text-muted-foreground">
+                            Awaiting your review
+                        </p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Approved</CardTitle>
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{stats.approvedRequests}</div>
+                        <p className="text-xs text-muted-foreground">
+                            Requests approved
+                        </p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Denied</CardTitle>
+                        <XCircle className="h-4 w-4 text-red-600" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{stats.deniedRequests}</div>
+                        <p className="text-xs text-muted-foreground">
+                            Requests denied
+                        </p>
+                    </CardContent>
+                </Card>
+            </div>
+        )
+    }
 
     const renderContent = () => {
         if(isLoading) {
@@ -119,7 +215,7 @@ export default function TeacherAttendanceRequestsPage() {
                             <TableCell>{attendance ? getClassName(attendance.classId) : 'N/A'}</TableCell>
                             <TableCell>{attendance ? new Date(attendance.date).toLocaleDateString() : 'N/A'}</TableCell>
                             <TableCell>
-                                <Badge variant="destructive">{req.currentStatus}</Badge> -> <Badge variant="default">{req.requestedStatus}</Badge>
+                                <Badge variant="destructive">{req.currentStatus}</Badge> {'->'} <Badge variant="default">{req.requestedStatus}</Badge>
                             </TableCell>
                             <TableCell className="max-w-xs truncate">{req.reason}</TableCell>
                             <TableCell><Badge variant={req.status === 'pending' ? 'secondary' : req.status === 'approved' ? 'default' : 'destructive'}>{req.status}</Badge></TableCell>
@@ -140,7 +236,11 @@ export default function TeacherAttendanceRequestsPage() {
 
     return (
         <div className="space-y-6">
-            <h1 className="text-2xl font-bold">Student Attendance Requests</h1>
+            <div>
+                <h1 className="text-2xl font-bold">Student Attendance Requests</h1>
+                <p className="text-muted-foreground mt-1">Review and manage attendance change requests from your students</p>
+            </div>
+            {renderStatCards()}
             <Card>
                 <CardHeader>
                     <CardTitle>Review Requests</CardTitle>

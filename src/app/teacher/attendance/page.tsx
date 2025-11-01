@@ -1,10 +1,103 @@
+"use client"
+
+import * as React from "react";
 import { AttendanceTool } from "@/components/teacher/attendance-tool";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookCopy, Users, BarChart, Clock } from "lucide-react";
+import { useGetClassesQuery, useGetStudentsQuery } from "@/services/api";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Class, Student } from "@/lib/types";
 
 export default function TeacherAttendancePage() {
-    return (
-        <div className="space-y-6">
+    const [user, setUser] = React.useState<any>(null);
+
+    React.useEffect(() => {
+        const storedUser = localStorage.getItem('teacher_user');
+        if (storedUser) {
+            const parsedUser = JSON.parse(storedUser);
+            // Ensure both id and _id are set for compatibility
+            if (parsedUser.id && !parsedUser._id) {
+                parsedUser._id = parsedUser.id;
+            }
+            setUser(parsedUser);
+        }
+    }, []);
+    
+    const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery(undefined);
+    const { data: allStudents = [], isLoading: isLoadingStudents } = useGetStudentsQuery({});
+
+    const isLoading = isLoadingClasses || isLoadingStudents || !user;
+
+    const teacherClassesWithDetails = React.useMemo(() => {
+        if (!user || allClasses.length === 0) return [];
+        
+        const userId = user._id || user.id;
+        return allClasses
+            .filter((c: Class) => {
+                const classTeacherId = typeof c.teacherId === 'object' ? c.teacherId?._id : c.teacherId;
+                return classTeacherId === userId;
+            })
+            .map((c: Class) => {
+                // Filter students by matching classId (handle both string and object ID)
+                const studentsInClass = allStudents.filter((s: Student) => {
+                    const studentClassId = typeof s.classId === 'object' ? (s.classId as any)?._id : s.classId;
+                    return studentClassId === c._id || studentClassId === (c._id as any)?.toString();
+                });
+                
+                return {
+                    ...c,
+                    teacher: typeof c.teacherId === 'object' ? c.teacherId?.name : user.name,
+                    studentCount: studentsInClass.length,
+                    students: studentsInClass,
+                };
+            });
+    }, [user, allClasses, allStudents]);
+
+    const stats = React.useMemo(() => {
+        if (isLoading || teacherClassesWithDetails.length === 0) {
+            return {
+                coursesAssigned: 0,
+                totalStudents: 0,
+                avgClassSize: 0,
+                activeCourses: 0,
+            };
+        }
+
+        const coursesAssigned = teacherClassesWithDetails.length;
+        const activeCourses = teacherClassesWithDetails.filter((c: any) => c.status === 'active').length;
+        const totalStudents = teacherClassesWithDetails.reduce((acc: number, c: any) => acc + c.studentCount, 0);
+        const avgClassSize = coursesAssigned > 0 ? Math.round(totalStudents / coursesAssigned) : 0;
+
+        return {
+            coursesAssigned,
+            totalStudents,
+            avgClassSize,
+            activeCourses,
+        };
+
+    }, [isLoading, teacherClassesWithDetails]);
+
+    const renderStatCards = () => {
+        if(isLoading) {
+            return (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                    {[...Array(4)].map((_, i) => (
+                        <Card key={i}>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <Skeleton className="h-4 w-2/3" />
+                                <Skeleton className="h-4 w-4" />
+                            </CardHeader>
+                            <CardContent>
+                                <Skeleton className="h-8 w-1/3" />
+                                <Skeleton className="h-3 w-1/2 mt-1" />
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            )
+        }
+
+        return (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -12,9 +105,11 @@ export default function TeacherAttendancePage() {
                         <BookCopy className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">2</div>
+                        <div className="text-2xl font-bold">{stats.coursesAssigned}</div>
                         <p className="text-xs text-muted-foreground">
-                            CS101, CS303
+                            {teacherClassesWithDetails.length > 0 
+                                ? teacherClassesWithDetails.map((c: Class) => c.name).join(', ')
+                                : 'No classes assigned'}
                         </p>
                     </CardContent>
                 </Card>
@@ -24,7 +119,7 @@ export default function TeacherAttendancePage() {
                         <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">45</div>
+                        <div className="text-2xl font-bold">{stats.totalStudents}</div>
                         <p className="text-xs text-muted-foreground">
                             Across all classes
                         </p>
@@ -36,7 +131,7 @@ export default function TeacherAttendancePage() {
                         <BarChart className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">22</div>
+                        <div className="text-2xl font-bold">{stats.avgClassSize}</div>
                         <p className="text-xs text-muted-foreground">
                             Average students per class
                         </p>
@@ -48,13 +143,19 @@ export default function TeacherAttendancePage() {
                         <Clock className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">2</div>
+                        <div className="text-2xl font-bold">{stats.activeCourses}</div>
                         <p className="text-xs text-muted-foreground">
                             Currently active
                         </p>
                     </CardContent>
                 </Card>
              </div>
+        )
+    }
+
+    return (
+        <div className="space-y-6">
+            {renderStatCards()}
             <AttendanceTool />
         </div>
     );
