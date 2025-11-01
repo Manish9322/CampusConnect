@@ -53,10 +53,46 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
     (student.rollNo && student.rollNo.toLowerCase().includes(searchTerm.toLowerCase())))
   );
 
-  const filteredAssignments = assignments.filter(assignment => classFilter === 'all' || assignment.courseId === classFilter);
+  // Show assignments that either belong to teacher's classes OR have submissions from their students
+  const filteredAssignments = React.useMemo(() => {
+    // Get all unique assignment IDs from grades for the filtered students
+    const submittedAssignmentIds = new Set(
+      grades
+        .filter(grade => filteredStudentsForClass.some(s => s._id === grade.studentId))
+        .map(grade => grade.assignmentId)
+    );
+    
+    // Filter assignments: show if they belong to the selected class OR have submissions
+    const classFilteredAssignments = assignments.filter(assignment => {
+      const belongsToClass = classFilter === 'all' || assignment.courseId === classFilter;
+      const hasSubmissions = submittedAssignmentIds.has(assignment._id);
+      return belongsToClass || hasSubmissions;
+    });
+    
+    console.log('Gradebook Debug:', {
+      totalAssignments: assignments.length,
+      classFilteredAssignments: classFilteredAssignments.length,
+      totalGrades: grades.length,
+      submittedAssignmentIds: Array.from(submittedAssignmentIds),
+      filteredStudentsCount: filteredStudentsForClass.length,
+      classFilter,
+    });
+    
+    // Return all assignments sorted by due date
+    return classFilteredAssignments.sort((a, b) => 
+      new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+    );
+  }, [assignments, grades, classFilter, filteredStudentsForClass]);
 
   const getStudentGrade = (studentId: string, assignmentId: string) => {
     return grades.find(g => g.studentId === studentId && g.assignmentId === assignmentId);
+  };
+  
+  const getSubmissionCount = (assignmentId: string) => {
+    return grades.filter(g => 
+      g.assignmentId === assignmentId && 
+      (g.status === 'Submitted' || g.status === 'Late')
+    ).length;
   };
   
   const handleViewSubmission = (student: Student, assignment: Assignment) => {
@@ -137,8 +173,12 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
       
           {(filteredStudents.length === 0 || filteredAssignments.length === 0) ? (
             <EmptyState 
-                title="No Data to Display"
-                description="There are no students or assignments for the selected class."
+                title={filteredStudents.length === 0 ? "No Students Found" : "No Assignments Yet"}
+                description={
+                  filteredStudents.length === 0 
+                    ? "There are no students in the selected class." 
+                    : "No assignments have been created yet for this class. Create assignments first."
+                }
             />
           ) : (
           <>
@@ -147,9 +187,20 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
                 <TableHeader>
                     <TableRow>
                         <TableHead className="sticky left-0 bg-background z-10 min-w-40">Student Name</TableHead>
-                        {filteredAssignments.map(assignment => (
-                            <TableHead key={assignment._id} className="text-center min-w-36">{assignment.title}</TableHead>
-                        ))}
+                        {filteredAssignments.map(assignment => {
+                            const submissionCount = getSubmissionCount(assignment._id);
+                            const totalStudents = filteredStudents.length;
+                            return (
+                                <TableHead key={assignment._id} className="text-center min-w-36">
+                                    <div className="flex flex-col items-center gap-1">
+                                        <span className="font-semibold">{assignment.title}</span>
+                                        <span className="text-xs text-muted-foreground font-normal">
+                                            {submissionCount}/{totalStudents} submitted
+                                        </span>
+                                    </div>
+                                </TableHead>
+                            );
+                        })}
                         <TableHead className="text-right sticky right-0 bg-background z-10">Overall</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -167,7 +218,7 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
                                                 <Badge className={cn("text-xs", statusColor[grade.status])}>{grade.status}</Badge>
                                             </div>
                                         ) : (
-                                            <span>-</span>
+                                            <span className="text-muted-foreground text-xs">Not Submitted</span>
                                         )}
                                     </TableCell>
                                 )

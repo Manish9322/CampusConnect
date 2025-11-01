@@ -54,34 +54,34 @@ export function ClassDetailsDialog({ isOpen, onOpenChange, classData }: ClassDet
                 </div>
             </div>
         </div>
-        <div className="flex-1 overflow-hidden flex flex-col">
-            <h4 className="font-semibold my-4">Enrolled Students</h4>
-            <div className="relative flex-1">
-                <ScrollArea className="absolute inset-0">
-                    {classData.students && classData.students.length > 0 ? (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Roll No.</TableHead>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Email</TableHead>
+        <div className="flex flex-col">
+            <h4 className="font-semibold my-4">Enrolled Students ({classData.students?.length || 0})</h4>
+            <ScrollArea className="h-[300px] rounded-md border">
+                {classData.students && classData.students.length > 0 ? (
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Roll No.</TableHead>
+                                <TableHead>Name</TableHead>
+                                <TableHead>Email</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {classData.students.map(student => (
+                                <TableRow key={student._id}>
+                                    <TableCell>{student.rollNo}</TableCell>
+                                    <TableCell className="font-medium">{student.name}</TableCell>
+                                    <TableCell>{student.email}</TableCell>
                                 </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {classData.students.map(student => (
-                                    <TableRow key={student._id}>
-                                        <TableCell>{student.rollNo}</TableCell>
-                                        <TableCell className="font-medium">{student.name}</TableCell>
-                                        <TableCell>{student.email}</TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    ) : (
+                            ))}
+                        </TableBody>
+                    </Table>
+                ) : (
+                    <div className="p-8">
                         <EmptyState title="No Students Enrolled" description="There are no students currently enrolled in this class." />
-                    )}
-                </ScrollArea>
-            </div>
+                    </div>
+                )}
+            </ScrollArea>
         </div>
         <DialogFooter className="mt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>

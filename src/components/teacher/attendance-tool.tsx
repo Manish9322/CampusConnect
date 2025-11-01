@@ -35,30 +35,66 @@ export function AttendanceTool() {
 
   React.useEffect(() => {
     const storedUser = localStorage.getItem('teacher_user');
+    console.log('=== ATTENDANCE TOOL DEBUG ===');
+    console.log('Stored teacher user:', storedUser);
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      const parsedUser = JSON.parse(storedUser);
+      console.log('Parsed teacher user:', parsedUser);
+      // Ensure both id and _id are set for compatibility
+      if (parsedUser.id && !parsedUser._id) {
+        parsedUser._id = parsedUser.id;
+        console.log('Added _id field from id:', parsedUser._id);
+      }
+      setUser(parsedUser);
     }
   }, []);
 
   const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery();
   
+  console.log('=== CLASSES DEBUG ===');
+  console.log('All classes:', allClasses);
+  console.log('All classes length:', allClasses.length);
+  console.log('Is loading classes:', isLoadingClasses);
+  console.log('Current user:', user);
+  
   const teacherClasses = React.useMemo(() => {
     if (user && allClasses.length > 0) {
-      return allClasses.filter((c: any) => c.teacherId?._id === user._id);
+      const userId = user._id || user.id;
+      console.log('Filtering classes for teacher ID:', userId);
+      const filtered = allClasses.filter((c: any) => {
+        // Handle both populated and non-populated teacherId
+        const classTeacherId = c.teacherId?._id || c.teacherId;
+        const matches = classTeacherId === userId;
+        console.log('Class:', c.name, 'TeacherId:', classTeacherId, 'Matches:', matches);
+        return matches;
+      });
+      console.log('Filtered teacher classes:', filtered);
+      return filtered;
     }
+    console.log('No user or classes available');
     return [];
   }, [user, allClasses]);
 
   React.useEffect(() => {
     if (teacherClasses.length > 0 && !selectedClassId) {
+        console.log('Setting default class to:', teacherClasses[0]._id);
         setSelectedClassId(teacherClasses[0]._id!);
     }
   }, [teacherClasses, selectedClassId]);
+
+  console.log('=== SELECTED CLASS DEBUG ===');
+  console.log('Selected class ID:', selectedClassId);
+  console.log('Teacher classes:', teacherClasses);
 
   const { data: studentsInCourse = [], isLoading: isLoadingStudents } = useGetStudentsQuery(
     { classId: selectedClassId }, 
     { skip: !selectedClassId }
   );
+  
+  console.log('=== STUDENTS DEBUG ===');
+  console.log('Students in course:', studentsInCourse);
+  console.log('Students count:', studentsInCourse.length);
+  console.log('Is loading students:', isLoadingStudents);
 
   const formattedDate = date ? format(date, "yyyy-MM-dd") : "";
   const { data: existingAttendance = [], isLoading: isLoadingExistingAttendance, refetch: refetchAttendance } = useGetAttendanceQuery(

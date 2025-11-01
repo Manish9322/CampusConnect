@@ -16,7 +16,11 @@ export default function TeacherProfilePage() {
         if (storedUser) {
             // Add a small delay to better visualize the skeleton
             setTimeout(() => {
-                setTeacher(JSON.parse(storedUser));
+                const parsedUser = JSON.parse(storedUser);
+                if (parsedUser.id && !parsedUser._id) {
+                    parsedUser._id = parsedUser.id;
+                }
+                setTeacher(parsedUser);
             }, 300);
         }
     }, []);

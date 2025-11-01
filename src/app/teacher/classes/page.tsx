@@ -15,11 +15,16 @@ export default function TeacherClassesPage() {
     React.useEffect(() => {
         const storedUser = localStorage.getItem('teacher_user');
         if (storedUser) {
-            setUser(JSON.parse(storedUser));
+            const parsedUser = JSON.parse(storedUser);
+            // Ensure both id and _id are set for compatibility
+            if (parsedUser.id && !parsedUser._id) {
+                parsedUser._id = parsedUser.id;
+            }
+            setUser(parsedUser);
         }
     }, []);
     
-    const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery();
+    const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery(undefined);
     const { data: allStudents = [], isLoading: isLoadingStudents } = useGetStudentsQuery({});
 
     const isLoading = isLoadingClasses || isLoadingStudents || !user;
@@ -27,13 +32,29 @@ export default function TeacherClassesPage() {
     const teacherClassesWithDetails = React.useMemo(() => {
         if (!user || allClasses.length === 0) return [];
         
+        const userId = user._id || user.id;
         return allClasses
-            .filter((c: Class) => c.teacherId?._id === user._id)
+            .filter((c: Class) => {
+                const classTeacherId = typeof c.teacherId === 'object' ? c.teacherId?._id : c.teacherId;
+                return classTeacherId === userId;
+            })
             .map((c: Class) => {
-                const studentsInClass = allStudents.filter((s: Student) => s.classId === c._id);
+                // Filter students by matching classId (handle both string and object ID)
+                const studentsInClass = allStudents.filter((s: Student) => {
+                    const studentClassId = typeof s.classId === 'object' ? (s.classId as any)?._id : s.classId;
+                    return studentClassId === c._id || studentClassId === (c._id as any)?.toString();
+                });
+                
+                console.log(`Class ${c.name}:`, {
+                    classId: c._id,
+                    totalStudents: allStudents.length,
+                    studentsInClass: studentsInClass.length,
+                    studentIds: studentsInClass.map(s => s._id)
+                });
+                
                 return {
                     ...c,
-                    teacher: c.teacherId?.name || user.name,
+                    teacher: typeof c.teacherId === 'object' ? c.teacherId?.name : user.name,
                     studentCount: studentsInClass.length,
                     students: studentsInClass,
                 };
@@ -51,8 +72,8 @@ export default function TeacherClassesPage() {
         }
 
         const coursesAssigned = teacherClassesWithDetails.length;
-        const activeCourses = teacherClassesWithDetails.filter(c => c.status === 'active').length;
-        const totalStudents = teacherClassesWithDetails.reduce((acc, c) => acc + c.studentCount, 0);
+        const activeCourses = teacherClassesWithDetails.filter((c: any) => c.status === 'active').length;
+        const totalStudents = teacherClassesWithDetails.reduce((acc: number, c: any) => acc + c.studentCount, 0);
         const avgClassSize = coursesAssigned > 0 ? Math.round(totalStudents / coursesAssigned) : 0;
 
         return {
@@ -140,7 +161,10 @@ export default function TeacherClassesPage() {
 
     return (
         <div className="space-y-6">
-            <h1 className="text-2xl font-bold">My Classes</h1>
+            <div>
+                <h1 className="text-2xl font-bold">My Classes</h1>
+                <p className="text-muted-foreground mt-1">Manage your classes and view enrolled students</p>
+            </div>
             {renderStatCards()}
             <MyClasses 
                 teacher={user}

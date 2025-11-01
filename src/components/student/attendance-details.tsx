@@ -7,16 +7,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { AttendanceRecord, AttendanceStatus, Student } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { Input } from "../ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { Button } from "../ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Download, Edit } from "lucide-react";
 import { DatePickerWithRange } from "./date-picker-range";
 import { useGetAttendanceQuery, useAddAttendanceRequestMutation, useGetTeachersQuery } from "@/services/api";
-import { Skeleton } from "../ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 import { RequestChangeDialog } from "./attendance/request-change-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { EmptyState } from "../shared/empty-state";
+import { EmptyState } from "@/components/shared/empty-state";
 
 const statusVariant: { [key in AttendanceStatus]: "default" | "destructive" | "secondary" } = {
     present: "default",
@@ -34,9 +34,15 @@ export function AttendanceDetails() {
   const { toast } = useToast();
 
   React.useEffect(() => {
-    const storedUser = localStorage.getItem('user');
+    const storedUser = localStorage.getItem('student_user');
     if (storedUser) {
-        setUser(JSON.parse(storedUser));
+        const parsedUser = JSON.parse(storedUser);
+        // Ensure both id and _id are set for compatibility
+        if (parsedUser.id && !parsedUser._id) {
+            parsedUser._id = parsedUser.id;
+        }
+        console.log('Student Attendance - Logged in user:', parsedUser);
+        setUser(parsedUser);
     }
   }, []);
   
@@ -49,8 +55,18 @@ export function AttendanceDetails() {
   const studentRecords = React.useMemo(() => {
     if (isLoading || !user) return [];
     
-    return allAttendance
-      .filter((record: any) => record.studentId === user.id)
+    const userId = user._id || user.id;
+    console.log('Student Attendance Debug:', {
+      userId,
+      totalAttendance: allAttendance.length,
+      sampleRecord: allAttendance[0],
+    });
+    
+    const filtered = allAttendance
+      .filter((record: any) => {
+        const recordStudentId = record.studentId?._id || record.studentId;
+        return recordStudentId === userId;
+      })
       .map((record: any) => {
         const teacher = teachers.find((t: any) => t._id === record.recordedBy);
         return {
@@ -59,6 +75,9 @@ export function AttendanceDetails() {
             course: record.classId // Assuming classId is the course name for now
         }
       });
+    
+    console.log('Filtered student records:', filtered.length);
+    return filtered;
   }, [allAttendance, user, teachers, isLoading]);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -142,7 +161,7 @@ export function AttendanceDetails() {
         <TableCell>{record.course || 'N/A'}</TableCell>
           <TableCell>{record.teacherName}</TableCell>
         <TableCell>
-          <Badge variant={statusVariant[record.status]} className={cn(
+          <Badge variant={statusVariant[record.status as AttendanceStatus] || 'default'} className={cn(
               record.status === 'present' && 'bg-green-600 text-white hover:bg-green-700',
               record.status === 'late' && 'bg-yellow-500 text-white hover:bg-yellow-600',
               record.status === 'absent' && 'bg-red-600 text-white hover:bg-red-700'

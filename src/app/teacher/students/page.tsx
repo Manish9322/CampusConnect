@@ -15,11 +15,16 @@ export default function TeacherStudentsPage() {
     React.useEffect(() => {
         const storedUser = localStorage.getItem('teacher_user');
         if (storedUser) {
-            setUser(JSON.parse(storedUser));
+            const parsedUser = JSON.parse(storedUser);
+            // Ensure both id and _id are set for compatibility
+            if (parsedUser.id && !parsedUser._id) {
+                parsedUser._id = parsedUser.id;
+            }
+            setUser(parsedUser);
         }
     }, []);
 
-    const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery();
+    const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery(undefined);
     const { data: allStudents = [], isLoading: isLoadingStudents } = useGetStudentsQuery({});
 
     const isLoading = isLoadingClasses || isLoadingStudents || !user;
@@ -29,7 +34,11 @@ export default function TeacherStudentsPage() {
             return { teacherClasses: [], teacherStudents: [] };
         }
 
-        const classesForTeacher = allClasses.filter((c: Class) => c.teacherId?._id === user._id);
+        const userId = user._id || user.id;
+        const classesForTeacher = allClasses.filter((c: Class) => {
+            const classTeacherId = (c.teacherId as any)?._id || c.teacherId;
+            return classTeacherId === userId;
+        });
         const classIdsForTeacher = classesForTeacher.map((c: Class) => c._id);
         
         const studentsForTeacher = allStudents.filter((s: Student) => {
@@ -56,14 +65,14 @@ export default function TeacherStudentsPage() {
 
         const totalStudents = studentsWithAttendance.length;
         const avgAttendance = totalStudents > 0 ? Math.round(
-            studentsWithAttendance.reduce((acc, s) => acc + s.attendancePercentage, 0) / totalStudents
+            studentsWithAttendance.reduce((acc: number, s: Student) => acc + s.attendancePercentage, 0) / totalStudents
         ) : 0;
         
-        const topStudent = totalStudents > 0 ? studentsWithAttendance.reduce((prev, current) =>
+        const topStudent = totalStudents > 0 ? studentsWithAttendance.reduce((prev: Student, current: Student) =>
             (prev.attendancePercentage || 0) > (current.attendancePercentage || 0) ? prev : current
         ) : null;
         
-        const lowAttendanceStudents = studentsWithAttendance.filter(s => s.attendancePercentage < 75).length;
+        const lowAttendanceStudents = studentsWithAttendance.filter((s: Student) => s.attendancePercentage < 75).length;
 
         return { totalStudents, avgAttendance, topStudent, lowAttendanceStudents };
 
@@ -138,7 +147,10 @@ export default function TeacherStudentsPage() {
 
     return (
         <div className="space-y-6">
-            <h1 className="text-2xl font-bold">My Students</h1>
+            <div>
+                <h1 className="text-2xl font-bold">My Students</h1>
+                <p className="text-muted-foreground mt-1">View and manage all students across your classes</p>
+            </div>
              {renderStatCards()}
             <ViewStudents 
                 teacherClasses={teacherClasses}

@@ -21,8 +21,16 @@ export default function StudentAttendancePage() {
         }
     }, []);
 
+    if (!user) {
+        return <div className="p-8">Loading...</div>;
+    }
+
     return (
         <div className="space-y-6">
+            <div>
+                <h1 className="text-2xl font-bold">My Attendance</h1>
+                <p className="text-muted-foreground mt-1">Track your attendance records and request changes</p>
+            </div>
             <StudentStatCards />
             <AttendanceDetails />
         </div>
