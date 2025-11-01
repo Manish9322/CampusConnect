@@ -53,32 +53,31 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
     (student.rollNo && student.rollNo.toLowerCase().includes(searchTerm.toLowerCase())))
   );
 
-  // Show assignments that either belong to teacher's classes OR have submissions from their students
+  // Filter assignments based on selected class
   const filteredAssignments = React.useMemo(() => {
-    // Get all unique assignment IDs from grades for the filtered students
+    // Filter assignments by class selection
+    const classFilteredAssignments = assignments.filter(assignment => {
+      return classFilter === 'all' || assignment.courseId === classFilter;
+    });
+    
+    // Get submission statistics for debugging
     const submittedAssignmentIds = new Set(
       grades
         .filter(grade => filteredStudentsForClass.some(s => s._id === grade.studentId))
         .map(grade => grade.assignmentId)
     );
     
-    // Filter assignments: show if they belong to the selected class OR have submissions
-    const classFilteredAssignments = assignments.filter(assignment => {
-      const belongsToClass = classFilter === 'all' || assignment.courseId === classFilter;
-      const hasSubmissions = submittedAssignmentIds.has(assignment._id);
-      return belongsToClass || hasSubmissions;
-    });
-    
     console.log('Gradebook Debug:', {
       totalAssignments: assignments.length,
       classFilteredAssignments: classFilteredAssignments.length,
       totalGrades: grades.length,
+      gradesForFilteredStudents: grades.filter(g => filteredStudentsForClass.some(s => s._id === g.studentId)).length,
       submittedAssignmentIds: Array.from(submittedAssignmentIds),
       filteredStudentsCount: filteredStudentsForClass.length,
       classFilter,
     });
     
-    // Return all assignments sorted by due date
+    // Return assignments sorted by due date
     return classFilteredAssignments.sort((a, b) => 
       new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
     );

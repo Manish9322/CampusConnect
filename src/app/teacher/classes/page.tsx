@@ -49,7 +49,7 @@ export default function TeacherClassesPage() {
                     classId: c._id,
                     totalStudents: allStudents.length,
                     studentsInClass: studentsInClass.length,
-                    studentIds: studentsInClass.map(s => s._id)
+                    studentIds: studentsInClass.map((s: Student) => s._id)
                 });
                 
                 return {
