@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAddGradeMutation, useGetAssignmentsForStudentQuery, useGetGradesQuery } from "@/services/api";
+import { AssignmentStatCards } from "./assignment-stat-cards";
 
 
 interface AssignmentsListProps {
@@ -167,6 +168,11 @@ export function AssignmentsList({ student }: AssignmentsListProps) {
 
   return (
     <>
+      {/* Stat Cards Section */}
+      <div className="mb-6">
+        <AssignmentStatCards assignments={assignments} grades={grades} />
+      </div>
+      
       <Card>
         <CardHeader>
             <CardTitle>My Assignments</CardTitle>

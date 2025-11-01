@@ -1,20 +1,133 @@
 
 "use client";
 
+import * as React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Award, CalendarCheck, CheckCircle, Star } from "lucide-react";
+import { Award, CalendarCheck, CheckCircle, Clock, Star, Target, Trophy } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Assignment, Grade, Student } from "@/lib/types";
 
-const achievements = [
-    { title: "Perfect Attendance", icon: CalendarCheck, description: "Attended all classes last month.", achieved: true },
-    { title: "Top Performer", icon: Star, description: "Scored in the top 10% in CS101.", achieved: true },
-    { title: "On-Time Submitter", icon: CheckCircle, description: "Submitted all assignments on time.", achieved: true },
-    { title: "Quiz Master", icon: Award, description: "Achieved a perfect score on the last quiz.", achieved: false },
-    { title: "Early Bird", icon: Clock, description: "Submitted an assignment more than 3 days early.", achieved: true },
-    { title: "Semester Rockstar", icon: Award, description: "Maintained over 95% attendance for the whole semester.", achieved: false },
-];
+interface AchievementsProps {
+    student: Student;
+    assignments: Assignment[];
+    grades: Grade[];
+}
 
-export function Achievements() {
+export function Achievements({ student, assignments, grades }: AchievementsProps) {
+    // Calculate achievements based on real data
+    const calculateAchievements = () => {
+        const achievements = [];
+
+        // Perfect Attendance (>= 95%)
+        achievements.push({
+            title: "Perfect Attendance",
+            icon: CalendarCheck,
+            description: student.attendancePercentage >= 95 
+                ? `Maintained ${student.attendancePercentage}% attendance!` 
+                : `Current attendance: ${student.attendancePercentage}%. Reach 95% to unlock.`,
+            achieved: student.attendancePercentage >= 95,
+        });
+
+        // Top Performer (Average >= 90%)
+        const gradedAssignments = grades.filter((g: Grade) => g.marks !== null && g.marks !== undefined);
+        const averageScore = gradedAssignments.length > 0
+            ? (gradedAssignments.reduce((sum: number, g: Grade) => {
+                const assignment = assignments.find((a: Assignment) => a._id === g.assignmentId);
+                if (assignment && g.marks !== null && g.marks !== undefined) {
+                    return sum + (g.marks / assignment.totalMarks) * 100;
+                }
+                return sum;
+            }, 0) / gradedAssignments.length)
+            : 0;
+        
+        achievements.push({
+            title: "Top Performer",
+            icon: Star,
+            description: averageScore >= 90 
+                ? `Maintained ${averageScore.toFixed(0)}% average score!` 
+                : `Current average: ${averageScore.toFixed(0)}%. Reach 90% to unlock.`,
+            achieved: averageScore >= 90,
+        });
+
+        // On-Time Submitter (No late submissions)
+        const lateSubmissions = grades.filter((g: Grade) => g.status === 'Late').length;
+        const totalSubmissions = grades.length;
+        achievements.push({
+            title: "On-Time Submitter",
+            icon: CheckCircle,
+            description: lateSubmissions === 0 && totalSubmissions > 0
+                ? `All ${totalSubmissions} assignments submitted on time!` 
+                : `${lateSubmissions} late submission${lateSubmissions !== 1 ? 's' : ''}. Submit on time to unlock.`,
+            achieved: lateSubmissions === 0 && totalSubmissions > 0,
+        });
+
+        // Quiz Master (Perfect score on any assignment)
+        const perfectScores = gradedAssignments.filter((g: Grade) => {
+            const assignment = assignments.find((a: Assignment) => a._id === g.assignmentId);
+            return assignment && g.marks === assignment.totalMarks;
+        });
+        achievements.push({
+            title: "Quiz Master",
+            icon: Award,
+            description: perfectScores.length > 0
+                ? `Achieved ${perfectScores.length} perfect score${perfectScores.length !== 1 ? 's' : ''}!` 
+                : "Score 100% on an assignment to unlock.",
+            achieved: perfectScores.length > 0,
+        });
+
+        // Early Bird (Submitted assignment 3+ days early)
+        const earlySubmissions = grades.filter((g: Grade) => {
+            if (!g.submittedAt) return false;
+            const assignment = assignments.find((a: Assignment) => a._id === g.assignmentId);
+            if (!assignment) return false;
+            const daysEarly = (new Date(assignment.dueDate).getTime() - new Date(g.submittedAt).getTime()) / (1000 * 60 * 60 * 24);
+            return daysEarly >= 3;
+        }).length;
+        
+        achievements.push({
+            title: "Early Bird",
+            icon: Clock,
+            description: earlySubmissions > 0
+                ? `Submitted ${earlySubmissions} assignment${earlySubmissions !== 1 ? 's' : ''} 3+ days early!` 
+                : "Submit an assignment 3+ days early to unlock.",
+            achieved: earlySubmissions > 0,
+        });
+
+        // Semester Rockstar (95%+ attendance)
+        achievements.push({
+            title: "Semester Rockstar",
+            icon: Trophy,
+            description: student.attendancePercentage >= 95
+                ? `Outstanding ${student.attendancePercentage}% attendance!` 
+                : `Maintain 95%+ attendance to unlock.`,
+            achieved: student.attendancePercentage >= 95,
+        });
+
+        // Consistent Performer (Graded in 5+ assignments)
+        achievements.push({
+            title: "Consistent Performer",
+            icon: Target,
+            description: gradedAssignments.length >= 5
+                ? `Completed ${gradedAssignments.length} graded assignments!` 
+                : `Complete ${5 - gradedAssignments.length} more to unlock.`,
+            achieved: gradedAssignments.length >= 5,
+        });
+
+        // High Achiever (Average >= 85% with 5+ assignments)
+        achievements.push({
+            title: "High Achiever",
+            icon: Award,
+            description: averageScore >= 85 && gradedAssignments.length >= 5
+                ? `Maintained ${averageScore.toFixed(0)}% average!` 
+                : "Maintain 85%+ average with 5+ graded assignments.",
+            achieved: averageScore >= 85 && gradedAssignments.length >= 5,
+        });
+
+        return achievements;
+    };
+
+    const achievements = calculateAchievements();
+
     return (
         <Card className="h-full">
             <CardHeader>

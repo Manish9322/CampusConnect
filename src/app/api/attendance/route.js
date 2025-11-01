@@ -9,10 +9,12 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const classId = searchParams.get('classId');
     const date = searchParams.get('date');
+    const studentId = searchParams.get('studentId');
 
     const filter = {};
     if (classId) filter.classId = classId;
     if (date) filter.date = date;
+    if (studentId) filter.studentId = studentId;
 
     const attendanceRecords = await Attendance.find(filter);
     return NextResponse.json(attendanceRecords, { status: 200 });
