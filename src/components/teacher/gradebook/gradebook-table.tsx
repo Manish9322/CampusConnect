@@ -46,12 +46,29 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
   const [updateGrade, { isLoading: isUpdatingGrade }] = useUpdateGradeMutation();
   const { toast } = useToast();
 
-  const filteredStudentsForClass = students.filter(student => classFilter === 'all' || student.classId === classFilter);
+  const filteredStudentsForClass = students.filter(student => {
+    if (classFilter === 'all') return true;
+    // Handle both string and object ID comparisons
+    const studentClassId = typeof student.classId === 'object' ? (student.classId as any)?._id : student.classId;
+    return studentClassId === classFilter || studentClassId?.toString() === classFilter?.toString();
+  });
 
   const filteredStudents = filteredStudentsForClass.filter(student =>
     (student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (student.rollNo && student.rollNo.toLowerCase().includes(searchTerm.toLowerCase())))
   );
+  
+  console.log('Filtered Students Debug:', {
+    totalStudentsPassed: students.length,
+    classFilter,
+    studentsAfterClassFilter: filteredStudentsForClass.length,
+    studentsAfterSearch: filteredStudents.length,
+    sampleStudent: students[0] ? {
+      id: students[0]._id,
+      name: students[0].name,
+      classId: students[0].classId
+    } : null
+  });
 
   // Filter assignments based on selected class
   const filteredAssignments = React.useMemo(() => {
@@ -63,19 +80,37 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
     // Get submission statistics for debugging
     const submittedAssignmentIds = new Set(
       grades
-        .filter(grade => filteredStudentsForClass.some(s => s._id === grade.studentId))
-        .map(grade => grade.assignmentId)
+        .filter(grade => {
+          const gradeStudentId = typeof grade.studentId === 'object' ? (grade.studentId as any)?._id : grade.studentId;
+          return filteredStudentsForClass.some(s => s._id === gradeStudentId || s._id?.toString() === gradeStudentId?.toString());
+        })
+        .map(grade => {
+          const gradeAssignmentId = typeof grade.assignmentId === 'object' ? (grade.assignmentId as any)?._id : grade.assignmentId;
+          return gradeAssignmentId;
+        })
     );
     
-    console.log('Gradebook Debug:', {
-      totalAssignments: assignments.length,
-      classFilteredAssignments: classFilteredAssignments.length,
-      totalGrades: grades.length,
-      gradesForFilteredStudents: grades.filter(g => filteredStudentsForClass.some(s => s._id === g.studentId)).length,
-      submittedAssignmentIds: Array.from(submittedAssignmentIds),
-      filteredStudentsCount: filteredStudentsForClass.length,
-      classFilter,
+    console.log('=== GRADEBOOK DEBUG ===');
+    console.log('Assignments:', {
+      total: assignments.length,
+      classFiltered: classFilteredAssignments.length,
+      assignmentIds: classFilteredAssignments.map(a => ({ id: a._id, title: a.title, courseId: a.courseId })),
     });
+    console.log('Students:', {
+      total: filteredStudentsForClass.length,
+      studentIds: filteredStudentsForClass.map(s => ({ id: s._id, name: s.name, classId: s.classId })),
+    });
+    console.log('Grades:', {
+      total: grades.length,
+      allGrades: grades.map(g => ({ 
+        studentId: typeof g.studentId === 'object' ? (g.studentId as any)?._id : g.studentId,
+        assignmentId: typeof g.assignmentId === 'object' ? (g.assignmentId as any)?._id : g.assignmentId,
+        status: g.status,
+        marks: g.marks 
+      })),
+      submittedAssignmentIds: Array.from(submittedAssignmentIds),
+    });
+    console.log('Filter:', { classFilter });
     
     // Return assignments sorted by due date
     return classFilteredAssignments.sort((a, b) => 
@@ -84,14 +119,28 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
   }, [assignments, grades, classFilter, filteredStudentsForClass]);
 
   const getStudentGrade = (studentId: string, assignmentId: string) => {
-    return grades.find(g => g.studentId === studentId && g.assignmentId === assignmentId);
+    const grade = grades.find(g => {
+      // Handle both string and object ID comparisons
+      const gradeStudentId = typeof g.studentId === 'object' ? (g.studentId as any)?._id : g.studentId;
+      const gradeAssignmentId = typeof g.assignmentId === 'object' ? (g.assignmentId as any)?._id : g.assignmentId;
+      
+      return (gradeStudentId === studentId || gradeStudentId === studentId.toString()) && 
+             (gradeAssignmentId === assignmentId || gradeAssignmentId === assignmentId.toString());
+    });
+    
+    if (grade) {
+      console.log('Found grade match:', { studentId, assignmentId, gradeStudentId: grade.studentId, gradeAssignmentId: grade.assignmentId });
+    }
+    
+    return grade;
   };
   
   const getSubmissionCount = (assignmentId: string) => {
-    return grades.filter(g => 
-      g.assignmentId === assignmentId && 
-      (g.status === 'Submitted' || g.status === 'Late')
-    ).length;
+    return grades.filter(g => {
+      const gradeAssignmentId = typeof g.assignmentId === 'object' ? (g.assignmentId as any)?._id : g.assignmentId;
+      return (gradeAssignmentId === assignmentId || gradeAssignmentId === assignmentId.toString()) &&
+             (g.status === 'Submitted' || g.status === 'Late');
+    }).length;
   };
   
   const handleViewSubmission = (student: Student, assignment: Assignment) => {
@@ -122,12 +171,21 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
 
   const calculateOverall = (studentId: string) => {
     const studentAssignments = filteredAssignments.filter(a => a.courseId === students.find(s => s._id === studentId)?.classId);
-    const studentGrades = grades.filter(g => g.studentId === studentId && g.marks !== null && studentAssignments.some(a => a._id === g.assignmentId));
+    
+    const studentGrades = grades.filter(g => {
+      const gradeStudentId = typeof g.studentId === 'object' ? (g.studentId as any)?._id : g.studentId;
+      const gradeAssignmentId = typeof g.assignmentId === 'object' ? (g.assignmentId as any)?._id : g.assignmentId;
+      
+      return (gradeStudentId === studentId || gradeStudentId === studentId.toString()) && 
+             g.marks !== null && 
+             studentAssignments.some(a => a._id === gradeAssignmentId || a._id === gradeAssignmentId.toString());
+    });
 
     if(studentGrades.length === 0) return { score: "N/A", grade: "N/A"};
 
     const totalMarks = studentGrades.reduce((acc, grade) => {
-        const assignment = assignments.find(a => a._id === grade.assignmentId);
+        const gradeAssignmentId = typeof grade.assignmentId === 'object' ? (grade.assignmentId as any)?._id : grade.assignmentId;
+        const assignment = assignments.find(a => a._id === gradeAssignmentId || a._id === gradeAssignmentId.toString());
         return acc + (assignment?.totalMarks || 0);
     }, 0);
     const earnedMarks = studentGrades.reduce((acc, grade) => acc + (grade.marks || 0), 0);

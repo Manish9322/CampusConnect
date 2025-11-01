@@ -31,23 +31,75 @@ export default function TeacherGradebookPage() {
     const teacherClasses = React.useMemo(() => {
         if (!user || !allClasses) return [];
         const userId = user._id || user.id;
-        return allClasses.filter((c: Class) => {
+        const filtered = allClasses.filter((c: Class) => {
             const classTeacherId = (c.teacherId as any)?._id || c.teacherId;
-            return classTeacherId === userId;
+            return classTeacherId === userId || classTeacherId?.toString() === userId?.toString();
         });
+        
+        console.log('Teacher Classes Debug:', {
+            userId,
+            totalClasses: allClasses.length,
+            teacherClasses: filtered.length,
+            teacherClassesData: filtered.map((c: Class) => ({
+                id: c._id,
+                name: c.name,
+                teacherId: c.teacherId
+            }))
+        });
+        
+        return filtered;
     }, [user, allClasses]);
 
-    const teacherClassIds = React.useMemo(() => teacherClasses.map((c: Class) => c._id), [teacherClasses]);
+    const teacherClassIds = React.useMemo(() => {
+        const ids = teacherClasses.map((c: Class) => c._id);
+        console.log('Teacher Class IDs:', ids);
+        return ids;
+    }, [teacherClasses]);
 
     const teacherStudents = React.useMemo(() => {
-        if (!allStudents || teacherClassIds.length === 0) return [];
-        return allStudents.filter((s: Student) => teacherClassIds.includes(s.classId));
+        if (!allStudents || teacherClassIds.length === 0) {
+            console.log('No students or teacherClassIds:', { 
+                allStudentsCount: allStudents?.length, 
+                teacherClassIds 
+            });
+            return [];
+        }
+        
+        const filtered = allStudents.filter((s: Student) => {
+            // Handle both string and object ID comparisons
+            const studentClassId = typeof s.classId === 'object' ? (s.classId as any)?._id : s.classId;
+            const match = teacherClassIds.some((tcId: string) => 
+                tcId === studentClassId || 
+                tcId?.toString() === studentClassId?.toString()
+            );
+            return match;
+        });
+        
+        console.log('Teacher Students Filter Debug:', {
+            totalStudents: allStudents.length,
+            teacherClassIds,
+            filteredStudents: filtered.length,
+            sampleStudent: allStudents[0] ? {
+                id: allStudents[0]._id,
+                name: allStudents[0].name,
+                classId: allStudents[0].classId
+            } : null
+        });
+        
+        return filtered;
     }, [allStudents, teacherClassIds]);
 
     // Filter assignments to only show those belonging to teacher's classes
     const teacherAssignments = React.useMemo(() => {
         if (!allAssignments || teacherClassIds.length === 0) return [];
-        return allAssignments.filter((a: Assignment) => teacherClassIds.includes(a.courseId));
+        return allAssignments.filter((a: Assignment) => {
+            // Handle both string and object ID comparisons
+            const assignmentCourseId = typeof a.courseId === 'object' ? (a.courseId as any)?._id : a.courseId;
+            return teacherClassIds.some((tcId: string) => 
+                tcId === assignmentCourseId || 
+                tcId?.toString() === assignmentCourseId?.toString()
+            );
+        });
     }, [allAssignments, teacherClassIds]);
 
 
