@@ -3,7 +3,7 @@
 import * as React from "react";
 import { GradebookTable } from "@/components/teacher/gradebook/gradebook-table";
 import { useGetAssignmentsQuery, useGetClassesQuery, useGetGradesQuery, useGetStudentsQuery } from "@/services/api";
-import { Teacher, Student, Class } from "@/lib/types";
+import { Teacher, Student, Class, Assignment } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function TeacherGradebookPage() {
@@ -21,7 +21,7 @@ export default function TeacherGradebookPage() {
     }, []);
 
     const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery(undefined);
-    const { data: assignments = [], isLoading: isLoadingAssignments } = useGetAssignmentsQuery({});
+    const { data: allAssignments = [], isLoading: isLoadingAssignments } = useGetAssignmentsQuery({});
     const { data: allStudents = [], isLoading: isLoadingStudents } = useGetStudentsQuery({});
     // Fetch ALL grades without filtering by studentId to see all submissions
     const { data: grades = [], isLoading: isLoadingGrades, refetch: refetchGrades } = useGetGradesQuery(undefined);
@@ -44,6 +44,12 @@ export default function TeacherGradebookPage() {
         return allStudents.filter((s: Student) => teacherClassIds.includes(s.classId));
     }, [allStudents, teacherClassIds]);
 
+    // Filter assignments to only show those belonging to teacher's classes
+    const teacherAssignments = React.useMemo(() => {
+        if (!allAssignments || teacherClassIds.length === 0) return [];
+        return allAssignments.filter((a: Assignment) => teacherClassIds.includes(a.courseId));
+    }, [allAssignments, teacherClassIds]);
+
 
     if(isLoading) {
         return (
@@ -65,7 +71,7 @@ export default function TeacherGradebookPage() {
             </div>
             <GradebookTable 
                 students={teacherStudents}
-                assignments={assignments}
+                assignments={teacherAssignments}
                 grades={grades}
                 classes={teacherClasses}
                 onGradeUpdate={refetchGrades}
