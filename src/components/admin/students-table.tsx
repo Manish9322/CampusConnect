@@ -66,20 +66,48 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
     setPage(0);
   };
 
-  const filteredStudents = studentsWithRandomAttendance.filter(
-    (student) =>
-      (student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (student.rollNo && student.rollNo.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      student.email.toLowerCase().includes(searchTerm.toLowerCase())) &&
-      (classFilter === 'all' || student.classId === classFilter) &&
-      (statusFilter === 'all' || student.status === statusFilter)
-  );
+  // Helper function to extract numeric value from roll number
+  const extractNumericRollNo = (rollNo: string): number => {
+    if (!rollNo) return 999999; // Put students without roll numbers at the end
+    const match = rollNo.match(/\d+/);
+    return match ? parseInt(match[0], 10) : 999999;
+  };
 
-  const totalPages = Math.ceil(filteredStudents.length / rowsPerPage);
-  const paginatedStudents = filteredStudents.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
+  // Helper function to extract classId (handles both object and string)
+  const getActualClassId = (classId: any): string => {
+    if (typeof classId === 'object' && classId !== null && classId._id) {
+      return classId._id;
+    }
+    return classId;
+  };
+
+  const filteredStudents = studentsWithRandomAttendance
+    .filter(
+      (student) =>
+        (student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (student.rollNo && student.rollNo.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        student.email.toLowerCase().includes(searchTerm.toLowerCase())) &&
+        (classFilter === 'all' || getActualClassId(student.classId) === classFilter) &&
+        (statusFilter === 'all' || student.status === statusFilter)
+    )
+    .sort((a, b) => {
+      const numA = extractNumericRollNo(a.rollNo);
+      const numB = extractNumericRollNo(b.rollNo);
+      return numA - numB;
+    });
+
+  const effectiveRowsPerPage = rowsPerPage === 999999 ? filteredStudents.length : rowsPerPage;
+  const totalPages = Math.ceil(filteredStudents.length / effectiveRowsPerPage);
+  const paginatedStudents = rowsPerPage === 999999 
+    ? filteredStudents 
+    : filteredStudents.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
 
   const handleRowsPerPageChange = (value: string) => {
-    setRowsPerPage(Number(value));
+    if (value === 'all') {
+      setRowsPerPage(999999);
+    } else {
+      setRowsPerPage(Number(value));
+    }
     setPage(0);
   };
   
@@ -124,10 +152,49 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
     }
   };
   
+  const generateRollNumber = (classId: string): string => {
+    // Get all students in the same class
+    const classStudents = studentsWithRandomAttendance.filter(s => s.classId === classId);
+    
+    if (classStudents.length === 0) {
+      return "1";
+    }
+
+    // Extract numeric values from roll numbers
+    const numericRollNos = classStudents
+      .map(s => {
+        const match = s.rollNo?.match(/\d+/);
+        return match ? parseInt(match[0], 10) : null;
+      })
+      .filter(n => n !== null)
+      .sort((a, b) => a! - b!);
+
+    if (numericRollNos.length === 0) {
+      return "1";
+    }
+
+    // Find the first gap in the sequence
+    for (let i = 1; i <= numericRollNos[numericRollNos.length - 1]!; i++) {
+      if (!numericRollNos.includes(i)) {
+        return i.toString();
+      }
+    }
+
+    // No gap found, return next number
+    return (numericRollNos[numericRollNos.length - 1]! + 1).toString();
+  };
+
   const handleSaveStudent = async (studentData: any) => {
     try {
+        // Auto-generate roll number if not provided
+        let rollNo = studentData.rollNo;
+        if (!rollNo || rollNo.trim() === '') {
+          rollNo = generateRollNumber(studentData.classId);
+        }
+
         const payload = {
             ...studentData,
+            rollNo,
             role: 'student',
             studentId: studentToAction?.studentId || `SID${Date.now()}`
         };
@@ -145,7 +212,7 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
             await addStudent(payload).unwrap();
             toast({ 
               title: "Student Added", 
-              description: `${studentData.name} has been added to the system.` 
+              description: `${studentData.name} has been added with roll number ${rollNo}.` 
             });
         }
     } catch (error) {
@@ -303,13 +370,14 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
         <div className="flex items-center space-x-2">
             <span className="text-sm text-muted-foreground">Rows per page</span>
             <Select onValueChange={handleRowsPerPageChange} defaultValue={`${rowsPerPage}`}>
-                <SelectTrigger className="w-20">
+                <SelectTrigger className="w-[70px]">
                     <SelectValue placeholder={`${rowsPerPage}`} />
                 </SelectTrigger>
                 <SelectContent>
                     <SelectItem value="5">5</SelectItem>
                     <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="all">All</SelectItem>
                 </SelectContent>
             </Select>
         </div>

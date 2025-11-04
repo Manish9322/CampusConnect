@@ -1,4 +1,7 @@
 
+"use client";
+
+import * as React from "react";
 import {
   Card,
   CardContent,
@@ -11,42 +14,65 @@ import {
   XCircle,
   TrendingUp,
 } from "lucide-react";
-import { mockAttendance, mockStudents } from "@/lib/mock-data";
+import { Student, AttendanceRecord } from "@/lib/types";
 
-export function StudentStatCards() {
+interface StudentStatCardsProps {
+  student: Student;
+  attendanceRecords: AttendanceRecord[];
+}
 
-  const student = mockStudents.find(s => s.id === '1');
-  const studentRecords = mockAttendance.filter(r => r.studentId === student?.studentId);
-  const attendedClasses = studentRecords.filter(r => r.status === 'present' || r.status === 'late').length;
-  const missedClasses = studentRecords.filter(r => r.status === 'absent').length;
-
-  const subjectAttendance: {[key: string]: {present: number, total: number}} = {};
-  studentRecords.forEach(record => {
-    if (!subjectAttendance[record.course]) {
-      subjectAttendance[record.course] = { present: 0, total: 0 };
+export function StudentStatCards({ student, attendanceRecords }: StudentStatCardsProps) {
+  const calculateStats = () => {
+    if (!attendanceRecords || !Array.isArray(attendanceRecords)) {
+      return {
+        attendedClasses: 0,
+        missedClasses: 0,
+        bestSubject: 'N/A',
+        bestAttendance: 0,
+      };
     }
-    if (record.status === 'present' || record.status === 'late') {
-      subjectAttendance[record.course].present++;
+
+    const studentRecords = attendanceRecords.filter(r => r.studentId === student._id);
+    const attendedClasses = studentRecords.filter(r => r.status === 'present' || r.status === 'late').length;
+    const missedClasses = studentRecords.filter(r => r.status === 'absent').length;
+
+    const subjectAttendance: {[key: string]: {present: number, total: number}} = {};
+    studentRecords.forEach(record => {
+      const courseName = record.course || 'Unknown';
+      if (!subjectAttendance[courseName]) {
+        subjectAttendance[courseName] = { present: 0, total: 0 };
+      }
+      if (record.status === 'present' || record.status === 'late') {
+        subjectAttendance[courseName].present++;
+      }
+      subjectAttendance[courseName].total++;
+    });
+
+    let bestSubject = 'N/A';
+    let bestAttendance = 0;
+
+    for (const subject in subjectAttendance) {
+      const rate = (subjectAttendance[subject].present / subjectAttendance[subject].total) * 100;
+      if (rate > bestAttendance) {
+        bestAttendance = rate;
+        bestSubject = subject;
+      }
     }
-    subjectAttendance[record.course].total++;
-  });
 
-  let bestSubject = 'N/A';
-  let bestAttendance = 0;
+    return {
+      attendedClasses,
+      missedClasses,
+      bestSubject,
+      bestAttendance,
+    };
+  };
 
-  for (const subject in subjectAttendance) {
-    const rate = (subjectAttendance[subject].present / subjectAttendance[subject].total) * 100;
-    if (rate > bestAttendance) {
-      bestAttendance = rate;
-      bestSubject = subject;
-    }
-  }
-
+  const { attendedClasses, missedClasses, bestSubject, bestAttendance } = calculateStats();
 
   const stats = [
     {
       title: "Overall Attendance",
-      value: `${student?.attendancePercentage}%`,
+      value: `${student.attendancePercentage}%`,
       icon: Percent,
       description: "Across all subjects",
     },
@@ -66,7 +92,7 @@ export function StudentStatCards() {
       title: "Best Subject",
       value: bestSubject,
       icon: TrendingUp,
-      description: `With ${Math.round(bestAttendance)}% attendance`,
+      description: bestAttendance > 0 ? `With ${Math.round(bestAttendance)}% attendance` : 'No data yet',
     },
   ];
 

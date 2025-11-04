@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +19,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../ui/chart";
 import { Badge } from "../ui/badge";
 import { Mail, Phone, BookOpen } from "lucide-react";
 import { ScrollArea } from "../ui/scroll-area";
+import { Skeleton } from "../ui/skeleton";
 
 interface StudentProfileDialogProps {
   isOpen: boolean;
@@ -25,15 +27,6 @@ interface StudentProfileDialogProps {
   student: Student;
   classes: Class[];
 }
-
-const monthlyData = [
-  { month: "Jan", attendance: 88 },
-  { month: "Feb", attendance: 92 },
-  { month: "Mar", attendance: 95 },
-  { month: "Apr", attendance: 93 },
-  { month: "May", attendance: 85 },
-  { month: "Jun", attendance: 97 },
-];
 
 const chartConfig = {
   attendance: {
@@ -43,28 +36,127 @@ const chartConfig = {
 };
 
 export function StudentProfileDialog({ isOpen, onOpenChange, student, classes }: StudentProfileDialogProps) {
+  const [monthlyData, setMonthlyData] = useState<Array<{ month: string; attendance: number }>>([]);
+  const [subjectData, setSubjectData] = useState<Array<{ subject: string; attendance: number }>>([]);
+  const [isLoadingData, setIsLoadingData] = useState(false);
+
   if (!student) return null;
 
-  const getClassName = (classId: string) => {
+  const getClassName = (classId: any) => {
+    if (typeof classId === 'object' && classId !== null && classId.name) {
+      return classId.name;
+    }
     return classes.find(c => c._id === classId)?.name || 'N/A';
   }
 
-  const studentClass = classes.find(c => c._id === student.classId);
-  const subjectData = studentClass?.subjects.map(subject => ({
-    subject,
-    attendance: Math.floor(Math.random() * (100 - 80 + 1) + 80) // Random attendance for each subject
-  })) || [];
+  // Handle both populated and non-populated classId
+  const actualClassId = typeof student.classId === 'object' && student.classId !== null 
+    ? (student.classId as any)._id 
+    : student.classId;
+  const studentClass = classes.find(c => c._id === actualClassId);
+
+  // Fetch attendance data when dialog opens
+  useEffect(() => {
+    if (isOpen && student) {
+      fetchAttendanceData();
+    }
+  }, [isOpen, student]);
+
+  const fetchAttendanceData = async () => {
+    setIsLoadingData(true);
+    try {
+      // Fetch all attendance records for this student
+      const response = await fetch(`/api/attendance?studentId=${student._id}`);
+      const attendanceRecords = await response.json();
+
+      // Calculate monthly attendance (last 6 months)
+      const monthlyAttendance = calculateMonthlyAttendance(attendanceRecords);
+      setMonthlyData(monthlyAttendance);
+
+      // Calculate subject-wise attendance
+      const subjectAttendance = calculateSubjectAttendance(attendanceRecords, studentClass);
+      setSubjectData(subjectAttendance);
+    } catch (error) {
+      console.error('Error fetching attendance data:', error);
+      // Set default empty data on error
+      setMonthlyData([]);
+      setSubjectData([]);
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
+
+  const calculateMonthlyAttendance = (records: any[]) => {
+    const now = new Date();
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthlyStats: { [key: string]: { present: number; total: number } } = {};
+
+    // Get last 6 months
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthKey = `${months[date.getMonth()]} ${date.getFullYear()}`;
+      monthlyStats[monthKey] = { present: 0, total: 0 };
+    }
+
+    // Count attendance per month
+    records.forEach((record: any) => {
+      const recordDate = new Date(record.date);
+      const monthKey = `${months[recordDate.getMonth()]} ${recordDate.getFullYear()}`;
+      
+      if (monthlyStats[monthKey]) {
+        monthlyStats[monthKey].total++;
+        if (record.status === 'present' || record.status === 'late') {
+          monthlyStats[monthKey].present++;
+        }
+      }
+    });
+
+    // Convert to chart data format
+    return Object.entries(monthlyStats).map(([month, stats]) => ({
+      month: month.split(' ')[0], // Just the month name
+      attendance: stats.total > 0 ? Math.round((stats.present / stats.total) * 100) : 0
+    }));
+  };
+
+  const calculateSubjectAttendance = (records: any[], studentClass: Class | undefined) => {
+    if (!studentClass || !studentClass.subjects) {
+      return [];
+    }
+
+    const subjectStats: { [key: string]: { present: number; total: number } } = {};
+
+    // Initialize subject stats
+    studentClass.subjects.forEach((subject: string) => {
+      subjectStats[subject] = { present: 0, total: 0 };
+    });
+
+    // Count attendance per subject
+    records.forEach((record: any) => {
+      if (record.subject && subjectStats[record.subject]) {
+        subjectStats[record.subject].total++;
+        if (record.status === 'present' || record.status === 'late') {
+          subjectStats[record.subject].present++;
+        }
+      }
+    });
+
+    // Convert to chart data format
+    return Object.entries(subjectStats).map(([subject, stats]) => ({
+      subject,
+      attendance: stats.total > 0 ? Math.round((stats.present / stats.total) * 100) : 0
+    }));
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
+      <DialogContent className="max-w-4xl h-[90vh] flex flex-col scrollbar-hide">
         <DialogHeader>
           <DialogTitle>Student Profile</DialogTitle>
           <DialogDescription>
             Detailed view of the student's record and performance.
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1 scrollbar-hide">
             <div className="space-y-6 p-1">
                 <Card>
                     <CardHeader className="flex flex-col sm:flex-row items-center gap-4">
@@ -106,15 +198,25 @@ export function StudentProfileDialog({ isOpen, onOpenChange, student, classes }:
                             <CardTitle>Subject-wise Attendance</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <ChartContainer config={chartConfig} className="h-64 w-full">
-                                <BarChart data={subjectData} margin={{ top: 20, right: 20, bottom: 20, left: -10 }}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="subject" />
-                                    <YAxis domain={[70, 100]} tickFormatter={(tick) => `${tick}%`} />
-                                    <ChartTooltip content={<ChartTooltipContent />} />
-                                    <Bar dataKey="attendance" fill="var(--color-attendance)" radius={4} />
-                                </BarChart>
-                            </ChartContainer>
+                            {isLoadingData ? (
+                                <div className="h-64 flex items-center justify-center">
+                                    <Skeleton className="h-full w-full" />
+                                </div>
+                            ) : subjectData.length > 0 ? (
+                                <ChartContainer config={chartConfig} className="h-64 w-full">
+                                    <BarChart data={subjectData} margin={{ top: 20, right: 20, bottom: 20, left: -10 }}>
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="subject" />
+                                        <YAxis domain={[0, 100]} tickFormatter={(tick) => `${tick}%`} />
+                                        <ChartTooltip content={<ChartTooltipContent />} />
+                                        <Bar dataKey="attendance" fill="var(--color-attendance)" radius={4} />
+                                    </BarChart>
+                                </ChartContainer>
+                            ) : (
+                                <div className="h-64 flex items-center justify-center text-muted-foreground">
+                                    No subject attendance data available
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                     <Card>
@@ -122,15 +224,25 @@ export function StudentProfileDialog({ isOpen, onOpenChange, student, classes }:
                             <CardTitle>Monthly Attendance</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <ChartContainer config={chartConfig} className="h-64 w-full">
-                                <BarChart data={monthlyData} margin={{ top: 20, right: 20, bottom: 20, left: -10 }}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="month" />
-                                    <YAxis domain={[70, 100]} tickFormatter={(tick) => `${tick}%`} />
-                                    <ChartTooltip content={<ChartTooltipContent />} />
-                                    <Bar dataKey="attendance" fill="var(--color-attendance)" radius={4} />
-                                </BarChart>
-                            </ChartContainer>
+                            {isLoadingData ? (
+                                <div className="h-64 flex items-center justify-center">
+                                    <Skeleton className="h-full w-full" />
+                                </div>
+                            ) : monthlyData.length > 0 ? (
+                                <ChartContainer config={chartConfig} className="h-64 w-full">
+                                    <BarChart data={monthlyData} margin={{ top: 20, right: 20, bottom: 20, left: -10 }}>
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="month" />
+                                        <YAxis domain={[0, 100]} tickFormatter={(tick) => `${tick}%`} />
+                                        <ChartTooltip content={<ChartTooltipContent />} />
+                                        <Bar dataKey="attendance" fill="var(--color-attendance)" radius={4} />
+                                    </BarChart>
+                                </ChartContainer>
+                            ) : (
+                                <div className="h-64 flex items-center justify-center text-muted-foreground">
+                                    No monthly attendance data available
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </div>

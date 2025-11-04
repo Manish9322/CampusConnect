@@ -1,6 +1,7 @@
 
 "use client";
 
+import * as React from "react";
 import {
   Card,
   CardContent,
@@ -17,12 +18,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { mockAttendance } from "@/lib/mock-data";
-import { AttendanceStatus } from "@/lib/types";
+import { AttendanceStatus, AttendanceRecord } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
+
+interface RecentAttendanceProps {
+  studentId: string;
+  attendanceRecords: AttendanceRecord[];
+}
 
 const statusVariant: {
   [key in AttendanceStatus]: "default" | "destructive" | "secondary";
@@ -32,10 +37,14 @@ const statusVariant: {
   late: "secondary",
 };
 
-export function RecentAttendance() {
-  const recentRecords = mockAttendance
-    .filter((record) => record.studentId === "S001")
-    .slice(0, 3);
+export function RecentAttendance({ studentId, attendanceRecords }: RecentAttendanceProps) {
+  // Get recent records sorted by date (most recent first)
+  const recentRecords = React.useMemo(() => {
+    return attendanceRecords
+      .filter((record) => record.studentId === studentId)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 5);
+  }, [attendanceRecords, studentId]);
 
   return (
     <Card>
@@ -49,38 +58,44 @@ export function RecentAttendance() {
         </Button>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Course</TableHead>
-              <TableHead className="text-right">Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {recentRecords.map((record) => (
-              <TableRow key={record.id}>
-                <TableCell>{record.date}</TableCell>
-                <TableCell>{record.course}</TableCell>
-                <TableCell className="text-right">
-                  <Badge
-                    variant={statusVariant[record.status]}
-                    className={cn(
-                      record.status === "present" &&
-                        "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200",
-                      record.status === "late" &&
-                        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-200",
-                      record.status === "absent" &&
-                        "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200"
-                    )}
-                  >
-                    {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
-                  </Badge>
-                </TableCell>
+        {recentRecords.length > 0 ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Date</TableHead>
+                <TableHead>Course</TableHead>
+                <TableHead className="text-right">Status</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {recentRecords.map((record) => (
+                <TableRow key={record._id || record.id}>
+                  <TableCell>{new Date(record.date).toLocaleDateString()}</TableCell>
+                  <TableCell>{record.course || 'N/A'}</TableCell>
+                  <TableCell className="text-right">
+                    <Badge
+                      variant={statusVariant[record.status]}
+                      className={cn(
+                        record.status === "present" &&
+                          "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200",
+                        record.status === "late" &&
+                          "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-200",
+                        record.status === "absent" &&
+                          "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200"
+                      )}
+                    >
+                      {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        ) : (
+          <p className="text-sm text-muted-foreground text-center py-6">
+            No attendance records found.
+          </p>
+        )}
       </CardContent>
     </Card>
   );

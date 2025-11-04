@@ -13,8 +13,13 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, Fingerprint } from "lucide-react";
 import { format } from "date-fns";
+import { Student } from "@/lib/types";
 
-export function MarkAttendanceCard() {
+interface MarkAttendanceCardProps {
+  student: Student;
+}
+
+export function MarkAttendanceCard({ student }: MarkAttendanceCardProps) {
   const [punchedIn, setPunchedIn] = useState(false);
   const { toast } = useToast();
   const today = format(new Date(), "PPP");

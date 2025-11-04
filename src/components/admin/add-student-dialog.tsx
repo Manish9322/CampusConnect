@@ -38,7 +38,7 @@ const phoneRegex = new RegExp(
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
-  rollNo: z.string().min(1, "Roll number is required."),
+  rollNo: z.string().optional(), // Made optional - will be auto-generated if not provided
   email: z.string().email("Please enter a valid email."),
   phone: z.string().regex(phoneRegex, "Invalid phone number format"),
   classId: z.string().nonempty("A class must be assigned."),
@@ -59,7 +59,14 @@ export function AddStudentDialog({
   onSave,
   studentData,
 }: AddStudentDialogProps) {
-  const { data: classes = [], isLoading: isLoadingClasses } = useGetClassesQuery();
+  const { data: classes = [], isLoading: isLoadingClasses } = useGetClassesQuery(undefined);
+
+  // Helper function to extract classId (handles both object and string)
+  const extractClassId = (classId: any) => {
+    if (!classId) return undefined;
+    if (typeof classId === 'object' && classId._id) return classId._id;
+    return classId;
+  };
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -68,7 +75,7 @@ export function AddStudentDialog({
       rollNo: studentData?.rollNo || "",
       email: studentData?.email || "",
       phone: studentData?.phone || "",
-      classId: studentData?.classId || undefined,
+      classId: extractClassId(studentData?.classId),
       password: "",
       status: studentData?.status === 'active',
     },
@@ -80,7 +87,7 @@ export function AddStudentDialog({
         rollNo: studentData?.rollNo || "",
         email: studentData?.email || "",
         phone: studentData?.phone || "",
-        classId: studentData?.classId || undefined,
+        classId: extractClassId(studentData?.classId),
         password: "",
         status: studentData?.status === 'active',
     });
@@ -136,10 +143,13 @@ export function AddStudentDialog({
                 name="rollNo"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Roll Number</FormLabel>
+                    <FormLabel>Roll Number (Optional)</FormLabel>
                     <FormControl>
-                        <Input placeholder="CS-001" {...field} />
+                        <Input placeholder="CS-001 (auto-generated if empty)" {...field} />
                     </FormControl>
+                    <FormDescription>
+                      Leave empty to auto-generate the next available roll number
+                    </FormDescription>
                     <FormMessage />
                     </FormItem>
                 )}
@@ -180,7 +190,7 @@ export function AddStudentDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Class</FormLabel>
-                       <Select onValueChange={field.onChange} defaultValue={field.value}>
+                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select a class" />

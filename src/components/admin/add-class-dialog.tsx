@@ -30,7 +30,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Switch } from "../ui/switch";
 import { useGetSubjectsQuery, useGetTeachersQuery } from "@/services/api";
 import { Skeleton } from "../ui/skeleton";
-import { MultiSelect } from "react-multi-select-component";
+import { MultiSelect } from "../ui/multi-select";
 
 const formSchema = z.object({
   name: z.string().min(2, "Class name must be at least 2 characters."),
@@ -55,8 +55,8 @@ export function AddClassDialog({
   classData,
 }: AddClassDialogProps) {
   const { toast } = useToast();
-  const { data: allTeachers = [], isLoading: isLoadingTeachers } = useGetTeachersQuery();
-  const { data: allSubjects = [], isLoading: isLoadingSubjects } = useGetSubjectsQuery();
+  const { data: allTeachers = [], isLoading: isLoadingTeachers } = useGetTeachersQuery({});
+  const { data: allSubjects = [], isLoading: isLoadingSubjects } = useGetSubjectsQuery({});
 
   const subjectOptions = allSubjects.map((s: { name: string; _id: string; }) => ({ label: s.name, value: s.name }));
 
@@ -160,10 +160,9 @@ export function AddClassDialog({
                         <FormControl>
                             <MultiSelect
                                 options={subjectOptions}
-                                value={field.value}
+                                selected={field.value}
                                 onChange={field.onChange}
-                                labelledBy="Select Subjects"
-                                hasSelectAll={false}
+                                placeholder="Select subjects..."
                             />
                         </FormControl>
                         <FormMessage />

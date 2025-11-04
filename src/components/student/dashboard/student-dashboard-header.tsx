@@ -5,9 +5,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface StudentDashboardHeaderProps {
   name: string;
+  profileImage?: string;
 }
 
-export function StudentDashboardHeader({ name }: StudentDashboardHeaderProps) {
+export function StudentDashboardHeader({ name, profileImage }: StudentDashboardHeaderProps) {
   return (
     <div className="flex items-center justify-between">
       <div className="space-y-1">
@@ -19,7 +20,7 @@ export function StudentDashboardHeader({ name }: StudentDashboardHeaderProps) {
         </p>
       </div>
       <Avatar className="h-12 w-12 hidden sm:flex">
-        <AvatarImage src="https://placehold.co/100x100.png" alt={name} />
+        <AvatarImage src={profileImage || "https://placehold.co/100x100.png"} alt={name} />
         <AvatarFallback>{name.charAt(0)}</AvatarFallback>
       </Avatar>
     </div>
