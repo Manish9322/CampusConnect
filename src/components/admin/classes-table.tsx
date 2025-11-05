@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ClassWithDetails, Teacher } from "@/lib/types";
-import { Edit, PlusCircle, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Edit, PlusCircle, Trash2, ChevronLeft, ChevronRight, Filter, X } from "lucide-react";
 import { AddClassDialog } from "./add-class-dialog";
 import { DeleteConfirmationDialog } from "../shared/delete-confirmation-dialog";
 import { Badge } from "../ui/badge";
@@ -40,6 +40,13 @@ export function ClassesTable({ classes: initialClasses, isLoading, isError, refe
   const [classToAction, setClassToAction] = React.useState<ClassWithDetails | null>(null);
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [showFilters, setShowFilters] = React.useState(false);
+  
+  // Filter states
+  const [statusFilter, setStatusFilter] = React.useState<string>("all");
+  const [yearFilter, setYearFilter] = React.useState<string>("all");
+  const [minStudents, setMinStudents] = React.useState<string>("");
+  const [maxStudents, setMaxStudents] = React.useState<string>("");
   
   const [addClass, { isLoading: isAdding }] = useAddClassMutation();
   const [updateClass, { isLoading: isUpdating }] = useUpdateClassMutation();
@@ -55,11 +62,30 @@ export function ClassesTable({ classes: initialClasses, isLoading, isError, refe
     return { ...c, teacher: teacherName };
   });
 
-  const filteredClasses = classesWithTeacherNames.filter(
-    (c) =>
-      c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.teacher.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Get unique years for filter dropdown
+  const uniqueYears = React.useMemo(() => {
+    const years = Array.from(new Set(classesWithTeacherNames.map(c => c.year)));
+    return years.sort((a, b) => a - b);
+  }, [classesWithTeacherNames]);
+
+  // Apply all filters
+  const filteredClasses = classesWithTeacherNames.filter((c) => {
+    // Search filter
+    const matchesSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.teacher.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Status filter
+    const matchesStatus = statusFilter === "all" || c.status === statusFilter;
+    
+    // Year filter
+    const matchesYear = yearFilter === "all" || c.year.toString() === yearFilter;
+    
+    // Student count filter
+    const matchesMinStudents = !minStudents || c.studentCount >= parseInt(minStudents);
+    const matchesMaxStudents = !maxStudents || c.studentCount <= parseInt(maxStudents);
+    
+    return matchesSearch && matchesStatus && matchesYear && matchesMinStudents && matchesMaxStudents;
+  });
 
   const totalPages = Math.ceil(filteredClasses.length / rowsPerPage);
   const paginatedClasses = filteredClasses.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
@@ -72,6 +98,17 @@ export function ClassesTable({ classes: initialClasses, isLoading, isError, refe
     }
     setPage(0);
   };
+
+  const clearFilters = () => {
+    setStatusFilter("all");
+    setYearFilter("all");
+    setMinStudents("");
+    setMaxStudents("");
+    setSearchTerm("");
+    setPage(0);
+  };
+
+  const hasActiveFilters = statusFilter !== "all" || yearFilter !== "all" || minStudents !== "" || maxStudents !== "" || searchTerm !== "";
 
 
   const handleEdit = (c: ClassWithDetails) => {
@@ -210,17 +247,106 @@ export function ClassesTable({ classes: initialClasses, isLoading, isError, refe
 
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
-        <Input
-          placeholder="Search by class name or teacher..."
-          value={searchTerm}
-          onChange={handleSearch}
-          className="max-w-sm"
-        />
-        <Button onClick={handleAdd}>
-          <PlusCircle className="mr-2 h-4 w-4" /> Add Class
-        </Button>
+      <div className="space-y-4 mb-4">
+        {/* Search and Action Bar */}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2 flex-1">
+            <Input
+              placeholder="Search by class name or teacher..."
+              value={searchTerm}
+              onChange={handleSearch}
+              className="max-w-sm"
+            />
+            <Button
+              variant={showFilters ? "default" : "outline"}
+              size="icon"
+              onClick={() => setShowFilters(!showFilters)}
+              title="Toggle filters"
+            >
+              <Filter className="h-4 w-4" />
+            </Button>
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearFilters}
+                className="h-9"
+              >
+                <X className="mr-2 h-4 w-4" /> Clear Filters
+              </Button>
+            )}
+          </div>
+          <Button onClick={handleAdd}>
+            <PlusCircle className="mr-2 h-4 w-4" /> Add Class
+          </Button>
+        </div>
+
+        {/* Filters Section */}
+        {showFilters && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 border rounded-lg bg-muted/50">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Status</label>
+              <Select value={statusFilter} onValueChange={(value) => { setStatusFilter(value); setPage(0); }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Year</label>
+              <Select value={yearFilter} onValueChange={(value) => { setYearFilter(value); setPage(0); }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All years" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Years</SelectItem>
+                  {uniqueYears.map((year) => (
+                    <SelectItem key={year} value={year.toString()}>
+                      Year {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Min Students</label>
+              <Input
+                type="number"
+                placeholder="Min"
+                value={minStudents}
+                onChange={(e) => { setMinStudents(e.target.value); setPage(0); }}
+                min="0"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Max Students</label>
+              <Input
+                type="number"
+                placeholder="Max"
+                value={maxStudents}
+                onChange={(e) => { setMaxStudents(e.target.value); setPage(0); }}
+                min="0"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Filter Summary */}
+        {hasActiveFilters && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span>Showing {filteredClasses.length} of {classesWithTeacherNames.length} classes</span>
+          </div>
+        )}
       </div>
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>

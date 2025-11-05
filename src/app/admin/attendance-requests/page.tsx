@@ -170,10 +170,10 @@ export default function AttendanceRequestsPage() {
                                 <div className="flex items-center justify-end gap-1">
                                     {req.status === 'pending' && (
                                         <>
-                                            <Button size="icon" variant="ghost" className="text-green-600 hover:bg-green-50" onClick={() => handleUpdateRequest(req._id, 'approved')}>
+                                            <Button size="icon" variant="ghost" className="text-blue-600 hover:bg-green-50" onClick={() => handleUpdateRequest(req._id, 'approved')}>
                                                 <Check className="h-4 w-4"/>
                                             </Button>
-                                            <Button size="icon" variant="ghost" className="text-red-600 hover:bg-red-50" onClick={() => handleUpdateRequest(req._id, 'denied')}>
+                                            <Button size="icon" variant="ghost" className="text-blue-600 hover:bg-red-50" onClick={() => handleUpdateRequest(req._id, 'denied')}>
                                                 <X className="h-4 w-4" />
                                             </Button>
                                         </>
@@ -214,30 +214,30 @@ export default function AttendanceRequestsPage() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Pending</CardTitle>
-                        <Clock className="h-4 w-4 text-orange-500" />
+                        <Clock className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-orange-600">{stats.pending}</div>
+                        <div className="text-2xl font-bold">{stats.pending}</div>
                         <p className="text-xs text-muted-foreground">Awaiting review</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Approved</CardTitle>
-                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
+                        <div className="text-2xl font-bold">{stats.approved}</div>
                         <p className="text-xs text-muted-foreground">Accepted requests</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Denied</CardTitle>
-                        <XCircle className="h-4 w-4 text-red-500" />
+                        <XCircle className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-red-600">{stats.denied}</div>
+                        <div className="text-2xl font-bold">{stats.denied}</div>
                         <p className="text-xs text-muted-foreground">Rejected requests</p>
                     </CardContent>
                 </Card>

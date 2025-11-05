@@ -12,8 +12,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { ItemPreviewDialog } from "@/components/admin/settings/item-preview-dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 type Item = {
     _id: string;
@@ -40,22 +40,22 @@ export default function SettingsPage() {
 
     const { toast } = useToast();
 
-    const { data: subjects = [], isLoading: isLoadingSubjects } = useGetSubjectsQuery();
+    const { data: subjects = [], isLoading: isLoadingSubjects } = useGetSubjectsQuery(undefined);
     const [addSubject, { isLoading: isAddingSubject }] = useAddSubjectMutation();
     const [updateSubject, { isLoading: isUpdatingSubject }] = useUpdateSubjectMutation();
     const [deleteSubject] = useDeleteSubjectMutation();
-    
-    const { data: departments = [], isLoading: isLoadingDepartments } = useGetDepartmentsQuery();
+
+    const { data: departments = [], isLoading: isLoadingDepartments } = useGetDepartmentsQuery(undefined);
     const [addDepartment, { isLoading: isAddingDepartment }] = useAddDepartmentMutation();
     const [updateDepartment, { isLoading: isUpdatingDepartment }] = useUpdateDepartmentMutation();
     const [deleteDepartment] = useDeleteDepartmentMutation();
 
-    const { data: designations = [], isLoading: isLoadingDesignations } = useGetDesignationsQuery();
+    const { data: designations = [], isLoading: isLoadingDesignations } = useGetDesignationsQuery(undefined);
     const [addDesignation, { isLoading: isAddingDesignation }] = useAddDesignationMutation();
     const [updateDesignation, { isLoading: isUpdatingDesignation }] = useUpdateDesignationMutation();
     const [deleteDesignation] = useDeleteDesignationMutation();
-    
-    const { data: announcementCategories = [], isLoading: isLoadingAnnouncementCategories } = useGetAnnouncementCategoriesQuery();
+
+    const { data: announcementCategories = [], isLoading: isLoadingAnnouncementCategories } = useGetAnnouncementCategoriesQuery(undefined);
     const [addAnnouncementCategory, { isLoading: isAddingAnnouncementCategory }] = useAddAnnouncementCategoryMutation();
     const [updateAnnouncementCategory, { isLoading: isUpdatingAnnouncementCategory }] = useUpdateAnnouncementCategoryMutation();
     const [deleteAnnouncementCategory] = useDeleteAnnouncementCategoryMutation();
@@ -191,7 +191,7 @@ export default function SettingsPage() {
     };
 
 
-    const renderCard = (
+    const renderTable = (
         title: string,
         description: string,
         items: Item[],
@@ -205,60 +205,88 @@ export default function SettingsPage() {
         newItem: { name: string, description: string },
         setNewItem: React.Dispatch<React.SetStateAction<{ name: string, description: string }>>
     ) => (
-        <Card className="flex flex-col">
+        <Card>
             <CardHeader>
                 <CardTitle>{title}</CardTitle>
                 <CardDescription>{description}</CardDescription>
             </CardHeader>
-            <CardContent className="flex-1 flex flex-col gap-4">
-                <div className="flex flex-col gap-2">
+            <CardContent>
+                {/* Add New Item Form */}
+                <div className="flex gap-2 mb-4">
                     <Input
                         value={newItem.name}
                         onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
                         placeholder={`New ${type.replace(/([A-Z])/g, ' $1').toLowerCase()} name`}
                         disabled={isAdding}
+                        className="flex-1"
                     />
-                    <Textarea
+                    <Input
                         value={newItem.description}
                         onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
-                        placeholder={`${type.charAt(0).toUpperCase() + type.slice(1).replace(/([A-Z])/g, ' $1')} description (optional)`}
+                        placeholder="Description (optional)"
                         disabled={isAdding}
-                        rows={2}
+                        className="flex-1"
                     />
-                    <Button onClick={onAdd} disabled={isAdding || !newItem.name.trim()}>
-                        <PlusCircle className="mr-2 h-4 w-4" /> {isAdding ? "Adding..." : `Add ${type.charAt(0).toUpperCase() + type.slice(1).replace(/([A-Z])/g, ' $1')}`}
+                    <Button onClick={onAdd} disabled={isAdding || !newItem.name.trim()} className="shrink-0">
+                        <PlusCircle className="mr-2 h-4 w-4" /> {isAdding ? "Adding..." : "Add"}
                     </Button>
                 </div>
-                <div className="flex-1 relative">
-                    <ScrollArea className="h-64 pr-6">
-                        <div className="space-y-2">
-                            {isLoading ? (
-                                [...Array(3)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)
-                            ) : items.length > 0 ? (
-                                items.map((item) => (
-                                    <div key={item._id} className="flex items-center justify-between p-2 border rounded-md">
-                                        <div className="flex-1 overflow-hidden">
-                                            <p className="font-medium truncate">{item.name}</p>
-                                            {item.description && <p className="text-sm text-muted-foreground truncate line-clamp-1">{item.description}</p>}
-                                        </div>
-                                        <div>
-                                            <Button variant="ghost" size="icon" onClick={() => onView(item)}>
-                                                <Eye className="h-4 w-4" />
-                                            </Button>
-                                            <Button variant="ghost" size="icon" onClick={() => onEdit(item)}>
-                                                <Edit className="h-4 w-4" />
-                                            </Button>
-                                            <Button variant="ghost" size="icon" onClick={() => onRemove(item)}>
-                                                <Trash2 className="h-4 w-4 text-destructive" />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : (
-                                <EmptyState title={`No ${type}s`} description={`No ${type.replace(/([A-Z])/g, ' $1').toLowerCase()}s have been added yet.`} />
-                            )}
-                        </div>
-                    </ScrollArea>
+
+                {/* Table */}
+                <div className="rounded-md border">
+                    <div className="max-h-96 overflow-y-auto scrollbar-hide">
+                        <Table>
+                            <TableHeader className="sticky top-0 bg-background z-10 border-b">
+                                <TableRow>
+                                    <TableHead className="w-[30%]">Name</TableHead>
+                                    <TableHead className="w-[50%]">Description</TableHead>
+                                    <TableHead className="text-right w-[20%]">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {isLoading ? (
+                                    [...Array(3)].map((_, i) => (
+                                        <TableRow key={i}>
+                                            <TableCell><Skeleton className="h-5 w-full" /></TableCell>
+                                            <TableCell><Skeleton className="h-5 w-full" /></TableCell>
+                                            <TableCell className="text-right"><Skeleton className="h-8 w-24 ml-auto" /></TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : items.length > 0 ? (
+                                    items.map((item) => (
+                                        <TableRow key={item._id}>
+                                            <TableCell className="font-medium">{item.name}</TableCell>
+                                            <TableCell className="text-muted-foreground">
+                                                {item.description || <span className="italic text-muted-foreground/50">No description</span>}
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <div className="flex justify-end gap-1">
+                                                    <Button variant="ghost" size="icon" onClick={() => onView(item)}>
+                                                        <Eye className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button variant="ghost" size="icon" onClick={() => onEdit(item)}>
+                                                        <Edit className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button variant="ghost" size="icon" onClick={() => onRemove(item)}>
+                                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={3} className="text-center py-8">
+                                            <EmptyState 
+                                                title={`No ${type}s`} 
+                                                description={`No ${type.replace(/([A-Z])/g, ' $1').toLowerCase()}s have been added yet.`} 
+                                            />
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
                 </div>
             </CardContent>
         </Card>
@@ -268,8 +296,8 @@ export default function SettingsPage() {
     return (
         <div className="space-y-6">
             <h1 className="text-2xl font-bold">Settings</h1>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
-                {renderCard(
+            <div className="grid md:grid-cols-2 gap-6">
+                {renderTable(
                     "Manage Subjects",
                     "Add or remove subjects offered.",
                     subjects,
@@ -283,7 +311,7 @@ export default function SettingsPage() {
                     newSubject,
                     setNewSubject
                 )}
-                {renderCard(
+                {renderTable(
                     "Manage Departments",
                     "Add or remove academic departments.",
                     departments,
@@ -297,7 +325,7 @@ export default function SettingsPage() {
                     newDepartment,
                     setNewDepartment
                 )}
-                {renderCard(
+                {renderTable(
                     "Manage Designations",
                     "Add or remove teacher designations.",
                     designations,
@@ -311,7 +339,7 @@ export default function SettingsPage() {
                     newDesignation,
                     setNewDesignation
                 )}
-                {renderCard(
+                {renderTable(
                     "Announcement Categories",
                     "Manage announcement categories.",
                     announcementCategories,

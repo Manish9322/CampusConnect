@@ -8,8 +8,8 @@ import { GraduationCap, Users, UserCheck, UserX } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ManageStudentsPage() {
-    const studentsQuery = useGetStudentsQuery();
-    const classesQuery = useGetClassesQuery();
+    const studentsQuery = useGetStudentsQuery(undefined);
+    const classesQuery = useGetClassesQuery(undefined);
     
     // Debug logging - check the entire query result
     console.log('=== STUDENTS QUERY DEBUG ===');

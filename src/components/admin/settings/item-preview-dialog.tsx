@@ -15,7 +15,7 @@ interface ItemPreviewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   item: { name: string; description?: string } | null;
-  type: "subject" | "department" | "designation" | null;
+  type: "subject" | "department" | "designation" | "announcementCategory" | null;
 }
 
 export function ItemPreviewDialog({ open, onOpenChange, item, type }: ItemPreviewDialogProps) {

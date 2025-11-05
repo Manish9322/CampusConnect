@@ -25,6 +25,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "../ui/skeleton";
 import { EmptyState } from "../shared/empty-state";
 import { StudentProfileDialog } from "./student-profile-dialog";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface StudentsTableProps {
   students: Student[];
@@ -34,6 +36,7 @@ interface StudentsTableProps {
 
 export function StudentsTable({ students: initialStudents, classes, isLoading }: StudentsTableProps) {
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = React.useState("");
   const [isAddDialogOpen, setAddDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
@@ -239,6 +242,101 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
     return classes.find(c => c._id === classId)?.name || 'N/A';
   }
 
+  const renderMobileCards = () => {
+    if (isLoading) {
+      return (
+        <div className="space-y-4">
+          {[...Array(5)].map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-4">
+                <Skeleton className="h-5 w-32 mb-2" />
+                <Skeleton className="h-4 w-48 mb-2" />
+                <Skeleton className="h-4 w-24" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      );
+    }
+
+    if (paginatedStudents.length === 0) {
+      return (
+        <div className="py-8">
+          <EmptyState title="No Students Found" description="There are no students matching your criteria." />
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {paginatedStudents.map((student) => (
+          <Card key={student._id}>
+            <CardContent className="p-4">
+              <div className="flex justify-between items-start mb-3">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-semibold text-base">{student.name}</h3>
+                    <Switch
+                      checked={student.status === 'active'}
+                      onCheckedChange={(checked) => handleToggleStatus(student, checked)}
+                      aria-label="Toggle student status"
+                    />
+                  </div>
+                  <p className="text-sm text-muted-foreground">{student.email}</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
+                <div>
+                  <p className="text-muted-foreground text-xs mb-1">Roll No.</p>
+                  <p className="font-medium">{student.rollNo}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-xs mb-1">Class</p>
+                  <Badge variant="outline" className="text-xs">{getClassName(student.classId)}</Badge>
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <p className="text-muted-foreground text-xs mb-2">Attendance</p>
+                <div className="flex items-center gap-2">
+                  <Progress value={student.attendancePercentage} className="h-2 flex-1" />
+                  <span className="text-sm font-medium">{student.attendancePercentage}%</span>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2 border-t">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => handleViewProfile(student)}
+                >
+                  <Eye className="h-4 w-4 mr-1" /> View
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => handleEdit(student)}
+                >
+                  <Edit className="h-4 w-4 mr-1" /> Edit
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openDeleteDialog(student)}
+                >
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  };
+
   const renderTableBody = () => {
     if (isLoading) {
       return (
@@ -315,92 +413,104 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
 
   return (
     <>
-      <div className="flex flex-col sm:flex-row items-center justify-between mb-4 gap-4">
-        <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-            <Input
-              placeholder="Search students..."
-              value={searchTerm}
-              onChange={handleSearch}
-              className="w-full sm:max-w-xs"
-            />
-            <Select value={classFilter} onValueChange={setClassFilter}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                    <SelectValue placeholder="Filter by class" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="all">All Classes</SelectItem>
-                    {classes.map((c: Class) => (
-                        <SelectItem key={c._id} value={c._id!}>{c.name}</SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
-             <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                    <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-            </Select>
-            {isFiltered && <Button variant="ghost" onClick={clearFilters}><X className="mr-2 h-4 w-4" /> Clear Filters</Button>}
+      <div className="flex flex-col gap-4 mb-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <Input
+            placeholder="Search students..."
+            value={searchTerm}
+            onChange={handleSearch}
+            className="w-full sm:max-w-xs"
+          />
+          <Select value={classFilter} onValueChange={setClassFilter}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Filter by class" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Classes</SelectItem>
+              {classes.map((c: Class) => (
+                <SelectItem key={c._id} value={c._id!}>{c.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
+          {isFiltered && (
+            <Button variant="ghost" onClick={clearFilters} className="w-full sm:w-auto">
+              <X className="mr-2 h-4 w-4" /> Clear Filters
+            </Button>
+          )}
         </div>
-        <Button onClick={handleAdd} className="w-full sm:w-auto">
+        <Button onClick={handleAdd} className="w-full sm:w-auto sm:self-end">
           <PlusCircle className="mr-2 h-4 w-4" /> Add Student
         </Button>
       </div>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Roll No.</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Class</TableHead>
-              <TableHead>Attendance</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          {renderTableBody()}
-        </Table>
-      </div>
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center space-x-2">
-            <span className="text-sm text-muted-foreground">Rows per page</span>
-            <Select onValueChange={handleRowsPerPageChange} defaultValue={`${rowsPerPage}`}>
-                <SelectTrigger className="w-[70px]">
-                    <SelectValue placeholder={`${rowsPerPage}`} />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="5">5</SelectItem>
-                    <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
-                    <SelectItem value="all">All</SelectItem>
-                </SelectContent>
-            </Select>
+
+      {isMobile ? (
+        renderMobileCards()
+      ) : (
+        <div className="rounded-md border overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Roll No.</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Class</TableHead>
+                <TableHead>Attendance</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            {renderTableBody()}
+          </Table>
         </div>
-        <div className="flex items-center space-x-2">
-            <span className="text-sm text-muted-foreground">
-                Page {page + 1} of {totalPages}
-            </span>
+      )}
+
+      <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-4">
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
+          <span className="text-sm text-muted-foreground whitespace-nowrap">Rows per page</span>
+          <Select onValueChange={handleRowsPerPageChange} defaultValue={`${rowsPerPage}`}>
+            <SelectTrigger className="w-[70px]">
+              <SelectValue placeholder={`${rowsPerPage}`} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="5">5</SelectItem>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+              <SelectItem value="all">All</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground whitespace-nowrap">
+            Page {page + 1} of {totalPages}
+          </span>
+          <div className="flex gap-1">
             <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setPage(p => Math.max(0, p - 1))}
-                disabled={page === 0}
+              variant="outline"
+              size="icon"
+              onClick={() => setPage(p => Math.max(0, p - 1))}
+              disabled={page === 0}
             >
-                <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4" />
             </Button>
             <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-                disabled={page >= totalPages - 1}
+              variant="outline"
+              size="icon"
+              onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+              disabled={page >= totalPages - 1}
             >
-                <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4" />
             </Button>
+          </div>
         </div>
       </div>
        <AddStudentDialog
