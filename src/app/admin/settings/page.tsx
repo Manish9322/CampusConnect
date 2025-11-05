@@ -302,11 +302,11 @@ export default function SettingsPage() {
                                 ) : subjects.length > 0 ? (
                                     subjects.map((item: any) => (
                                         <TableRow key={item._id}>
-                                            <TableCell className="font-medium">{item.name}</TableCell>
-                                            <TableCell className="text-muted-foreground">
+                                            <TableCell className="font-medium max-w-[200px] truncate">{item.name}</TableCell>
+                                            <TableCell className="text-muted-foreground max-w-[200px] truncate">
                                                 {item.departmentName || <span className="italic text-muted-foreground/50">No department</span>}
                                             </TableCell>
-                                            <TableCell className="text-muted-foreground">
+                                            <TableCell className="text-muted-foreground max-w-[300px] truncate">
                                                 {item.description || <span className="italic text-muted-foreground/50">No description</span>}
                                             </TableCell>
                                             <TableCell className="text-right">
@@ -357,11 +357,11 @@ export default function SettingsPage() {
                                 <Card key={item._id}>
                                     <CardContent className="p-4 space-y-3">
                                         <div>
-                                            <h4 className="font-semibold text-base">{item.name}</h4>
-                                            <p className="text-xs text-muted-foreground mt-1">
+                                            <h4 className="font-semibold text-base truncate">{item.name}</h4>
+                                            <p className="text-xs text-muted-foreground mt-1 truncate">
                                                 Department: {item.departmentName || <span className="italic">No department</span>}
                                             </p>
-                                            <p className="text-sm text-muted-foreground mt-1">
+                                            <p className="text-sm text-muted-foreground mt-1 truncate">
                                                 {item.description || <span className="italic text-muted-foreground/50">No description</span>}
                                             </p>
                                         </div>
@@ -462,8 +462,8 @@ export default function SettingsPage() {
                                 ) : items.length > 0 ? (
                                     items.map((item) => (
                                         <TableRow key={item._id}>
-                                            <TableCell className="font-medium">{item.name}</TableCell>
-                                            <TableCell className="text-muted-foreground">
+                                            <TableCell className="font-medium max-w-[200px] truncate">{item.name}</TableCell>
+                                            <TableCell className="text-muted-foreground max-w-[300px] truncate">
                                                 {item.description || <span className="italic text-muted-foreground/50">No description</span>}
                                             </TableCell>
                                             <TableCell className="text-right">
@@ -514,8 +514,8 @@ export default function SettingsPage() {
                                 <Card key={item._id}>
                                     <CardContent className="p-4 space-y-3">
                                         <div>
-                                            <h4 className="font-semibold text-base">{item.name}</h4>
-                                            <p className="text-sm text-muted-foreground mt-1">
+                                            <h4 className="font-semibold text-base truncate">{item.name}</h4>
+                                            <p className="text-sm text-muted-foreground mt-1 truncate">
                                                 {item.description || <span className="italic text-muted-foreground/50">No description</span>}
                                             </p>
                                         </div>
