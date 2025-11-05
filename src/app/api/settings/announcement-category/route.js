@@ -17,6 +17,17 @@ export async function POST(request) {
   await _db();
   try {
     const body = await request.json();
+    
+    // Check if it's an array (bulk insert)
+    if (Array.isArray(body)) {
+      const newCategories = await AnnouncementCategory.insertMany(body);
+      return NextResponse.json({ 
+        message: `${newCategories.length} announcement categories created successfully`,
+        categories: newCategories 
+      }, { status: 201 });
+    }
+    
+    // Single insert
     const newCategory = new AnnouncementCategory(body);
     await newCategory.save();
     return NextResponse.json(newCategory, { status: 201 });

@@ -16,6 +16,17 @@ export async function POST(request) {
   await _db();
   try {
     const body = await request.json();
+    
+    // Check if it's an array (bulk insert)
+    if (Array.isArray(body)) {
+      const newDepartments = await Department.insertMany(body);
+      return NextResponse.json({ 
+        message: `${newDepartments.length} departments created successfully`,
+        departments: newDepartments 
+      }, { status: 201 });
+    }
+    
+    // Single insert
     const newDepartment = new Department(body);
     await newDepartment.save();
     return NextResponse.json(newDepartment, { status: 201 });
