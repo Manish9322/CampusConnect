@@ -70,21 +70,21 @@ export function FeeManagementDashboard({ initialRecords, students }: FeeManageme
     return (
         <>
             <Card>
-                <CardHeader>
-                    <CardTitle>Student Fee Records</CardTitle>
-                    <CardDescription>View and manage all student fee payments.</CardDescription>
+                <CardHeader className="space-y-1.5">
+                    <CardTitle className="text-xl md:text-2xl">Student Fee Records</CardTitle>
+                    <CardDescription className="text-sm">View and manage all student fee payments.</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
-                        <div className="flex flex-col md:flex-row items-center gap-4 w-full">
-                            <Input
-                                placeholder="Search by student name or ID..."
-                                value={searchTerm}
-                                onChange={e => setSearchTerm(e.target.value)}
-                                className="w-full md:max-w-sm"
-                            />
+                <CardContent className="px-4 md:px-6">
+                    <div className="flex flex-col gap-3 mb-4">
+                        <Input
+                            placeholder="Search by student name or ID..."
+                            value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                            className="w-full"
+                        />
+                        <div className="flex flex-col sm:flex-row gap-3">
                             <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
-                                <SelectTrigger className="w-full md:w-48">
+                                <SelectTrigger className="w-full sm:flex-1">
                                     <SelectValue placeholder="Filter by status" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -94,14 +94,15 @@ export function FeeManagementDashboard({ initialRecords, students }: FeeManageme
                                     <SelectItem value="Overdue">Overdue</SelectItem>
                                 </SelectContent>
                             </Select>
+                            <Button variant="outline" className="w-full sm:flex-1">
+                                <Download className="mr-2 h-4 w-4" />
+                                Export Report
+                            </Button>
                         </div>
-                        <Button variant="outline" className="w-full md:w-auto">
-                            <Download className="mr-2 h-4 w-4" />
-                            Export Report
-                        </Button>
                     </div>
 
-                    <div className="rounded-md border">
+                    {/* Desktop Table View */}
+                    <div className="hidden md:block rounded-md border">
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -144,10 +145,70 @@ export function FeeManagementDashboard({ initialRecords, students }: FeeManageme
                             </TableBody>
                         </Table>
                     </div>
+
+                    {/* Mobile Card View */}
+                    <div className="md:hidden space-y-4">
+                        {paginatedRecords.map(record => (
+                            <Card key={record.id}>
+                                <CardContent className="p-4 space-y-3">
+                                    <div className="flex items-start justify-between">
+                                        <div>
+                                            <div className="font-semibold text-base">{record.studentName}</div>
+                                            <div className="text-sm text-muted-foreground">ID: {record.studentId}</div>
+                                        </div>
+                                        <Badge variant={statusVariant[record.status]} className={cn(
+                                            record.status === 'Paid' && 'bg-green-600 text-white hover:bg-green-700',
+                                        )}>
+                                            {record.status}
+                                        </Badge>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-3 text-sm">
+                                        <div>
+                                            <div className="text-muted-foreground text-xs">Total Amount</div>
+                                            <div className="font-medium">${record.totalAmount.toLocaleString()}</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-muted-foreground text-xs">Due Amount</div>
+                                            <div className="font-medium">${record.dueAmount.toLocaleString()}</div>
+                                        </div>
+                                        <div className="col-span-2">
+                                            <div className="text-muted-foreground text-xs">Due Date</div>
+                                            <div className="font-medium">{record.dueDate}</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-2 pt-2">
+                                        <Button 
+                                            variant="outline" 
+                                            size="sm" 
+                                            className="flex-1"
+                                            onClick={() => handleUpdateStatus(record)}
+                                        >
+                                            <Edit className="h-4 w-4 mr-1" />
+                                            Update
+                                        </Button>
+                                        {record.status !== 'Paid' && (
+                                            <Button 
+                                                variant="outline" 
+                                                size="sm"
+                                                className="flex-1"
+                                                onClick={() => sendReminder(record)}
+                                            >
+                                                <Bell className="h-4 w-4 mr-1" />
+                                                Remind
+                                            </Button>
+                                        )}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
                     
-                    <div className="flex items-center justify-between mt-4">
-                        <div className="flex items-center space-x-2">
-                            <span className="text-sm text-muted-foreground">Rows per page</span>
+                    {/* Pagination Controls - Responsive */}
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 mt-4">
+                        <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
+                            <span className="text-sm text-muted-foreground whitespace-nowrap">Rows per page</span>
                             <Select onValueChange={(val) => setRowsPerPage(Number(val))} defaultValue={`${rowsPerPage}`}>
                                 <SelectTrigger className="w-20">
                                     <SelectValue placeholder={`${rowsPerPage}`} />
@@ -157,14 +218,18 @@ export function FeeManagementDashboard({ initialRecords, students }: FeeManageme
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div className="flex items-center space-x-2">
-                            <span className="text-sm text-muted-foreground">Page {page + 1} of {totalPages}</span>
-                            <Button variant="outline" size="icon" onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}>
-                                <ChevronLeft className="h-4 w-4" />
-                            </Button>
-                            <Button variant="outline" size="icon" onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}>
-                                <ChevronRight className="h-4 w-4" />
-                            </Button>
+                        <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-end">
+                            <span className="text-sm text-muted-foreground whitespace-nowrap">
+                                Page {page + 1} of {totalPages || 1}
+                            </span>
+                            <div className="flex gap-1">
+                                <Button variant="outline" size="icon" onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}>
+                                    <ChevronLeft className="h-4 w-4" />
+                                </Button>
+                                <Button variant="outline" size="icon" onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}>
+                                    <ChevronRight className="h-4 w-4" />
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </CardContent>

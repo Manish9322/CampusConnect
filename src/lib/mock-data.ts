@@ -12,12 +12,12 @@ export const mockStudents: Student[] = [
 ];
 
 export const mockTeachers: Teacher[] = [
-  { id: '101', teacherId: 'T01', designation: 'Dr.', name: 'Alan Turing', email: 'turing@example.com', role: 'teacher', department: 'Computer Science', courses: ['CS101', 'CS303'], phone: '123-456-7890', status: 'active' },
-  { id: '102', teacherId: 'T02', designation: 'Dr.', name: 'Marie Curie', email: 'curie@example.com', role: 'teacher', department: 'Physics', courses: ['PHY101'], phone: '123-456-7891', status: 'active' },
-  { id: '103', teacherId: 'T03', designation: 'Dr.', name: 'Ada Lovelace', email: 'lovelace@example.com', role: 'teacher', department: 'Mathematics', courses: ['MATH201'], phone: '123-456-7892', status: 'inactive' },
+  { id: '101', teacherId: 'T01', designation: 'Dr.', name: 'Alan Turing', email: 'turing@example.com', role: 'teacher', department: 'Computer Science', subjects: ['CS101', 'CS303'], phone: '123-456-7890', status: 'active' },
+  { id: '102', teacherId: 'T02', designation: 'Dr.', name: 'Marie Curie', email: 'curie@example.com', role: 'teacher', department: 'Physics', subjects: ['PHY101'], phone: '123-456-7891', status: 'active' },
+  { id: '103', teacherId: 'T03', designation: 'Dr.', name: 'Ada Lovelace', email: 'lovelace@example.com', role: 'teacher', department: 'Mathematics', subjects: ['MATH201'], phone: '123-456-7892', status: 'inactive' },
 ];
 
-const generateDailyAttendance = (studentId: string, studentName: string, course: string, teacherId: string) => {
+const generateDailyAttendance = (studentId: string, studentName: string, subject: string, teacherId: string) => {
     const records: AttendanceRecord[] = [];
     const today = new Date();
     for (let i = 0; i < 90; i++) {
@@ -32,12 +32,13 @@ const generateDailyAttendance = (studentId: string, studentName: string, course:
             else if (random > 0.9) status = 'late';
             
             records.push({
-                id: `att-${studentId}-${course}-${i}`,
+                id: `att-${studentId}-${subject}-${i}`,
                 studentId,
                 studentName,
+                classId: subject,
                 date: date.toISOString().split('T')[0],
                 status,
-                course,
+                subject,
                 recordedBy: teacherId,
             });
         }
@@ -48,12 +49,12 @@ const generateDailyAttendance = (studentId: string, studentName: string, course:
 export const mockAttendance: AttendanceRecord[] = [
   ...generateDailyAttendance('S001', 'Alice Johnson', 'CS101', 'T01'),
   ...generateDailyAttendance('S001', 'Alice Johnson', 'PHY101', 'T02'),
-  { id: 'a1', studentId: 'S001', studentName: 'Alice Johnson', date: '2023-10-26', status: 'present', course: 'CS101', recordedBy: 'T01' },
-  { id: 'a2', studentId: 'S002', studentName: 'Bob Williams', date: '2023-10-26', status: 'absent', course: 'PHY101', recordedBy: 'T02' },
-  { id: 'a3', studentId: 'S003', studentName: 'Charlie Brown', date: '2023-10-26', status: 'present', course: 'MATH201', recordedBy: 'T03' },
-  { id: 'a4', studentId: 'S004', studentName: 'Diana Miller', date: '2023-10-26', status: 'late', course: 'CS101', recordedBy: 'T01' },
-  { id: 'a5', studentId: 'S001', studentName: 'Alice Johnson', date: '2023-10-25', status: 'present', course: 'CS101', recordedBy: 'T01' },
-  { id: 'a6', studentId: 'S002', studentName: 'Bob Williams', date: '2023-10-25', status: 'present', course: 'PHY101', recordedBy: 'T02' },
+  { id: 'a1', studentId: 'S001', studentName: 'Alice Johnson', classId: 'CS101', date: '2023-10-26', status: 'present', subject: 'CS101', recordedBy: 'T01' },
+  { id: 'a2', studentId: 'S002', studentName: 'Bob Williams', classId: 'PHY101', date: '2023-10-26', status: 'absent', subject: 'PHY101', recordedBy: 'T02' },
+  { id: 'a3', studentId: 'S003', studentName: 'Charlie Brown', classId: 'MATH201', date: '2023-10-26', status: 'present', subject: 'MATH201', recordedBy: 'T03' },
+  { id: 'a4', studentId: 'S004', studentName: 'Diana Miller', classId: 'CS101', date: '2023-10-26', status: 'late', subject: 'CS101', recordedBy: 'T01' },
+  { id: 'a5', studentId: 'S001', studentName: 'Alice Johnson', classId: 'CS101', date: '2023-10-25', status: 'present', subject: 'CS101', recordedBy: 'T01' },
+  { id: 'a6', studentId: 'S002', studentName: 'Bob Williams', classId: 'PHY101', date: '2023-10-25', status: 'present', subject: 'PHY101', recordedBy: 'T02' },
 ];
 
 export const mockClasses: Class[] = [
@@ -173,10 +174,10 @@ export const mockFeeRecords: FeeRecord[] = [
 ];
 
 export const mockAssignments: Assignment[] = [
-  { id: 'ASG01', courseId: 'C01', courseName: 'CS101', title: 'Data Structures Fundamentals', description: 'Implement a linked list and a binary search tree.', type: 'Assignment', dueDate: '2024-08-15', totalMarks: 100 },
-  { id: 'ASG02', courseId: 'C01', courseName: 'CS101', title: 'Mid-Term Quiz', description: 'Quiz covering all topics from week 1 to 6.', type: 'Quiz', dueDate: '2024-08-20', totalMarks: 50 },
-  { id: 'ASG03', courseId: 'C02', courseName: 'PHY101', title: 'Lab Report: Projectile Motion', description: 'Submit a detailed report of the projectile motion experiment.', type: 'Assignment', dueDate: '2024-08-18', totalMarks: 100 },
-  { id: 'ASG04', courseId: 'C04', courseName: 'CS303', title: 'Final Project Proposal', description: 'Submit a proposal for your final year project.', type: 'Exam', dueDate: '2024-09-01', totalMarks: 200 },
+  { _id: 'ASG01', id: 'ASG01', subjectId: 'C01', subjectName: 'CS101', title: 'Data Structures Fundamentals', description: 'Implement a linked list and a binary search tree.', type: 'Assignment', dueDate: '2024-08-15', totalMarks: 100 },
+  { _id: 'ASG02', id: 'ASG02', subjectId: 'C01', subjectName: 'CS101', title: 'Mid-Term Quiz', description: 'Quiz covering all topics from week 1 to 6.', type: 'Quiz', dueDate: '2024-08-20', totalMarks: 50 },
+  { _id: 'ASG03', id: 'ASG03', subjectId: 'C02', subjectName: 'PHY101', title: 'Lab Report: Projectile Motion', description: 'Submit a detailed report of the projectile motion experiment.', type: 'Assignment', dueDate: '2024-08-18', totalMarks: 100 },
+  { _id: 'ASG04', id: 'ASG04', subjectId: 'C04', subjectName: 'CS303', title: 'Final Project Proposal', description: 'Submit a proposal for your final year project.', type: 'Exam', dueDate: '2024-09-01', totalMarks: 200 },
 ];
 
 export const mockGrades: Grade[] = [

@@ -22,20 +22,20 @@ interface ClassWithStudentDetails extends Class {
 const ClassCard = React.memo(({ classItem, onClick }: { classItem: ClassWithStudentDetails, onClick: (classItem: ClassWithStudentDetails) => void }) => {
     return (
         <Card
-            className="cursor-pointer hover:shadow-lg hover:border-primary transition-all"
+            className="cursor-pointer hover:shadow-lg hover:border-primary transition-all active:scale-95"
             onClick={() => onClick(classItem)}
         >
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <BookCopy className="h-5 w-5 text-primary" />
-                    {classItem.name}
+            <CardHeader className="space-y-2">
+                <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                    <BookCopy className="h-4 w-4 md:h-5 md:w-5 text-primary shrink-0" />
+                    <span className="line-clamp-1">{classItem.name}</span>
                 </CardTitle>
-                <CardDescription>Taught by {classItem.teacher}</CardDescription>
+                <CardDescription className="text-sm line-clamp-1">Taught by {classItem.teacher}</CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                    <Users className="h-4 w-4" />
-                    <span>{classItem.studentCount} Students</span>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Users className="h-4 w-4 shrink-0" />
+                    <span>{classItem.studentCount} {classItem.studentCount === 1 ? 'Student' : 'Students'}</span>
                 </div>
             </CardContent>
         </Card>
@@ -143,7 +143,7 @@ export default function AttendancePage() {
     const renderClassGrid = () => {
         if (isLoading) {
             return (
-                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                 <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {[...Array(8)].map((_, i) => (
                         <Card key={i}>
                             <CardHeader>
@@ -162,16 +162,16 @@ export default function AttendancePage() {
         if (paginatedClasses.length === 0) {
             return (
                 <Card>
-                    <CardContent className="flex flex-col items-center justify-center py-16">
-                        <GraduationCap className="h-16 w-16 text-muted-foreground mb-4" />
-                        <h3 className="text-lg font-semibold mb-2">No Classes Found</h3>
-                        <p className="text-muted-foreground text-center mb-4">
+                    <CardContent className="flex flex-col items-center justify-center py-12 md:py-16 px-4">
+                        <GraduationCap className="h-12 w-12 md:h-16 md:w-16 text-muted-foreground mb-4" />
+                        <h3 className="text-base md:text-lg font-semibold mb-2 text-center">No Classes Found</h3>
+                        <p className="text-sm text-muted-foreground text-center mb-4 max-w-md">
                             {isFiltered 
                                 ? "No classes match your current filters." 
                                 : "There are no classes available."}
                         </p>
                         {isFiltered && (
-                            <Button variant="outline" onClick={clearFilters}>
+                            <Button variant="outline" onClick={clearFilters} size="sm">
                                 <X className="mr-2 h-4 w-4" /> Clear Filters
                             </Button>
                         )}
@@ -181,7 +181,7 @@ export default function AttendancePage() {
         }
 
         return (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {paginatedClasses.map(c => (
                    <ClassCard key={c._id} classItem={c} onClick={handleClassClick} />
                 ))}
@@ -190,24 +190,24 @@ export default function AttendancePage() {
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold">Attendance Management</h1>
-                <Badge variant="outline" className="text-base">
+        <div className="space-y-4 md:space-y-6 p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <h1 className="text-xl md:text-2xl font-bold">Attendance Management</h1>
+                <Badge variant="outline" className="text-sm sm:text-base">
                     {filteredClasses.length} {filteredClasses.length === 1 ? 'Class' : 'Classes'}
                 </Badge>
             </div>
 
             <Card>
-                <CardHeader>
-                    <CardTitle>Select a Class</CardTitle>
-                    <CardDescription>
+                <CardHeader className="space-y-1.5">
+                    <CardTitle className="text-xl md:text-2xl">Select a Class</CardTitle>
+                    <CardDescription className="text-sm">
                         Click on a class to view and manage student attendance.
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 px-4 md:px-6">
                     {/* Search and Filters */}
-                    <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="flex flex-col gap-3">
                         <Input
                             placeholder="Search for a class or teacher..."
                             value={searchTerm}
@@ -215,53 +215,58 @@ export default function AttendancePage() {
                                 setSearchTerm(e.target.value);
                                 setPage(0);
                             }}
-                            className="flex-1"
+                            className="w-full"
                         />
-                        <Select value={teacherFilter} onValueChange={(value) => {
-                            setTeacherFilter(value);
-                            setPage(0);
-                        }}>
-                            <SelectTrigger className="w-full sm:w-[200px]">
-                                <SelectValue placeholder="Filter by teacher" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Teachers</SelectItem>
-                                {uniqueTeachers.map((teacher) => (
-                                    <SelectItem key={teacher} value={teacher}>
-                                        {teacher}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <Select value={sortBy} onValueChange={setSortBy}>
-                            <SelectTrigger className="w-full sm:w-[160px]">
-                                <SelectValue placeholder="Sort by" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="name">Name</SelectItem>
-                                <SelectItem value="teacher">Teacher</SelectItem>
-                                <SelectItem value="students">Student Count</SelectItem>
-                            </SelectContent>
-                        </Select>
+                        <div className="flex flex-col sm:flex-row gap-3">
+                            <Select value={teacherFilter} onValueChange={(value) => {
+                                setTeacherFilter(value);
+                                setPage(0);
+                            }}>
+                                <SelectTrigger className="w-full sm:flex-1">
+                                    <SelectValue placeholder="Filter by teacher" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Teachers</SelectItem>
+                                    {uniqueTeachers.map((teacher) => (
+                                        <SelectItem key={teacher} value={teacher}>
+                                            {teacher}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Select value={sortBy} onValueChange={setSortBy}>
+                                <SelectTrigger className="w-full sm:flex-1">
+                                    <SelectValue placeholder="Sort by" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="name">Name</SelectItem>
+                                    <SelectItem value="teacher">Teacher</SelectItem>
+                                    <SelectItem value="students">Student Count</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
 
                     {/* Active Filters */}
                     {isFiltered && (
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">Active filters:</span>
-                            {searchTerm && (
-                                <Badge variant="secondary">
-                                    Search: {searchTerm}
-                                </Badge>
-                            )}
-                            {teacherFilter !== 'all' && (
-                                <Badge variant="secondary">
-                                    Teacher: {teacherFilter}
-                                </Badge>
-                            )}
-                            <Button variant="ghost" size="sm" onClick={clearFilters}>
-                                <X className="mr-2 h-4 w-4" /> Clear All
-                            </Button>
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                            <span className="text-sm text-muted-foreground whitespace-nowrap">Active filters:</span>
+                            <div className="flex flex-wrap items-center gap-2">
+                                {searchTerm && (
+                                    <Badge variant="secondary" className="text-xs">
+                                        Search: {searchTerm}
+                                    </Badge>
+                                )}
+                                {teacherFilter !== 'all' && (
+                                    <Badge variant="secondary" className="text-xs">
+                                        Teacher: {teacherFilter}
+                                    </Badge>
+                                )}
+                                <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7">
+                                    <X className="mr-1 h-3 w-3" />
+                                    <span className="text-xs">Clear All</span>
+                                </Button>
+                            </div>
                         </div>
                     )}
                 </CardContent>
@@ -272,9 +277,9 @@ export default function AttendancePage() {
             {/* Pagination */}
             {!isLoading && filteredClasses.length > 0 && (
                 <Card>
-                    <CardContent className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6">
-                        <div className="flex items-center space-x-2">
-                            <span className="text-sm text-muted-foreground">Classes per page</span>
+                    <CardContent className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 px-4 md:px-6">
+                        <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
+                            <span className="text-sm text-muted-foreground whitespace-nowrap">Classes per page</span>
                             <Select onValueChange={handleRowsPerPageChange} defaultValue={`${rowsPerPage}`}>
                                 <SelectTrigger className="w-[70px]">
                                     <SelectValue placeholder={`${rowsPerPage}`} />
@@ -287,26 +292,28 @@ export default function AttendancePage() {
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div className="flex items-center space-x-2">
-                            <span className="text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-end">
+                            <span className="text-sm text-muted-foreground whitespace-nowrap">
                                 Page {page + 1} of {totalPages || 1}
                             </span>
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => setPage(p => Math.max(0, p - 1))}
-                                disabled={page === 0}
-                            >
-                                <ChevronLeft className="h-4 w-4" />
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-                                disabled={page >= totalPages - 1}
-                            >
-                                <ChevronRight className="h-4 w-4" />
-                            </Button>
+                            <div className="flex gap-1">
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => setPage(p => Math.max(0, p - 1))}
+                                    disabled={page === 0}
+                                >
+                                    <ChevronLeft className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                                    disabled={page >= totalPages - 1}
+                                >
+                                    <ChevronRight className="h-4 w-4" />
+                                </Button>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>

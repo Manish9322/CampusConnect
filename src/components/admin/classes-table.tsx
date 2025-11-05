@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ClassWithDetails, Teacher } from "@/lib/types";
-import { Edit, PlusCircle, Trash2, ChevronLeft, ChevronRight, Filter, X } from "lucide-react";
+import { Edit, PlusCircle, Trash2, ChevronLeft, ChevronRight, Filter, X, Users } from "lucide-react";
 import { AddClassDialog } from "./add-class-dialog";
 import { DeleteConfirmationDialog } from "../shared/delete-confirmation-dialog";
 import { Badge } from "../ui/badge";
@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "../ui/skeleton";
 import { EmptyState } from "../shared/empty-state";
 import { ErrorState } from "../shared/error-state";
+import { Card, CardContent } from "../ui/card";
 
 interface ClassesTableProps {
   classes: ClassWithDetails[];
@@ -249,19 +250,20 @@ export function ClassesTable({ classes: initialClasses, isLoading, isError, refe
     <>
       <div className="space-y-4 mb-4">
         {/* Search and Action Bar */}
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2 flex-1">
             <Input
               placeholder="Search by class name or teacher..."
               value={searchTerm}
               onChange={handleSearch}
-              className="max-w-sm"
+              className="w-full md:max-w-sm"
             />
             <Button
               variant={showFilters ? "default" : "outline"}
               size="icon"
               onClick={() => setShowFilters(!showFilters)}
               title="Toggle filters"
+              className="shrink-0"
             >
               <Filter className="h-4 w-4" />
             </Button>
@@ -270,20 +272,34 @@ export function ClassesTable({ classes: initialClasses, isLoading, isError, refe
                 variant="ghost"
                 size="sm"
                 onClick={clearFilters}
-                className="h-9"
+                className="h-9 hidden sm:flex"
               >
                 <X className="mr-2 h-4 w-4" /> Clear Filters
               </Button>
             )}
           </div>
-          <Button onClick={handleAdd}>
-            <PlusCircle className="mr-2 h-4 w-4" /> Add Class
+          <Button onClick={handleAdd} className="w-full sm:w-auto shrink-0">
+            <PlusCircle className="mr-2 h-4 w-4" /> 
+            <span className="hidden sm:inline">Add Class</span>
+            <span className="sm:hidden">Add</span>
           </Button>
         </div>
+        
+        {/* Mobile Clear Filters Button */}
+        {hasActiveFilters && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={clearFilters}
+            className="w-full sm:hidden"
+          >
+            <X className="mr-2 h-4 w-4" /> Clear Filters
+          </Button>
+        )}
 
         {/* Filters Section */}
         {showFilters && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 border rounded-lg bg-muted/50">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 p-3 md:p-4 border rounded-lg bg-muted/50">
             <div className="space-y-2">
               <label className="text-sm font-medium">Status</label>
               <Select value={statusFilter} onValueChange={(value) => { setStatusFilter(value); setPage(0); }}>
@@ -347,7 +363,8 @@ export function ClassesTable({ classes: initialClasses, isLoading, isError, refe
         )}
       </div>
 
-      <div className="rounded-md border">
+      {/* Desktop Table View */}
+      <div className="hidden md:block rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -362,10 +379,106 @@ export function ClassesTable({ classes: initialClasses, isLoading, isError, refe
           {renderContent()}
         </Table>
       </div>
+
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-4">
+        {isLoading ? (
+          [...Array(5)].map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-4 space-y-3">
+                <div className="flex justify-between items-start">
+                  <Skeleton className="h-6 w-32" />
+                  <Skeleton className="h-6 w-16" />
+                </div>
+                <Skeleton className="h-4 w-24" />
+                <div className="flex gap-2">
+                  <Skeleton className="h-6 w-20" />
+                  <Skeleton className="h-6 w-20" />
+                </div>
+                <Skeleton className="h-10 w-full" />
+              </CardContent>
+            </Card>
+          ))
+        ) : isError ? (
+          <Card>
+            <CardContent className="p-6">
+              <ErrorState 
+                type="error"
+                title="Failed to Load Classes"
+                description="There was an issue fetching the class data. Please try again."
+                onRetry={refetch}
+              />
+            </CardContent>
+          </Card>
+        ) : paginatedClasses.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center text-muted-foreground">
+              <EmptyState title="No Classes Found" description="There are no classes matching your criteria." />
+            </CardContent>
+          </Card>
+        ) : (
+          paginatedClasses.map((c) => (
+            <Card key={c._id}>
+              <CardContent className="p-4 space-y-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-base">{c.name}</h3>
+                    <p className="text-sm text-muted-foreground mt-1">{c.teacher}</p>
+                  </div>
+                  <div className="flex items-center gap-2 ml-2">
+                    <span className="text-xs text-muted-foreground">
+                      {c.status === 'active' ? 'Active' : 'Inactive'}
+                    </span>
+                    <Switch
+                      checked={c.status === "active"}
+                      onCheckedChange={(checked) => handleToggleStatus(c, checked)}
+                      aria-label="Toggle class status"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex flex-wrap gap-1">
+                    {c.subjects.map(sub => (
+                      <Badge key={sub} variant="outline" className="text-xs">
+                        {sub}
+                      </Badge>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Users className="h-4 w-4" />
+                    <span>{c.studentCount} students</span>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => handleEdit(c)}
+                  >
+                    <Edit className="h-4 w-4 mr-1" />
+                    Edit
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => openDeleteDialog(c)}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+      {/* Pagination Controls - Responsive */}
       {paginatedClasses.length > 0 && (
-         <div className="flex items-center justify-between mt-4">
-            <div className="flex items-center space-x-2">
-                <span className="text-sm text-muted-foreground">Rows per page</span>
+         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 mt-4">
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
+                <span className="text-sm text-muted-foreground whitespace-nowrap">Rows per page</span>
                 <Select onValueChange={handleRowsPerPageChange} defaultValue={`${rowsPerPage}`}>
                     <SelectTrigger className="w-20">
                         <SelectValue placeholder={`${rowsPerPage}`} />
@@ -378,26 +491,28 @@ export function ClassesTable({ classes: initialClasses, isLoading, isError, refe
                     </SelectContent>
                 </Select>
             </div>
-            <div className="flex items-center space-x-2">
-                <span className="text-sm text-muted-foreground">
-                    Page {page + 1} of {totalPages}
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-end">
+                <span className="text-sm text-muted-foreground whitespace-nowrap">
+                    Page {page + 1} of {totalPages || 1}
                 </span>
-                <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setPage(p => Math.max(0, p - 1))}
-                    disabled={page === 0}
-                >
-                    <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-                    disabled={page >= totalPages - 1}
-                >
-                    <ChevronRight className="h-4 w-4" />
-                </Button>
+                <div className="flex gap-1">
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setPage(p => Math.max(0, p - 1))}
+                        disabled={page === 0}
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                        disabled={page >= totalPages - 1}
+                    >
+                        <ChevronRight className="h-4 w-4" />
+                    </Button>
+                </div>
             </div>
         </div>
        )}

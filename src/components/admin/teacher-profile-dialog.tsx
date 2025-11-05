@@ -66,8 +66,8 @@ export function TeacherProfileDialog({ open, onOpenChange, teacher }: TeacherPro
                         <BookCopy className="h-5 w-5 text-muted-foreground" />
                         <strong>Subjects:</strong> 
                         <div className="flex flex-wrap gap-1">
-                            {teacher.courses.map(course => (
-                                <Badge key={course} variant="secondary">{course}</Badge>
+                            {teacher.subjects?.map(subject => (
+                                <Badge key={subject} variant="secondary">{subject}</Badge>
                             ))}
                         </div>
                     </div>

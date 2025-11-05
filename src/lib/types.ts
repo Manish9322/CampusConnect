@@ -33,7 +33,7 @@ export interface Teacher extends User {
   teacherId: string;
   designation?: string;
   department: string;
-  courses: string[];
+  subjects: string[];
   phone: string;
   status: TeacherStatus;
 }
@@ -100,8 +100,8 @@ export type AssignmentType = 'Assignment' | 'Quiz' | 'Exam';
 export interface Assignment {
   _id: string;
   id: string;
-  courseId: string;
-  courseName: string;
+  subjectId: string;
+  subjectName: string;
   title: string;
   description: string;
   type: AssignmentType;
@@ -133,7 +133,7 @@ export interface AttendanceRecord {
   classId: string;
   date: string; // YYYY-MM-DD
   status: AttendanceStatus;
-  course?: string;
+  subject?: string;
   recordedBy: string; // teacherId
 }
 
@@ -145,4 +145,57 @@ export interface AttendanceRequest {
     requestedStatus: AttendanceStatus;
     reason: string;
     status: 'pending' | 'approved' | 'denied';
+}
+
+export type NotePriority = 'low' | 'medium' | 'high' | 'urgent';
+export type NoteCategory = 'academic' | 'disciplinary' | 'attendance' | 'fees' | 'general' | 'achievement';
+export type SenderRole = 'teacher' | 'admin';
+
+export interface Note {
+    _id: string;
+    studentId: string | Student;
+    teacherId?: string | Teacher;
+    senderRole: SenderRole;
+    senderName: string;
+    subject: string;
+    message: string;
+    priority: NotePriority;
+    category: NoteCategory;
+    isRead: boolean;
+    readAt?: Date;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+export interface Subject {
+    _id: string;
+    name: string;
+    description?: string;
+    departmentId?: string;
+    departmentName?: string;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+export type DayOfWeek = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday';
+
+export interface Period {
+    periodNumber: number;
+    subjectId: string;
+    subjectName: string;
+    teacherId: string;
+    teacherName: string;
+    startTime: string; // HH:mm format
+    endTime: string; // HH:mm format
+    room?: string;
+}
+
+export interface Timetable {
+    _id: string;
+    classId: string;
+    className?: string;
+    day: DayOfWeek;
+    periods: Period[];
+    createdAt: Date;
+    updatedAt: Date;
 }

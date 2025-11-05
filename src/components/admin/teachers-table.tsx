@@ -24,6 +24,7 @@ import { useAddTeacherMutation, useDeleteTeacherMutation, useUpdateTeacherMutati
 import { Skeleton } from "../ui/skeleton"
 import { TeacherProfileDialog } from "./teacher-profile-dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
+import { Card, CardContent } from "../ui/card"
 
 interface TeachersTableProps {
   data: Teacher[];
@@ -131,7 +132,8 @@ export function TeachersTable({ data, isLoading }: TeachersTableProps) {
   
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      {/* Search and Add Button - Responsive Layout */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <div className="flex flex-1 items-center space-x-2">
           <Input
             placeholder="Filter by name, email, or department..."
@@ -140,16 +142,18 @@ export function TeachersTable({ data, isLoading }: TeachersTableProps) {
             className="h-10 w-full md:w-[300px]"
           />
         </div>
-        <div className="flex items-center gap-2">
-            <Button
-              onClick={handleAdd}
-            >
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add Teacher
-            </Button>
-        </div>
+        <Button
+          onClick={handleAdd}
+          className="w-full sm:w-auto"
+        >
+          <PlusCircle className="mr-2 h-4 w-4" />
+          <span className="hidden sm:inline">Add Teacher</span>
+          <span className="sm:hidden">Add</span>
+        </Button>
       </div>
-      <div className="rounded-md border">
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -217,9 +221,98 @@ export function TeachersTable({ data, isLoading }: TeachersTableProps) {
           </TableBody>
         </Table>
       </div>
-        <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-                <span className="text-sm text-muted-foreground">Rows per page</span>
+
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-4">
+        {isLoading ? (
+          [...Array(rowsPerPage)].map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-4 space-y-3">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-12 w-12 rounded-full" />
+                  <div className="space-y-2 flex-1">
+                    <Skeleton className="h-5 w-32" />
+                    <Skeleton className="h-4 w-40" />
+                  </div>
+                </div>
+                <Skeleton className="h-6 w-20" />
+                <Skeleton className="h-10 w-full" />
+              </CardContent>
+            </Card>
+          ))
+        ) : paginatedTeachers.length > 0 ? (
+          paginatedTeachers.map((teacher) => (
+            <Card key={teacher._id}>
+              <CardContent className="p-4 space-y-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={teacher.profileImage} />
+                      <AvatarFallback>{teacher.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="font-semibold text-base">{teacher.designation} {teacher.name}</div>
+                      <div className="text-sm text-muted-foreground">{teacher.email}</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <Badge variant="outline">{teacher.department}</Badge>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">
+                      {teacher.status === 'active' ? 'Active' : 'Inactive'}
+                    </span>
+                    <Switch
+                      checked={teacher.status === 'active'}
+                      onCheckedChange={(checked) => handleToggleStatus(teacher, checked)}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => handleViewProfile(teacher)}
+                  >
+                    <Eye className="h-4 w-4 mr-1" />
+                    View
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => handleEdit(teacher)}
+                  >
+                    <Edit className="h-4 w-4 mr-1" />
+                    Edit
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleDeleteClick(teacher)}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <Card>
+            <CardContent className="p-8 text-center text-muted-foreground">
+              No results.
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Pagination Controls - Responsive */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
+                <span className="text-sm text-muted-foreground whitespace-nowrap">Rows per page</span>
                 <Select onValueChange={handleRowsPerPageChange} defaultValue={`${rowsPerPage}`}>
                     <SelectTrigger className="w-20">
                         <SelectValue placeholder={`${rowsPerPage}`} />
@@ -232,26 +325,28 @@ export function TeachersTable({ data, isLoading }: TeachersTableProps) {
                     </SelectContent>
                 </Select>
             </div>
-            <div className="flex items-center space-x-2">
-                <span className="text-sm text-muted-foreground">
-                    Page {page + 1} of {totalPages}
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-end">
+                <span className="text-sm text-muted-foreground whitespace-nowrap">
+                    Page {page + 1} of {totalPages || 1}
                 </span>
-                <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setPage(p => Math.max(0, p - 1))}
-                    disabled={page === 0}
-                >
-                    <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-                    disabled={page >= totalPages - 1}
-                >
-                    <ChevronRight className="h-4 w-4" />
-                </Button>
+                <div className="flex gap-1">
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setPage(p => Math.max(0, p - 1))}
+                        disabled={page === 0}
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                        disabled={page >= totalPages - 1}
+                    >
+                        <ChevronRight className="h-4 w-4" />
+                    </Button>
+                </div>
             </div>
       </div>
        <AddTeacherDialog 

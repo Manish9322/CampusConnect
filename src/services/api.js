@@ -4,7 +4,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest'],
+  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest', 'Note', 'Timetable'],
   endpoints: (builder) => ({
     testDBConnection: builder.query({
       query: () => 'connect',
@@ -284,7 +284,7 @@ export const api = createApi({
 
     // Assignment endpoints
     getAssignments: builder.query({
-        query: (params) => `assignments${params?.courseId ? `?courseId=${params.courseId}`: ''}`,
+        query: (params) => `assignments${params?.subjectId ? `?subjectId=${params.subjectId}`: ''}`,
         providesTags: ['Assignment'],
     }),
     addAssignment: builder.mutation({
@@ -354,6 +354,89 @@ export const api = createApi({
         }),
         invalidatesTags: ['AttendanceRequest', 'Attendance'],
     }),
+
+    // Dashboard Stats
+    getDashboardStats: builder.query({
+        query: () => 'dashboard/stats',
+        providesTags: ['Student', 'Teacher', 'Class', 'Subject', 'Attendance'],
+    }),
+
+    // Note endpoints
+    getNotes: builder.query({
+        query: (params = {}) => {
+            const urlParams = new URLSearchParams();
+            if (params.studentId) urlParams.append('studentId', params.studentId);
+            if (params.isRead !== undefined && params.isRead !== null) urlParams.append('isRead', params.isRead);
+            if (params.priority) urlParams.append('priority', params.priority);
+            if (params.category) urlParams.append('category', params.category);
+            if (params.limit) urlParams.append('limit', params.limit);
+            return `notes?${urlParams.toString()}`;
+        },
+        providesTags: (result = []) => [
+            { type: 'Note', id: 'LIST' },
+            ...result.map(({ _id }) => ({ type: 'Note', id: _id })),
+        ],
+    }),
+    addNote: builder.mutation({
+        query: (newNote) => ({
+            url: 'notes',
+            method: 'POST',
+            body: newNote,
+        }),
+        invalidatesTags: [{ type: 'Note', id: 'LIST' }],
+    }),
+    updateNote: builder.mutation({
+        query: (noteToUpdate) => ({
+            url: 'notes',
+            method: 'PUT',
+            body: noteToUpdate,
+        }),
+        invalidatesTags: (result, error, { _id }) => [{ type: 'Note', id: _id }, { type: 'Note', id: 'LIST' }],
+    }),
+    deleteNote: builder.mutation({
+        query: (id) => ({
+            url: `notes?id=${id}`,
+            method: 'DELETE',
+        }),
+        invalidatesTags: [{ type: 'Note', id: 'LIST' }],
+    }),
+
+    // Timetable endpoints
+    getTimetable: builder.query({
+        query: (params = {}) => {
+            const urlParams = new URLSearchParams();
+            if (params.classId) urlParams.append('classId', params.classId);
+            if (params.day) urlParams.append('day', params.day);
+            return `timetable?${urlParams.toString()}`;
+        },
+        providesTags: (result = []) => [
+            { type: 'Timetable', id: 'LIST' },
+            ...result.map(({ _id }) => ({ type: 'Timetable', id: _id })),
+        ],
+    }),
+    addTimetable: builder.mutation({
+        query: (newTimetable) => ({
+            url: 'timetable',
+            method: 'POST',
+            body: newTimetable,
+        }),
+        invalidatesTags: [{ type: 'Timetable', id: 'LIST' }],
+    }),
+    updateTimetable: builder.mutation({
+        query: (timetableToUpdate) => ({
+            url: 'timetable',
+            method: 'PUT',
+            body: timetableToUpdate,
+        }),
+        invalidatesTags: (result, error, { _id }) => [{ type: 'Timetable', id: _id }, { type: 'Timetable', id: 'LIST' }],
+    }),
+    deleteTimetable: builder.mutation({
+        query: (id) => ({
+            url: `timetable?id=${id}`,
+            method: 'DELETE',
+        }),
+        invalidatesTags: [{ type: 'Timetable', id: 'LIST' }],
+    }),
   }),
 });
 
@@ -405,4 +488,13 @@ export const {
     useGetAttendanceRequestsQuery,
     useAddAttendanceRequestMutation,
     useUpdateAttendanceRequestMutation,
+    useGetDashboardStatsQuery,
+    useGetNotesQuery,
+    useAddNoteMutation,
+    useUpdateNoteMutation,
+    useDeleteNoteMutation,
+    useGetTimetableQuery,
+    useAddTimetableMutation,
+    useUpdateTimetableMutation,
+    useDeleteTimetableMutation,
 } = api;

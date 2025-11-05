@@ -8,8 +8,8 @@ import { BookCopy, School, Users, BarChart } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ManageClassesPage() {
-    const { data: classes = [], isLoading: isLoadingClasses, isError, refetch } = useGetClassesQuery();
-    const { data: students = [], isLoading: isLoadingStudents } = useGetStudentsQuery();
+    const { data: classes = [], isLoading: isLoadingClasses, isError, refetch } = useGetClassesQuery(undefined);
+    const { data: students = [], isLoading: isLoadingStudents } = useGetStudentsQuery(undefined);
     
     // Debug logging
     console.log('Classes data:', classes);
@@ -25,57 +25,57 @@ export default function ManageClassesPage() {
     const isLoading = isLoadingClasses || isLoadingStudents;
 
     return (
-        <div className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="space-y-4 md:space-y-6 p-4 md:p-6">
+            <div className="grid gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Classes</CardTitle>
+                        <CardTitle className="text-xs sm:text-sm font-medium">Total Classes</CardTitle>
                         <School className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        {isLoading ? <Skeleton className="h-8 w-1/3" /> : <div className="text-2xl font-bold">{totalClasses}</div>}
-                        <p className="text-xs text-muted-foreground">Across all departments</p>
+                        {isLoading ? <Skeleton className="h-8 w-1/3" /> : <div className="text-xl sm:text-2xl font-bold">{totalClasses}</div>}
+                        <p className="text-xs text-muted-foreground hidden sm:block">Across all departments</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Active Classes</CardTitle>
+                        <CardTitle className="text-xs sm:text-sm font-medium">Active Classes</CardTitle>
                         <BookCopy className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                         {isLoading ? <Skeleton className="h-8 w-1/3" /> : <div className="text-2xl font-bold">{activeClasses}</div>}
-                        <p className="text-xs text-muted-foreground">Currently in session</p>
+                         {isLoading ? <Skeleton className="h-8 w-1/3" /> : <div className="text-xl sm:text-2xl font-bold">{activeClasses}</div>}
+                        <p className="text-xs text-muted-foreground hidden sm:block">Currently in session</p>
                     </CardContent>
                 </Card>
                  <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Students</CardTitle>
+                        <CardTitle className="text-xs sm:text-sm font-medium">Total Students</CardTitle>
                         <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        {isLoading ? <Skeleton className="h-8 w-1/3" /> : <div className="text-2xl font-bold">{totalStudents}</div>}
-                        <p className="text-xs text-muted-foreground">Enrolled in all classes</p>
+                        {isLoading ? <Skeleton className="h-8 w-1/3" /> : <div className="text-xl sm:text-2xl font-bold">{totalStudents}</div>}
+                        <p className="text-xs text-muted-foreground hidden sm:block">Enrolled in all classes</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Avg. Students/Class</CardTitle>
+                        <CardTitle className="text-xs sm:text-sm font-medium">Avg. Students/Class</CardTitle>
                         <BarChart className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        {isLoading ? <Skeleton className="h-8 w-1/3" /> : <div className="text-2xl font-bold">{avgStudentsPerClass}</div>}
-                        <p className="text-xs text-muted-foreground">Average class size</p>
+                        {isLoading ? <Skeleton className="h-8 w-1/3" /> : <div className="text-xl sm:text-2xl font-bold">{avgStudentsPerClass}</div>}
+                        <p className="text-xs text-muted-foreground hidden sm:block">Average class size</p>
                     </CardContent>
                 </Card>
             </div>
             <Card>
-                <CardHeader>
-                    <CardTitle>Manage Classes</CardTitle>
-                    <CardDescription>
+                <CardHeader className="space-y-1.5">
+                    <CardTitle className="text-xl md:text-2xl">Manage Classes</CardTitle>
+                    <CardDescription className="text-sm">
                         A list of all classes offered. You can add, edit, or delete class records.
                     </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="px-2 md:px-6">
                     <ClassesTable 
                         classes={classes} 
                         isLoading={isLoadingClasses} 

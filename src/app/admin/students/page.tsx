@@ -41,7 +41,7 @@ export default function ManageStudentsPage() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6 p-4 md:p-6">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -85,13 +85,13 @@ export default function ManageStudentsPage() {
                 </Card>
             </div>
             <Card>
-                <CardHeader>
-                    <CardTitle>Manage Students</CardTitle>
-                    <CardDescription>
+                <CardHeader className="space-y-1.5">
+                    <CardTitle className="text-xl md:text-2xl">Manage Students</CardTitle>
+                    <CardDescription className="text-sm">
                         A list of all students in the system. You can add, edit, or delete student records.
                     </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="px-2 md:px-6">
                     <StudentsTable key={students.length} students={students} classes={classes} isLoading={isLoading} />
                 </CardContent>
             </Card>

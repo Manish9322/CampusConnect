@@ -23,6 +23,7 @@ import { useAddAnnouncementMutation, useDeleteAnnouncementMutation, useUpdateAnn
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface AnnouncementsTableProps {
   announcements: Announcement[];
@@ -96,10 +97,10 @@ export function AnnouncementsTable({ announcements, isLoading }: AnnouncementsTa
     }
   };
   
-  const handleSave = async (data: Omit<Announcement, 'id' | 'createdAt' | 'author'>) => {
+  const handleSave = async (data: { title: string; content: string; category: string; isPublished: boolean; }) => {
     try {
       if (announcementToAction) {
-        await updateAnnouncement({ _id: announcementToAction._id, ...data }).unwrap();
+        await updateAnnouncement({ ...data, _id: announcementToAction._id }).unwrap();
         toast({ title: "Announcement Updated" });
       } else {
         await addAnnouncement({ ...data, author: "Admin User" }).unwrap();
@@ -174,18 +175,22 @@ export function AnnouncementsTable({ announcements, isLoading }: AnnouncementsTa
 
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4">
         <Input
           placeholder="Search by title..."
           value={searchTerm}
           onChange={handleSearch}
-          className="max-w-sm"
+          className="w-full md:max-w-sm"
         />
-        <Button onClick={handleAdd}>
-          <PlusCircle className="mr-2 h-4 w-4" /> Add Announcement
+        <Button onClick={handleAdd} className="w-full sm:w-auto">
+          <PlusCircle className="mr-2 h-4 w-4" />
+          <span className="hidden sm:inline">Add Announcement</span>
+          <span className="sm:hidden">Add</span>
         </Button>
       </div>
-      <div className="rounded-md border">
+      
+      {/* Desktop Table View */}
+      <div className="hidden md:block rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -199,9 +204,83 @@ export function AnnouncementsTable({ announcements, isLoading }: AnnouncementsTa
           {renderContent()}
         </Table>
       </div>
-       <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center space-x-2">
-            <span className="text-sm text-muted-foreground">Rows per page</span>
+
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-4">
+        {isLoading ? (
+          [...Array(5)].map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-4 space-y-3">
+                <Skeleton className="h-6 w-3/4" />
+                <div className="flex gap-2">
+                  <Skeleton className="h-6 w-20" />
+                  <Skeleton className="h-6 w-24" />
+                </div>
+                <Skeleton className="h-10 w-full" />
+              </CardContent>
+            </Card>
+          ))
+        ) : paginatedAnnouncements.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <EmptyState title="No Announcements Found" description="There are no announcements matching your criteria." />
+            </CardContent>
+          </Card>
+        ) : (
+          paginatedAnnouncements.map((item) => (
+            <Card key={item._id}>
+              <CardContent className="p-4 space-y-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-base line-clamp-2">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {new Date(item.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Badge variant="outline">{item.category}</Badge>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">
+                      {item.isPublished ? 'Published' : 'Draft'}
+                    </span>
+                    <Switch
+                      checked={item.isPublished}
+                      onCheckedChange={(checked) => handleTogglePublished(item, checked)}
+                      aria-label="Toggle published status"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1 min-w-0"
+                    onClick={() => handleEdit(item)}
+                  >
+                    <Edit className="h-4 w-4 mr-1 flex-shrink-0" />
+                    <span className="truncate">Edit</span>
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="flex-shrink-0"
+                    onClick={() => openDeleteDialog(item)}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+      {/* Pagination Controls - Responsive */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 mt-4">
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
+            <span className="text-sm text-muted-foreground whitespace-nowrap">Rows per page</span>
             <Select onValueChange={handleRowsPerPageChange} defaultValue={`${rowsPerPage}`}>
                 <SelectTrigger className="w-20">
                     <SelectValue placeholder={`${rowsPerPage}`} />
@@ -213,26 +292,28 @@ export function AnnouncementsTable({ announcements, isLoading }: AnnouncementsTa
                 </SelectContent>
             </Select>
         </div>
-        <div className="flex items-center space-x-2">
-            <span className="text-sm text-muted-foreground">
-                Page {page + 1} of {totalPages}
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-end">
+            <span className="text-sm text-muted-foreground whitespace-nowrap">
+                Page {page + 1} of {totalPages || 1}
             </span>
-            <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setPage(p => Math.max(0, p - 1))}
-                disabled={page === 0}
-            >
-                <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-                disabled={page >= totalPages - 1}
-            >
-                <ChevronRight className="h-4 w-4" />
-            </Button>
+            <div className="flex gap-1">
+                <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setPage(p => Math.max(0, p - 1))}
+                    disabled={page === 0}
+                >
+                    <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                    disabled={page >= totalPages - 1}
+                >
+                    <ChevronRight className="h-4 w-4" />
+                </Button>
+            </div>
         </div>
       </div>
       <AddAnnouncementDialog

@@ -8,7 +8,7 @@ import { Building, UserCheck, UserX, Users } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ManageTeachersPage() {
-    const { data: teachers = [], isLoading } = useGetTeachersQuery();
+    const { data: teachers = [], isLoading } = useGetTeachersQuery(undefined);
     
     // Debug logging
     console.log('Teachers data:', teachers);
@@ -16,9 +16,9 @@ export default function ManageTeachersPage() {
     console.log('Is loading:', isLoading);
 
     const totalTeachers = teachers.length;
-    const activeTeachers = teachers.filter(t => t.status === 'active').length;
+    const activeTeachers = teachers.filter((t: { status: string; }) => t.status === 'active').length;
     const inactiveTeachers = totalTeachers - activeTeachers;
-    const totalDepartments = new Set(teachers.map(t => t.department)).size;
+    const totalDepartments = new Set(teachers.map((t: { department: string; }) => t.department)).size;
 
     const statsCards = (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -66,16 +66,16 @@ export default function ManageTeachersPage() {
     );
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6 p-4 md:p-6">
             {statsCards}
             <Card>
-                <CardHeader>
-                    <CardTitle>Manage Teachers</CardTitle>
-                    <CardDescription>
+                <CardHeader className="space-y-1.5">
+                    <CardTitle className="text-xl md:text-2xl">Manage Teachers</CardTitle>
+                    <CardDescription className="text-sm">
                         A list of all teachers in the system. You can add, edit, or delete teacher records.
                     </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="px-2 md:px-6">
                     <TeachersTable data={teachers} isLoading={isLoading}/>
                 </CardContent>
             </Card>

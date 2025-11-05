@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Student, Class } from "@/lib/types";
-import { Edit, PlusCircle, Trash2, ChevronLeft, ChevronRight, X, Eye } from "lucide-react";
+import { Edit, PlusCircle, Trash2, ChevronLeft, ChevronRight, X, Eye, MessageSquare, UserCheck, Filter } from "lucide-react";
 import { DeleteConfirmationDialog } from "../shared/delete-confirmation-dialog";
 import { AddStudentDialog } from "./add-student-dialog";
 import { Progress } from "../ui/progress";
@@ -27,6 +27,8 @@ import { EmptyState } from "../shared/empty-state";
 import { StudentProfileDialog } from "./student-profile-dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Card, CardContent } from "@/components/ui/card";
+import { SendNoteDialog } from "./send-note-dialog";
+import { Slider } from "@/components/ui/slider";
 
 interface StudentsTableProps {
   students: Student[];
@@ -46,6 +48,9 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
   const [classFilter, setClassFilter] = React.useState<string>('all');
   const [statusFilter, setStatusFilter] = React.useState<string>('all');
   const [isProfileOpen, setProfileOpen] = React.useState(false);
+  const [isNoteDialogOpen, setIsNoteDialogOpen] = React.useState(false);
+  const [attendanceFilter, setAttendanceFilter] = React.useState<number[]>([0, 100]);
+  const [showAdvancedFilters, setShowAdvancedFilters] = React.useState(false);
 
   const [addStudent] = useAddStudentMutation();
   const [updateStudent] = useUpdateStudentMutation();
@@ -91,7 +96,8 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
         (student.rollNo && student.rollNo.toLowerCase().includes(searchTerm.toLowerCase())) ||
         student.email.toLowerCase().includes(searchTerm.toLowerCase())) &&
         (classFilter === 'all' || getActualClassId(student.classId) === classFilter) &&
-        (statusFilter === 'all' || student.status === statusFilter)
+        (statusFilter === 'all' || student.status === statusFilter) &&
+        (student.attendancePercentage >= attendanceFilter[0] && student.attendancePercentage <= attendanceFilter[1])
     )
     .sort((a, b) => {
       const numA = extractNumericRollNo(a.rollNo);
@@ -122,6 +128,11 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
   const handleViewProfile = (student: Student) => {
     setStudentToAction(student);
     setProfileOpen(true);
+  };
+
+  const handleSendNote = (student: Student) => {
+    setStudentToAction(student);
+    setIsNoteDialogOpen(true);
   };
 
   const handleAdd = () => {
@@ -227,12 +238,13 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
     }
   };
 
-  const isFiltered = classFilter !== 'all' || statusFilter !== 'all' || searchTerm !== '';
+  const isFiltered = classFilter !== 'all' || statusFilter !== 'all' || searchTerm !== '' || attendanceFilter[0] !== 0 || attendanceFilter[1] !== 100;
 
   const clearFilters = () => {
     setClassFilter('all');
     setStatusFilter('all');
     setSearchTerm('');
+    setAttendanceFilter([0, 100]);
   };
   
   const getClassName = (classId: any) => {
@@ -318,6 +330,14 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
                   variant="outline" 
                   size="sm" 
                   className="flex-1"
+                  onClick={() => handleSendNote(student)}
+                >
+                  <MessageSquare className="h-4 w-4 mr-1" /> Note
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
                   onClick={() => handleEdit(student)}
                 >
                   <Edit className="h-4 w-4 mr-1" /> Edit
@@ -390,19 +410,25 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
               />
             </TableCell>
             <TableCell className="text-right">
-              <Button variant="ghost" size="icon" onClick={() => handleViewProfile(student)}>
-                <Eye className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={() => handleEdit(student)}>
-                <Edit className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => openDeleteDialog(student)}
-              >
-                <Trash2 className="h-4 w-4 text-destructive" />
-              </Button>
+              <div className="flex items-center justify-end gap-1">
+                <Button variant="ghost" size="icon" onClick={() => handleViewProfile(student)} title="View Profile">
+                  <Eye className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => handleSendNote(student)} title="Send Note">
+                  <MessageSquare className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => handleEdit(student)} title="Edit">
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => openDeleteDialog(student)}
+                  title="Delete"
+                >
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </div>
             </TableCell>
           </TableRow>
         ))}
@@ -442,15 +468,50 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
               <SelectItem value="inactive">Inactive</SelectItem>
             </SelectContent>
           </Select>
+          <Button 
+            variant="outline" 
+            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)} 
+            className="w-full sm:w-auto"
+          >
+            <Filter className="mr-2 h-4 w-4" /> 
+            {showAdvancedFilters ? "Hide" : "More"} Filters
+          </Button>
           {isFiltered && (
             <Button variant="ghost" onClick={clearFilters} className="w-full sm:w-auto">
               <X className="mr-2 h-4 w-4" /> Clear Filters
             </Button>
           )}
         </div>
-        <Button onClick={handleAdd} className="w-full sm:w-auto sm:self-end">
-          <PlusCircle className="mr-2 h-4 w-4" /> Add Student
-        </Button>
+        
+        {showAdvancedFilters && (
+          <div className="p-4 border rounded-lg bg-muted/50 space-y-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium">Attendance Range</label>
+                <span className="text-sm text-muted-foreground">
+                  {attendanceFilter[0]}% - {attendanceFilter[1]}%
+                </span>
+              </div>
+              <Slider
+                value={attendanceFilter}
+                onValueChange={setAttendanceFilter}
+                min={0}
+                max={100}
+                step={5}
+                className="w-full"
+              />
+            </div>
+          </div>
+        )}
+        
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            Showing {filteredStudents.length} of {studentsWithRandomAttendance.length} students
+          </div>
+          <Button onClick={handleAdd} className="w-auto">
+            <PlusCircle className="mr-2 h-4 w-4" /> Add Student
+          </Button>
+        </div>
       </div>
 
       {isMobile ? (
@@ -532,6 +593,17 @@ export function StudentsTable({ students: initialStudents, classes, isLoading }:
             onOpenChange={setProfileOpen}
             student={studentToAction}
             classes={classes}
+          />
+          <SendNoteDialog
+            isOpen={isNoteDialogOpen}
+            onClose={() => setIsNoteDialogOpen(false)}
+            student={studentToAction ? {
+              _id: studentToAction._id || '',
+              name: studentToAction.name,
+              email: studentToAction.email,
+              rollNo: studentToAction.rollNo
+            } : null}
+            sender={{ name: "Admin", role: "admin" }}
           />
         </>
       )}

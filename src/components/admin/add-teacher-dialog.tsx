@@ -69,11 +69,11 @@ export function AddTeacherDialog({
   teacher,
 }: AddTeacherDialogProps) {
   const { toast } = useToast();
-  const { data: designations = [], isLoading: isLoadingDesignations } = useGetDesignationsQuery();
-  const { data: departments = [], isLoading: isLoadingDepartments } = useGetDepartmentsQuery();
-  const { data: subjects = [], isLoading: isLoadingSubjects } = useGetSubjectsQuery();
+  const { data: designations = [], isLoading: isLoadingDesignations } = useGetDesignationsQuery({});
+  const { data: departments = [], isLoading: isLoadingDepartments } = useGetDepartmentsQuery({});
+  const { data: subjects = [], isLoading: isLoadingSubjects } = useGetSubjectsQuery({});
 
-  const subjectOptions = subjects.map((s: { name: string }) => ({ label: s.name, value: s.name }));
+  const subjectOptions = subjects.map((s: any) => ({ label: s.name, value: s._id }));
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -83,7 +83,10 @@ export function AddTeacherDialog({
       email: teacher?.email || "",
       phone: teacher?.phone || "",
       department: teacher?.department || "",
-      courses: teacher?.courses.map(c => ({ label: c, value: c })) || [],
+      courses: teacher?.subjects?.map(subjectId => {
+        const subject = subjects.find((s: any) => s._id === subjectId);
+        return { label: subject?.name || subjectId, value: subjectId };
+      }) || [],
       password: "",
       status: teacher?.status === "active",
       profileImage: teacher?.profileImage || "",
@@ -97,12 +100,15 @@ export function AddTeacherDialog({
       email: teacher?.email || "",
       phone: teacher?.phone || "",
       department: teacher?.department || "",
-      courses: teacher?.courses.map(c => ({ label: c, value: c })) || [],
+      courses: teacher?.subjects?.map(subjectId => {
+        const subject = subjects.find((s: any) => s._id === subjectId);
+        return { label: subject?.name || subjectId, value: subjectId };
+      }) || [],
       password: "",
       status: teacher?.status === "active",
       profileImage: teacher?.profileImage || "",
     });
-  }, [teacher, form]);
+  }, [teacher, form, subjects]);
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     if (!teacher && !values.password) {
@@ -116,11 +122,12 @@ export function AddTeacherDialog({
         : teacher?.profileImage || "";
         
     const newOrUpdatedTeacher = {
+      id: teacher?.id || `TID${Date.now()}`,
       teacherId: teacher?.teacherId || `TID${Date.now()}`,
-      role: "teacher",
+      role: "teacher" as const,
       ...values,
-      status: values.status ? "active" : "inactive",
-      courses: values.courses.map((c) => c.value),
+      status: values.status ? "active" as const : "inactive" as const,
+      subjects: values.courses.map((c) => c.value),
       profileImage: profileImage,
     };
 

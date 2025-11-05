@@ -1,4 +1,6 @@
 
+"use client";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, UserCheck, Percent, BookOpen, ArrowUp, ArrowDown } from "lucide-react";
 import { AttendanceChart } from "@/components/admin/attendance-chart";
@@ -9,8 +11,23 @@ import { ClassSizeChart } from "@/components/admin/class-size-chart";
 import { TeacherStudentRatioChart } from "@/components/admin/teacher-student-ratio-chart";
 import { NewEnrollmentsChart } from "@/components/admin/new-enrollments-chart";
 import { CoursesInSessionChart } from "@/components/admin/courses-in-session-chart";
+import { useGetDashboardStatsQuery } from "@/services/api";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AdminDashboardPage() {
+  const { data: dashboardData, isLoading } = useGetDashboardStatsQuery(undefined);
+
+  const stats = dashboardData?.stats || {
+    totalStudents: 0,
+    totalTeachers: 0,
+    totalSubjects: 0,
+    departmentCount: 0,
+    studentGrowth: 0,
+    teacherGrowth: 0,
+    attendanceRate: 0,
+    attendanceChange: 0
+  };
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -20,11 +37,24 @@ export default function AdminDashboardPage() {
               <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-              <div className="text-2xl font-bold">1,254</div>
-              <p className="text-xs text-muted-foreground flex items-center">
-                  <ArrowUp className="h-3 w-3 mr-1 text-green-500"/>
-                  +20.1% from last month
-              </p>
+              {isLoading ? (
+                <>
+                  <Skeleton className="h-8 w-24 mb-2" />
+                  <Skeleton className="h-4 w-32" />
+                </>
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">{stats.totalStudents.toLocaleString()}</div>
+                  <p className="text-xs text-muted-foreground flex items-center">
+                      {stats.studentGrowth >= 0 ? (
+                        <ArrowUp className="h-3 w-3 mr-1 text-green-500"/>
+                      ) : (
+                        <ArrowDown className="h-3 w-3 mr-1 text-red-500"/>
+                      )}
+                      {Math.abs(stats.studentGrowth)}% from last month
+                  </p>
+                </>
+              )}
           </CardContent>
         </Card>
         <Card className="lg:col-span-1">
@@ -33,11 +63,24 @@ export default function AdminDashboardPage() {
               <UserCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-              <div className="text-2xl font-bold">82</div>
-                <p className="text-xs text-muted-foreground flex items-center">
-                  <ArrowUp className="h-3 w-3 mr-1 text-green-500"/>
-                  +5 from last year
-              </p>
+              {isLoading ? (
+                <>
+                  <Skeleton className="h-8 w-24 mb-2" />
+                  <Skeleton className="h-4 w-32" />
+                </>
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">{stats.totalTeachers}</div>
+                  <p className="text-xs text-muted-foreground flex items-center">
+                    {stats.teacherGrowth >= 0 ? (
+                      <ArrowUp className="h-3 w-3 mr-1 text-green-500"/>
+                    ) : (
+                      <ArrowDown className="h-3 w-3 mr-1 text-red-500"/>
+                    )}
+                    {Math.abs(stats.teacherGrowth) > 0 ? `${Math.abs(stats.teacherGrowth)} from last year` : 'No change from last year'}
+                  </p>
+                </>
+              )}
           </CardContent>
         </Card>
         <Card className="lg:col-span-1">
@@ -46,30 +89,52 @@ export default function AdminDashboardPage() {
               <Percent className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-              <div className="text-2xl font-bold">92.3%</div>
-              <p className="text-xs text-muted-foreground flex items-center">
-                  <ArrowDown className="h-3 w-3 mr-1 text-red-500"/>
-                  -1.2% from yesterday
-              </p>
+              {isLoading ? (
+                <>
+                  <Skeleton className="h-8 w-24 mb-2" />
+                  <Skeleton className="h-4 w-32" />
+                </>
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">{stats.attendanceRate}%</div>
+                  <p className="text-xs text-muted-foreground flex items-center">
+                      {stats.attendanceChange >= 0 ? (
+                        <ArrowUp className="h-3 w-3 mr-1 text-green-500"/>
+                      ) : (
+                        <ArrowDown className="h-3 w-3 mr-1 text-red-500"/>
+                      )}
+                      {Math.abs(stats.attendanceChange)}% from yesterday
+                  </p>
+                </>
+              )}
           </CardContent>
         </Card>
         <Card className="lg:col-span-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Courses Offered</CardTitle>
+              <CardTitle className="text-sm font-medium">Subjects Offered</CardTitle>
               <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-              <div className="text-2xl font-bold">120</div>
-                <p className="text-xs text-muted-foreground">
-                  Across 15 departments
-              </p>
+              {isLoading ? (
+                <>
+                  <Skeleton className="h-8 w-24 mb-2" />
+                  <Skeleton className="h-4 w-32" />
+                </>
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">{stats.totalSubjects}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Across {stats.departmentCount} departments
+                  </p>
+                </>
+              )}
           </CardContent>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <AttendanceChart />
-        <EnrollmentChart />
+        <AttendanceChart data={dashboardData?.weeklyAttendance} isLoading={isLoading} />
+        <EnrollmentChart data={dashboardData?.enrollmentData} isLoading={isLoading} />
       </div>
       
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
@@ -81,7 +146,7 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="lg:col-span-2">
-          <RecentAttendance />
+          <RecentAttendance data={dashboardData?.recentAttendance} isLoading={isLoading} />
         </div>
       </div>
     </div>

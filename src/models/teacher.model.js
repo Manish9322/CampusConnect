@@ -27,7 +27,7 @@ const teacherSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  courses: {
+  subjects: {
     type: [String],
     required: true,
   },

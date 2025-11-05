@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { ItemPreviewDialog } from "@/components/admin/settings/item-preview-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type Item = {
     _id: string;
@@ -25,7 +26,7 @@ type ItemToModify = Item | null;
 type ItemType = "subject" | "department" | "designation" | "announcementCategory";
 
 export default function SettingsPage() {
-    const [newSubject, setNewSubject] = React.useState({ name: "", description: "" });
+    const [newSubject, setNewSubject] = React.useState({ name: "", description: "", departmentId: "", departmentName: "" });
     const [newDepartment, setNewDepartment] = React.useState({ name: "", description: "" });
     const [newDesignation, setNewDesignation] = React.useState({ name: "", description: "" });
     const [newAnnouncementCategory, setNewAnnouncementCategory] = React.useState({ name: "", description: "" });
@@ -33,6 +34,8 @@ export default function SettingsPage() {
     const [itemToEdit, setItemToEdit] = React.useState<ItemToModify>(null);
     const [editName, setEditName] = React.useState("");
     const [editDescription, setEditDescription] = React.useState("");
+    const [editDepartmentId, setEditDepartmentId] = React.useState("");
+    const [editDepartmentName, setEditDepartmentName] = React.useState("");
     const [editType, setEditType] = React.useState<ItemType | null>(null);
     
     const [itemToView, setItemToView] = React.useState<ItemToModify>(null);
@@ -60,10 +63,12 @@ export default function SettingsPage() {
     const [updateAnnouncementCategory, { isLoading: isUpdatingAnnouncementCategory }] = useUpdateAnnouncementCategoryMutation();
     const [deleteAnnouncementCategory] = useDeleteAnnouncementCategoryMutation();
 
-    const openEditDialog = (item: ItemToModify, type: ItemType) => {
+    const openEditDialog = (item: any, type: ItemType) => {
         setItemToEdit(item);
         setEditName(item?.name || "");
         setEditDescription(item?.description || "");
+        setEditDepartmentId(item?.departmentId || "");
+        setEditDepartmentName(item?.departmentName || "");
         setEditType(type);
     };
 
@@ -71,6 +76,8 @@ export default function SettingsPage() {
         setItemToEdit(null);
         setEditName("");
         setEditDescription("");
+        setEditDepartmentId("");
+        setEditDepartmentName("");
         setEditType(null);
     };
     
@@ -88,8 +95,10 @@ export default function SettingsPage() {
         if (!itemToEdit || !editType) return;
         
         try {
-            const updatedData = { _id: itemToEdit._id, name: editName, description: editDescription };
+            let updatedData: any = { _id: itemToEdit._id, name: editName, description: editDescription };
             if (editType === 'subject') {
+                updatedData.departmentId = editDepartmentId;
+                updatedData.departmentName = editDepartmentName;
                 await updateSubject(updatedData).unwrap();
             } else if (editType === 'department') {
                 await updateDepartment(updatedData).unwrap();
@@ -109,9 +118,14 @@ export default function SettingsPage() {
     const handleAddSubject = async () => {
         if (newSubject.name.trim()) {
             try {
-                await addSubject({ name: newSubject.name.trim(), description: newSubject.description.trim() }).unwrap();
+                await addSubject({ 
+                    name: newSubject.name.trim(), 
+                    description: newSubject.description.trim(),
+                    departmentId: newSubject.departmentId,
+                    departmentName: newSubject.departmentName
+                }).unwrap();
                 toast({ title: "Subject Added", description: `"${newSubject.name.trim()}" has been added.` });
-                setNewSubject({ name: "", description: "" });
+                setNewSubject({ name: "", description: "", departmentId: "", departmentName: "" });
             } catch (error) {
                 toast({ title: "Error", description: "Failed to add subject.", variant: "destructive" });
             }
@@ -191,6 +205,199 @@ export default function SettingsPage() {
     };
 
 
+    const renderSubjectTable = () => (
+        <Card>
+            <CardHeader className="space-y-1.5">
+                <CardTitle className="text-lg md:text-xl">Manage Subjects</CardTitle>
+                <CardDescription className="text-sm">Add or remove subjects offered.</CardDescription>
+            </CardHeader>
+            <CardContent className="px-4 md:px-6">
+                {/* Add New Subject Form - Responsive */}
+                <div className="flex flex-col gap-2 mb-4">
+                    <div className="flex flex-col sm:flex-row gap-2">
+                        <Input
+                            value={newSubject.name}
+                            onChange={(e) => setNewSubject({ ...newSubject, name: e.target.value })}
+                            placeholder="New subject name"
+                            disabled={isAddingSubject}
+                            className="w-full sm:flex-1"
+                        />
+                        <Input
+                            value={newSubject.description}
+                            onChange={(e) => setNewSubject({ ...newSubject, description: e.target.value })}
+                            placeholder="Description (optional)"
+                            disabled={isAddingSubject}
+                            className="w-full sm:flex-1"
+                        />
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                        <div className="relative w-full sm:flex-1">
+                            <Select
+                                value={newSubject.departmentId || undefined}
+                                onValueChange={(value) => {
+                                    const selectedDept = departments.find((d: Item) => d._id === value);
+                                    setNewSubject({
+                                        ...newSubject,
+                                        departmentId: value,
+                                        departmentName: selectedDept?.name || ""
+                                    });
+                                }}
+                                disabled={isAddingSubject}
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select department (optional)" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {departments.map((dept: Item) => (
+                                        <SelectItem key={dept._id} value={dept._id}>
+                                            {dept.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {newSubject.departmentId && (
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="absolute right-8 top-1/2 -translate-y-1/2 h-6 px-2 text-xs"
+                                    onClick={() => setNewSubject({ ...newSubject, departmentId: "", departmentName: "" })}
+                                >
+                                    Clear
+                                </Button>
+                            )}
+                        </div>
+                        <Button
+                            onClick={handleAddSubject}
+                            disabled={isAddingSubject || !newSubject.name.trim()}
+                            className="w-full sm:w-auto shrink-0"
+                        >
+                            <PlusCircle className="mr-2 h-4 w-4" /> {isAddingSubject ? "Adding..." : "Add"}
+                        </Button>
+                    </div>
+                </div>
+
+                {/* Desktop Table View */}
+                <div className="hidden md:block rounded-md border">
+                    <div className="max-h-96 overflow-y-auto scrollbar-hide">
+                        <Table>
+                            <TableHeader className="sticky top-0 bg-background z-10 border-b">
+                                <TableRow>
+                                    <TableHead className="w-[25%]">Name</TableHead>
+                                    <TableHead className="w-[25%]">Department</TableHead>
+                                    <TableHead className="w-[35%]">Description</TableHead>
+                                    <TableHead className="text-right w-[15%]">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {isLoadingSubjects ? (
+                                    [...Array(3)].map((_, i) => (
+                                        <TableRow key={i}>
+                                            <TableCell><Skeleton className="h-5 w-full" /></TableCell>
+                                            <TableCell><Skeleton className="h-5 w-full" /></TableCell>
+                                            <TableCell><Skeleton className="h-5 w-full" /></TableCell>
+                                            <TableCell className="text-right"><Skeleton className="h-8 w-24 ml-auto" /></TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : subjects.length > 0 ? (
+                                    subjects.map((item: any) => (
+                                        <TableRow key={item._id}>
+                                            <TableCell className="font-medium">{item.name}</TableCell>
+                                            <TableCell className="text-muted-foreground">
+                                                {item.departmentName || <span className="italic text-muted-foreground/50">No department</span>}
+                                            </TableCell>
+                                            <TableCell className="text-muted-foreground">
+                                                {item.description || <span className="italic text-muted-foreground/50">No description</span>}
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <div className="flex justify-end gap-1">
+                                                    <Button variant="ghost" size="icon" onClick={() => openPreviewDialog(item, "subject")}>
+                                                        <Eye className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button variant="ghost" size="icon" onClick={() => openEditDialog(item, "subject")}>
+                                                        <Edit className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button variant="ghost" size="icon" onClick={() => handleRemoveSubject(item)}>
+                                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={4} className="text-center py-8">
+                                            <EmptyState 
+                                                title="No subjects" 
+                                                description="No subjects have been added yet." 
+                                            />
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="md:hidden space-y-3">
+                    {isLoadingSubjects ? (
+                        [...Array(3)].map((_, i) => (
+                            <Card key={i}>
+                                <CardContent className="p-4 space-y-2">
+                                    <Skeleton className="h-5 w-3/4" />
+                                    <Skeleton className="h-4 w-full" />
+                                    <Skeleton className="h-9 w-full" />
+                                </CardContent>
+                            </Card>
+                        ))
+                    ) : subjects.length > 0 ? (
+                        <div className="max-h-96 overflow-y-auto space-y-3 pr-1">
+                            {subjects.map((item: any) => (
+                                <Card key={item._id}>
+                                    <CardContent className="p-4 space-y-3">
+                                        <div>
+                                            <h4 className="font-semibold text-base">{item.name}</h4>
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                                Department: {item.departmentName || <span className="italic">No department</span>}
+                                            </p>
+                                            <p className="text-sm text-muted-foreground mt-1">
+                                                {item.description || <span className="italic text-muted-foreground/50">No description</span>}
+                                            </p>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <Button variant="outline" size="sm" className="flex-1" onClick={() => openPreviewDialog(item, "subject")}>
+                                                <Eye className="h-4 w-4 mr-1" />
+                                                View
+                                            </Button>
+                                            <Button variant="outline" size="sm" className="flex-1" onClick={() => openEditDialog(item, "subject")}>
+                                                <Edit className="h-4 w-4 mr-1" />
+                                                Edit
+                                            </Button>
+                                            <Button variant="outline" size="sm" onClick={() => handleRemoveSubject(item)}>
+                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    ) : (
+                        <Card>
+                            <CardContent className="p-8 text-center">
+                                <EmptyState 
+                                    title="No subjects" 
+                                    description="No subjects have been added yet." 
+                                />
+                            </CardContent>
+                        </Card>
+                    )}
+                </div>
+            </CardContent>
+        </Card>
+    );
+
+
     const renderTable = (
         title: string,
         description: string,
@@ -206,34 +413,34 @@ export default function SettingsPage() {
         setNewItem: React.Dispatch<React.SetStateAction<{ name: string, description: string }>>
     ) => (
         <Card>
-            <CardHeader>
-                <CardTitle>{title}</CardTitle>
-                <CardDescription>{description}</CardDescription>
+            <CardHeader className="space-y-1.5">
+                <CardTitle className="text-lg md:text-xl">{title}</CardTitle>
+                <CardDescription className="text-sm">{description}</CardDescription>
             </CardHeader>
-            <CardContent>
-                {/* Add New Item Form */}
-                <div className="flex gap-2 mb-4">
+            <CardContent className="px-4 md:px-6">
+                {/* Add New Item Form - Responsive */}
+                <div className="flex flex-col sm:flex-row gap-2 mb-4">
                     <Input
                         value={newItem.name}
                         onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
                         placeholder={`New ${type.replace(/([A-Z])/g, ' $1').toLowerCase()} name`}
                         disabled={isAdding}
-                        className="flex-1"
+                        className="w-full sm:flex-1"
                     />
                     <Input
                         value={newItem.description}
                         onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
                         placeholder="Description (optional)"
                         disabled={isAdding}
-                        className="flex-1"
+                        className="w-full sm:flex-1"
                     />
-                    <Button onClick={onAdd} disabled={isAdding || !newItem.name.trim()} className="shrink-0">
+                    <Button onClick={onAdd} disabled={isAdding || !newItem.name.trim()} className="w-full sm:w-auto shrink-0">
                         <PlusCircle className="mr-2 h-4 w-4" /> {isAdding ? "Adding..." : "Add"}
                     </Button>
                 </div>
 
-                {/* Table */}
-                <div className="rounded-md border">
+                {/* Desktop Table View */}
+                <div className="hidden md:block rounded-md border">
                     <div className="max-h-96 overflow-y-auto scrollbar-hide">
                         <Table>
                             <TableHeader className="sticky top-0 bg-background z-10 border-b">
@@ -288,29 +495,68 @@ export default function SettingsPage() {
                         </Table>
                     </div>
                 </div>
+
+                {/* Mobile Card View */}
+                <div className="md:hidden space-y-3">
+                    {isLoading ? (
+                        [...Array(3)].map((_, i) => (
+                            <Card key={i}>
+                                <CardContent className="p-4 space-y-2">
+                                    <Skeleton className="h-5 w-3/4" />
+                                    <Skeleton className="h-4 w-full" />
+                                    <Skeleton className="h-9 w-full" />
+                                </CardContent>
+                            </Card>
+                        ))
+                    ) : items.length > 0 ? (
+                        <div className="max-h-96 overflow-y-auto space-y-3 pr-1">
+                            {items.map((item) => (
+                                <Card key={item._id}>
+                                    <CardContent className="p-4 space-y-3">
+                                        <div>
+                                            <h4 className="font-semibold text-base">{item.name}</h4>
+                                            <p className="text-sm text-muted-foreground mt-1">
+                                                {item.description || <span className="italic text-muted-foreground/50">No description</span>}
+                                            </p>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <Button variant="outline" size="sm" className="flex-1" onClick={() => onView(item)}>
+                                                <Eye className="h-4 w-4 mr-1" />
+                                                View
+                                            </Button>
+                                            <Button variant="outline" size="sm" className="flex-1" onClick={() => onEdit(item)}>
+                                                <Edit className="h-4 w-4 mr-1" />
+                                                Edit
+                                            </Button>
+                                            <Button variant="outline" size="sm" onClick={() => onRemove(item)}>
+                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    ) : (
+                        <Card>
+                            <CardContent className="p-8 text-center">
+                                <EmptyState 
+                                    title={`No ${type}s`} 
+                                    description={`No ${type.replace(/([A-Z])/g, ' $1').toLowerCase()}s have been added yet.`} 
+                                />
+                            </CardContent>
+                        </Card>
+                    )}
+                </div>
             </CardContent>
         </Card>
     );
 
 
     return (
-        <div className="space-y-6">
-            <h1 className="text-2xl font-bold">Settings</h1>
-            <div className="grid md:grid-cols-2 gap-6">
-                {renderTable(
-                    "Manage Subjects",
-                    "Add or remove subjects offered.",
-                    subjects,
-                    isLoadingSubjects,
-                    isAddingSubject,
-                    handleAddSubject,
-                    handleRemoveSubject,
-                    (item) => openEditDialog(item, "subject"),
-                    (item) => openPreviewDialog(item, "subject"),
-                    "subject",
-                    newSubject,
-                    setNewSubject
-                )}
+        <div className="space-y-4 md:space-y-6 p-4 md:p-6">
+            <h1 className="text-xl md:text-2xl font-bold">Settings</h1>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+                {renderSubjectTable()}
                 {renderTable(
                     "Manage Departments",
                     "Add or remove academic departments.",
@@ -372,6 +618,43 @@ export default function SettingsPage() {
                             onChange={(e) => setEditDescription(e.target.value)}
                             placeholder="Description (optional)"
                         />
+                        {editType === "subject" && (
+                            <div className="relative">
+                                <Select
+                                    value={editDepartmentId || undefined}
+                                    onValueChange={(value) => {
+                                        const selectedDept = departments.find((d: Item) => d._id === value);
+                                        setEditDepartmentId(value);
+                                        setEditDepartmentName(selectedDept?.name || "");
+                                    }}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select department (optional)" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {departments.map((dept: Item) => (
+                                            <SelectItem key={dept._id} value={dept._id}>
+                                                {dept.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {editDepartmentId && (
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        className="absolute right-8 top-1/2 -translate-y-1/2 h-6 px-2 text-xs"
+                                        onClick={() => {
+                                            setEditDepartmentId("");
+                                            setEditDepartmentName("");
+                                        }}
+                                    >
+                                        Clear
+                                    </Button>
+                                )}
+                            </div>
+                        )}
                     </div>
                     <DialogFooter>
                         <Button variant="ghost" onClick={closeEditDialog}>Cancel</Button>
