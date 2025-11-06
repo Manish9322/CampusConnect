@@ -78,7 +78,10 @@ export default function ComplaintsPage() {
 
     return (
         <div className="space-y-6 p-4 md:p-6">
-            <h1 className="text-2xl font-bold">Complaint Management</h1>
+            <div>
+                <h1 className="text-2xl font-bold">Complaint Management</h1>
+                <p className="text-muted-foreground mt-1">Review, manage, and resolve student complaints.</p>
+            </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>

@@ -140,7 +140,10 @@ export default function StudentComplaintsPage() {
 
     return (
         <div className="space-y-6">
-            <h1 className="text-2xl font-bold">My Complaints</h1>
+            <div>
+                <h1 className="text-2xl font-bold">My Complaints</h1>
+                <p className="text-muted-foreground mt-1">File new complaints and track their resolution status.</p>
+            </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
