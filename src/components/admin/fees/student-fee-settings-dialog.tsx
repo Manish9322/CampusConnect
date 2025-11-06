@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { useGetStudentFeeSettingsQuery, useUpdateStudentFeeSettingsMutation } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Info } from "lucide-react";
+import { Info } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 
@@ -100,7 +100,7 @@ export function StudentFeeSettingsDialog({ open, onOpenChange, student, totalFee
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>Fee Settings for {student.name}</DialogTitle>
           <DialogDescription>
@@ -112,7 +112,7 @@ export function StudentFeeSettingsDialog({ open, onOpenChange, student, totalFee
             <div>
                 <Label className="font-semibold">Payment Mode</Label>
                 <p className="text-sm text-muted-foreground mb-2">Choose how this student will pay their fees.</p>
-                <RadioGroup value={mode} onValueChange={setMode} className="mt-2 grid grid-cols-2 gap-4">
+                <RadioGroup value={mode} onValueChange={setMode} className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Label htmlFor="full" className="flex items-center space-x-2 p-4 border rounded-md has-[:checked]:border-primary cursor-pointer">
                         <RadioGroupItem value="Full Payment" id="full" />
                         <span className="font-medium">Full Payment</span>
@@ -132,9 +132,15 @@ export function StudentFeeSettingsDialog({ open, onOpenChange, student, totalFee
                         Customize the installment plan for this student.
                     </p>
                     <div className="space-y-4">
+                        <div className="grid grid-cols-[1fr_150px_180px] gap-4 px-2 pb-2 text-sm font-medium text-muted-foreground hidden sm:grid">
+                            <Label>Installment</Label>
+                            <Label>Amount</Label>
+                            <Label>Due Date</Label>
+                        </div>
                         {installments.map((inst, index) => (
-                            <div key={index} className="grid grid-cols-[1fr_120px_140px] gap-3 items-center">
-                                <Label className="text-sm text-muted-foreground">{inst.name}</Label>
+                            <div key={index} className="grid grid-cols-1 sm:grid-cols-[1fr_150px_180px] gap-3 items-center rounded-md border sm:border-none p-4 sm:p-2">
+                                <Label className="sm:hidden text-muted-foreground">{inst.name}</Label>
+                                <Label className="hidden sm:inline-block text-sm font-medium">{inst.name}</Label>
                                 <div className="relative">
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
                                     <Input 
