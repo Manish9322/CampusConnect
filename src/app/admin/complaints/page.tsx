@@ -157,7 +157,7 @@ export default function ComplaintsPage() {
                         </Select>
                     </div>
 
-                    <div className="rounded-md border">
+                    <div className="hidden md:block rounded-md border">
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -218,8 +218,49 @@ export default function ComplaintsPage() {
                             </TableBody>
                         </Table>
                     </div>
+
+                    <div className="md:hidden space-y-4">
+                        {isLoading ? (
+                            [...Array(3)].map((_, i) => (
+                                <Card key={i}><CardContent className="p-4"><Skeleton className="h-24 w-full" /></CardContent></Card>
+                            ))
+                        ) : paginatedComplaints.length === 0 ? (
+                            <EmptyState title="No Complaints Found" description="There are no complaints matching your filters." />
+                        ) : (
+                            paginatedComplaints.map((c: any) => (
+                                <Card key={c._id}>
+                                    <CardContent className="p-4 space-y-3">
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <h3 className="font-semibold">{c.studentName} ({c.studentRollNo})</h3>
+                                                <p className="text-sm text-muted-foreground">{new Date(c.createdAt).toLocaleDateString()}</p>
+                                            </div>
+                                            <Badge>{c.status}</Badge>
+                                        </div>
+                                        <div>
+                                            <p className="font-medium">{c.subject}</p>
+                                            <Badge variant="outline" className="mt-1">{c.category}</Badge>
+                                        </div>
+                                        <div className="text-right">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="sm">Update Status</Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent>
+                                                    <DropdownMenuItem onClick={() => handleUpdateStatus(c._id, 'In Progress')}>In Progress</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => handleUpdateStatus(c._id, 'Resolved')}>Resolved</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => handleUpdateStatus(c._id, 'Rejected')}>Rejected</DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))
+                        )}
+                    </div>
+
                     {filteredComplaints.length > 0 && (
-                        <div className="flex items-center justify-between mt-4">
+                        <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-4">
                             <div className="flex items-center space-x-2">
                                 <span className="text-sm text-muted-foreground">Rows per page</span>
                                 <Select onValueChange={handleRowsPerPageChange} defaultValue={`${rowsPerPage}`}>

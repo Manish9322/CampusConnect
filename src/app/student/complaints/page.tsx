@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -296,7 +297,7 @@ export default function StudentComplaintsPage() {
                             <Button variant="outline" onClick={handleExport} disabled={filteredComplaints.length === 0}><Download className="mr-2 h-4 w-4"/>Export</Button>
                             {isFiltered && <Button variant="ghost" size="icon" onClick={clearFilters}><X className="h-4 w-4"/></Button>}
                         </div>
-                        <div className="rounded-md border">
+                        <div className="hidden md:block rounded-md border">
                             <Table>
                                 <TableHeader>
                                     <TableRow>
@@ -335,8 +336,32 @@ export default function StudentComplaintsPage() {
                                 </TableBody>
                             </Table>
                         </div>
+                         <div className="md:hidden space-y-4">
+                            {isLoading ? (
+                                [...Array(3)].map((_, i) => (
+                                    <Card key={i}><CardContent className="p-4"><Skeleton className="h-20 w-full" /></CardContent></Card>
+                                ))
+                            ) : paginatedComplaints.length === 0 ? (
+                                <EmptyState title="No Complaints Yet" description="You haven't submitted any complaints." />
+                            ) : (
+                                paginatedComplaints.map((c: any) => (
+                                    <Card key={c._id}>
+                                        <CardContent className="p-4 space-y-2">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <p className="font-semibold">{c.subject}</p>
+                                                    <p className="text-sm text-muted-foreground">{new Date(c.createdAt).toLocaleDateString()}</p>
+                                                </div>
+                                                <Badge>{c.status}</Badge>
+                                            </div>
+                                            <Badge variant="outline">{c.category}</Badge>
+                                        </CardContent>
+                                    </Card>
+                                ))
+                            )}
+                        </div>
                         {filteredComplaints.length > 0 && (
-                            <div className="flex items-center justify-between mt-4">
+                            <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-4">
                                 <div className="flex items-center space-x-2">
                                     <span className="text-sm text-muted-foreground">Rows per page</span>
                                     <Select onValueChange={(value) => {setRowsPerPage(Number(value)); setPage(0);}} defaultValue={`${rowsPerPage}`}>

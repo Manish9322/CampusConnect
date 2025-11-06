@@ -343,7 +343,7 @@ export default function StudentNotesPage() {
         </CardHeader>
 
         <CardContent>
-            <div className="rounded-md border">
+            <div className="hidden md:block rounded-md border">
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -359,6 +359,31 @@ export default function StudentNotesPage() {
                         {renderTableBody()}
                     </TableBody>
                 </Table>
+            </div>
+            <div className="md:hidden space-y-4">
+                {isLoading ? (
+                    [...Array(3)].map((_, i) => <Card key={i}><CardContent className="p-4"><Skeleton className="h-20 w-full" /></CardContent></Card>)
+                ) : filteredNotes.length === 0 ? (
+                    <EmptyState title="No Notes Found" description={isFiltered ? "No notes match your current filters." : "You haven't received any notes yet."} />
+                ) : (
+                    filteredNotes.map((note: any) => (
+                        <Card key={note._id} onClick={() => handleViewNote(note)} className="cursor-pointer">
+                            <CardContent className="p-4 space-y-3">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <h3 className="font-semibold">{note.subject}</h3>
+                                        <p className="text-sm text-muted-foreground">{note.senderName} - {format(new Date(note.createdAt), "MMM dd")}</p>
+                                    </div>
+                                    {!note.isRead && <div className="w-2.5 h-2.5 rounded-full bg-primary mt-1"></div>}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Badge className={cn("text-xs", priorityConfig[note.priority as keyof typeof priorityConfig].color)}>{priorityConfig[note.priority as keyof typeof priorityConfig].label}</Badge>
+                                    <Badge variant="outline">{categoryConfig[note.category]?.label || note.category}</Badge>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))
+                )}
             </div>
         </CardContent>
       </Card>
