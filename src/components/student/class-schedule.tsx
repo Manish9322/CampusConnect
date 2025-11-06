@@ -33,7 +33,7 @@ export function ClassSchedule() {
 
     const { data: timetables = [], isLoading } = useGetTimetableQuery({ classId }, { skip: !classId });
 
-    const getTimetableForDay = (day: DayOfWeek) => {
+    const getTimetableForDay = (day: DayOfWeek): Period[] => {
         const dayTimetable = timetables.find((tt: Timetable) => tt.day === day);
         if (!dayTimetable || !dayTimetable.periods) return [];
         // Create a copy before sorting to avoid mutating read-only data
@@ -68,14 +68,14 @@ export function ClassSchedule() {
                     <Card key={period.periodNumber}>
                         <CardContent className="p-4">
                             <div className="flex flex-col sm:flex-row justify-between gap-4">
-                                <div className="space-y-1">
+                                <div className="flex-1 space-y-1">
                                     <h4 className="font-semibold text-lg">{period.subjectName}</h4>
                                     <p className="text-sm text-muted-foreground flex items-center gap-2">
                                         <User className="h-4 w-4" /> {period.teacherName}
                                     </p>
                                 </div>
-                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                    <Badge variant="outline" className="text-base px-3 py-1">Period {period.periodNumber}</Badge>
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-muted-foreground">
+                                    <Badge variant="outline" className="text-base px-3 py-1 w-fit">Period {period.periodNumber}</Badge>
                                     <div className="flex items-center gap-2">
                                         <Clock className="h-4 w-4" />
                                         <span>{period.startTime} - {period.endTime}</span>
@@ -100,7 +100,7 @@ export function ClassSchedule() {
             </CardHeader>
             <CardContent>
                 <Tabs defaultValue="Monday" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-6 mb-6">
+                    <TabsList className="mb-6 grid-cols-3 sm:grid-cols-6 h-auto w-full grid">
                         {DAYS.map(day => (
                             <TabsTrigger key={day} value={day}>{day}</TabsTrigger>
                         ))}
