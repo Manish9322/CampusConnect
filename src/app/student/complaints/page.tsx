@@ -18,7 +18,7 @@ import { Student } from "@/lib/types";
 import { FileText, Clock, CheckCircle, XCircle, ChevronLeft, ChevronRight, Download, Filter, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 const complaintSchema = z.object({
   subject: z.string().min(5, "Subject must be at least 5 characters."),
@@ -332,28 +332,39 @@ export default function StudentComplaintsPage() {
                                 </TableBody>
                             </Table>
                         </div>
-                        {filteredComplaints.length > rowsPerPage && (
+                        {filteredComplaints.length > 0 && (
                             <div className="flex items-center justify-between mt-4">
-                                <div className="text-sm text-muted-foreground">
-                                    Page {page + 1} of {totalPages}
+                                <div className="flex items-center space-x-2">
+                                    <span className="text-sm text-muted-foreground">Rows per page</span>
+                                    <Select onValueChange={(value) => {setRowsPerPage(Number(value)); setPage(0);}} defaultValue={`${rowsPerPage}`}>
+                                        <SelectTrigger className="w-20">
+                                            <SelectValue placeholder={`${rowsPerPage}`} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="5">5</SelectItem>
+                                            <SelectItem value="10">10</SelectItem>
+                                            <SelectItem value="20">20</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
-                                <div className="flex gap-2">
-                                     <Button
+                                <div className="flex items-center space-x-2">
+                                    <span className="text-sm text-muted-foreground">
+                                        Page {page + 1} of {totalPages}
+                                    </span>
+                                    <Button
                                         variant="outline"
-                                        size="sm"
+                                        size="icon"
                                         onClick={() => setPage(p => Math.max(0, p - 1))}
                                         disabled={page === 0}
                                     >
                                         <ChevronLeft className="h-4 w-4" />
-                                        Previous
                                     </Button>
                                     <Button
                                         variant="outline"
-                                        size="sm"
+                                        size="icon"
                                         onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
                                         disabled={page >= totalPages - 1}
                                     >
-                                        Next
                                         <ChevronRight className="h-4 w-4" />
                                     </Button>
                                 </div>
