@@ -18,8 +18,9 @@ import { Input } from "@/components/ui/input";
 import { useGetStudentFeeSettingsQuery, useUpdateStudentFeeSettingsMutation } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Info } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
 
 interface StudentFeeSettingsDialogProps {
   open: boolean;
@@ -110,51 +111,60 @@ export function StudentFeeSettingsDialog({ open, onOpenChange, student, totalFee
         <div className="space-y-6 py-4">
             <div>
                 <Label className="font-semibold">Payment Mode</Label>
-                <RadioGroup value={mode} onValueChange={setMode} className="mt-2">
-                    <div className="flex items-center space-x-2">
+                <p className="text-sm text-muted-foreground mb-2">Choose how this student will pay their fees.</p>
+                <RadioGroup value={mode} onValueChange={setMode} className="mt-2 grid grid-cols-2 gap-4">
+                    <Label htmlFor="full" className="flex items-center space-x-2 p-4 border rounded-md has-[:checked]:border-primary cursor-pointer">
                         <RadioGroupItem value="Full Payment" id="full" />
-                        <Label htmlFor="full">Full Payment</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
+                        <span className="font-medium">Full Payment</span>
+                    </Label>
+                    <Label htmlFor="installments" className="flex items-center space-x-2 p-4 border rounded-md has-[:checked]:border-primary cursor-pointer">
                         <RadioGroupItem value="Installments" id="installments" />
-                        <Label htmlFor="installments">3 Installments</Label>
-                    </div>
+                        <span className="font-medium">Installments</span>
+                    </Label>
                 </RadioGroup>
             </div>
 
             {mode === 'Installments' && (
-                <div className="space-y-4 p-4 border rounded-lg">
+                <div className="space-y-4 pt-4">
+                    <Separator />
                     <h4 className="font-semibold">Define Installments</h4>
-                    {installments.map((inst, index) => (
-                        <div key={index} className="grid grid-cols-3 gap-4 items-center">
-                            <Label className="col-span-1">{inst.name}</Label>
-                             <Input 
-                                type="number"
-                                placeholder="Amount"
-                                value={inst.amount || ''}
-                                onChange={(e) => handleInstallmentChange(index, 'amount', e.target.value)}
-                                className="col-span-1"
-                            />
-                            <Input 
-                                type="date"
-                                value={inst.dueDate ? inst.dueDate.split('T')[0] : ''}
-                                onChange={(e) => handleInstallmentChange(index, 'dueDate', e.target.value)}
-                                className="col-span-1"
-                            />
-                        </div>
-                    ))}
+                    <p className="text-sm text-muted-foreground -mt-2">
+                        Customize the installment plan for this student.
+                    </p>
+                    <div className="space-y-4">
+                        {installments.map((inst, index) => (
+                            <div key={index} className="grid grid-cols-[1fr_120px_140px] gap-3 items-center">
+                                <Label className="text-sm text-muted-foreground">{inst.name}</Label>
+                                <div className="relative">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
+                                    <Input 
+                                        type="number" 
+                                        placeholder="Amount"
+                                        value={inst.amount || ''}
+                                        onChange={(e) => handleInstallmentChange(index, 'amount', e.target.value)}
+                                        className="pl-6"
+                                    />
+                                </div>
+                                <Input 
+                                    type="date"
+                                    value={inst.dueDate ? inst.dueDate.split('T')[0] : ''}
+                                    onChange={(e) => handleInstallmentChange(index, 'dueDate', e.target.value)}
+                                />
+                            </div>
+                        ))}
+                    </div>
                     <div className="flex justify-end items-center gap-4 pt-4 border-t">
-                        <span className="text-sm text-muted-foreground">Total:</span>
+                        <span className="text-sm text-muted-foreground">Total Installment Amount:</span>
                         <span className={`font-bold ${amountMismatch ? 'text-destructive' : 'text-primary'}`}>
                             ${totalInstallmentAmount.toLocaleString()}
                         </span>
                     </div>
                      {amountMismatch && (
-                        <Alert variant="destructive">
-                            <AlertCircle className="h-4 w-4" />
-                            <AlertTitle>Warning</AlertTitle>
+                        <Alert variant="default" className="bg-yellow-50 border-yellow-200 text-yellow-800 dark:bg-yellow-950 dark:border-yellow-800 dark:text-yellow-200 [&>svg]:text-yellow-600">
+                            <Info className="h-4 w-4" />
+                            <AlertTitle>Notice</AlertTitle>
                             <AlertDescription>
-                                Sum of installments must equal total fees (${totalFees}).
+                                Sum of installments must equal total fees (${totalFees.toLocaleString()}).
                             </AlertDescription>
                         </Alert>
                     )}
