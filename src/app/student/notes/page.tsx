@@ -11,14 +11,14 @@ import { useGetNotesQuery, useUpdateNoteMutation } from "@/services/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Bell, 
-  CheckCircle2, 
-  Clock, 
-  Filter, 
-  Mail, 
-  MailOpen, 
-  X, 
+import {
+  Bell,
+  CheckCircle2,
+  Clock,
+  Filter,
+  Mail,
+  MailOpen,
+  X,
   AlertCircle,
   BookOpen,
   AlertTriangle,
@@ -29,9 +29,7 @@ import {
 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { format } from "date-fns";
-
-// Mock student ID - In production, get this from auth context
-const STUDENT_ID = "67761e9efc4dab3c73e86d09"; // Replace with actual logged-in student ID
+import { Student } from "@/lib/types";
 
 const priorityConfig = {
   low: { color: "bg-blue-500", label: "Low", icon: Bell },
@@ -50,7 +48,20 @@ const categoryConfig = {
 };
 
 export default function StudentNotesPage() {
-  const { data: notes = [], isLoading, refetch } = useGetNotesQuery({ studentId: STUDENT_ID });
+  const [student, setStudent] = React.useState<Student | null>(null);
+
+  React.useEffect(() => {
+    const storedUser = localStorage.getItem('student_user');
+    if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        if (parsedUser.id && !parsedUser._id) {
+            parsedUser._id = parsedUser.id;
+        }
+        setStudent(parsedUser);
+    }
+  }, []);
+  
+  const { data: notes = [], isLoading, refetch } = useGetNotesQuery({ studentId: student?._id }, { skip: !student });
   const [updateNote] = useUpdateNoteMutation();
   const { toast } = useToast();
 
@@ -127,7 +138,7 @@ export default function StudentNotesPage() {
     setReadFilter("all");
   };
 
-  if (isLoading) {
+  if (isLoading || !student) {
     return (
       <div className="space-y-4 md:space-y-6 p-4 md:p-6">
         <Skeleton className="h-10 w-64" />
