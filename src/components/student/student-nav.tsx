@@ -1,9 +1,8 @@
-
 "use client"
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, CalendarCheck, BarChart2, BookOpen, LogOut, User as UserIcon, PanelLeft, DollarSign, FileText, MessageSquare } from "lucide-react";
+import { Home, CalendarCheck, BarChart2, BookOpen, LogOut, User as UserIcon, PanelLeft, DollarSign, FileText, MessageSquare, ShieldAlert } from "lucide-react";
 import * as React from "react";
 
 import {
@@ -53,6 +52,7 @@ export function StudentNav({ user, onLogout }: StudentNavProps) {
     { href: "/student/schedule", label: "Class Schedule", icon: BookOpen },
     { href: "/student/assignments", label: "Assignments", icon: FileText },
     { href: "/student/notes", label: "My Notes", icon: MessageSquare },
+    { href: "/student/complaints", label: "Complaints", icon: ShieldAlert },
     { href: "/student/fees", label: "Fees", icon: DollarSign },
     { href: "/student/reports", label: "Reports", icon: BarChart2 },
   ];

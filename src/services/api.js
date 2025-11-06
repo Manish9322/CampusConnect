@@ -4,7 +4,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest', 'Note', 'Timetable', 'Settings'],
+  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest', 'Note', 'Timetable', 'Settings', 'Complaint'],
   endpoints: (builder) => ({
     testDBConnection: builder.query({
       query: () => 'connect',
@@ -165,7 +165,13 @@ export const api = createApi({
 
     // Student CRUD endpoints
     getStudents: builder.query({
-      query: ({ classId } = {}) => classId ? `students?classId=${classId}` : 'students',
+      query: ({ classId } = {}) => {
+        let url = 'students';
+        if (classId) {
+            url += `?classId=${classId}`;
+        }
+        return url;
+      },
       providesTags: (result = [], error, arg) => [
         { type: 'Student', id: 'LIST' },
         ...result.map(({ _id }) => ({ type: 'Student', id: _id })),
@@ -451,6 +457,32 @@ export const api = createApi({
         }),
         invalidatesTags: (result, error, { classId }) => [{ type: 'Settings', id: classId }],
     }),
+    
+    // Complaint endpoints
+    getComplaints: builder.query({
+        query: (params = {}) => {
+            const urlParams = new URLSearchParams();
+            if (params.studentId) urlParams.append('studentId', params.studentId);
+            return `complaints?${urlParams.toString()}`;
+        },
+        providesTags: ['Complaint'],
+    }),
+    addComplaint: builder.mutation({
+        query: (newComplaint) => ({
+            url: 'complaints',
+            method: 'POST',
+            body: newComplaint,
+        }),
+        invalidatesTags: ['Complaint'],
+    }),
+    updateComplaint: builder.mutation({
+        query: (complaintToUpdate) => ({
+            url: 'complaints',
+            method: 'PUT',
+            body: complaintToUpdate,
+        }),
+        invalidatesTags: ['Complaint'],
+    }),
   }),
 });
 
@@ -513,4 +545,7 @@ export const {
     useDeleteTimetableMutation,
     useGetPeriodsPerDayQuery,
     useUpdatePeriodsPerDayMutation,
+    useGetComplaintsQuery,
+    useAddComplaintMutation,
+    useUpdateComplaintMutation,
 } = api;
