@@ -10,8 +10,19 @@ import { Input } from "@/components/ui/input";
 import { useGetFeeSettingsQuery, useUpdateFeeSettingsMutation } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Info } from "lucide-react";
+import { Info, AlertTriangle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Separator } from "@/components/ui/separator";
 
 interface FeeSettingsProps {
     totalDefinedFees: number;
@@ -20,6 +31,8 @@ interface FeeSettingsProps {
 export function FeeSettings({ totalDefinedFees }: FeeSettingsProps) {
     const { data: settings, isLoading } = useGetFeeSettingsQuery({});
     const [updateFeeSettings, { isLoading: isUpdating }] = useUpdateFeeSettingsMutation();
+    const [isApplyToAllDialogOpen, setApplyToAllDialogOpen] = React.useState(false);
+    const [isBulkUpdating, setIsBulkUpdating] = React.useState(false);
     const { toast } = useToast();
 
     const [mode, setMode] = React.useState('Full Payment');
@@ -84,6 +97,40 @@ export function FeeSettings({ totalDefinedFees }: FeeSettingsProps) {
             });
         }
     };
+
+    const handleApplyToAll = async () => {
+        setIsBulkUpdating(true);
+        try {
+            // First, save the current default settings
+            await handleSave();
+            
+            // Then, trigger the API to apply defaults to all students
+            const response = await fetch('/api/settings/apply-to-all-students', {
+                method: 'POST'
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to apply settings to all students.');
+            }
+
+            const result = await response.json();
+            
+            toast({
+                title: "Settings Applied to All",
+                description: `Default fee mode has been applied to ${result.updatedCount} students.`,
+            });
+        } catch (error: any) {
+            toast({
+                variant: 'destructive',
+                title: 'Bulk Update Failed',
+                description: error.message || 'An error occurred during the bulk update.',
+            });
+        } finally {
+            setIsBulkUpdating(false);
+            setApplyToAllDialogOpen(false);
+        }
+    };
     
     if (isLoading) {
         return (
@@ -100,71 +147,114 @@ export function FeeSettings({ totalDefinedFees }: FeeSettingsProps) {
     }
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Default Fee Settings</CardTitle>
-                <CardDescription>Set the default payment mode for all students. This can be overridden for individual students.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-                <div>
-                    <Label className="font-semibold">Payment Mode</Label>
-                    <RadioGroup value={mode} onValueChange={setMode} className="mt-2">
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="Full Payment" id="full" />
-                            <Label htmlFor="full">Full Payment</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="Installments" id="installments" />
-                            <Label htmlFor="installments">3 Installments</Label>
-                        </div>
-                    </RadioGroup>
-                </div>
-
-                {mode === 'Installments' && (
-                    <div className="space-y-4 p-4 border rounded-lg">
-                        <h4 className="font-semibold">Define Installments</h4>
-                        {installments.map((inst, index) => (
-                            <div key={index} className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
-                                <div className="space-y-2">
-                                    <Label>{inst.name}</Label>
-                                    <Input 
-                                        type="number" 
-                                        placeholder="Amount"
-                                        value={inst.amount || ''}
-                                        onChange={(e) => handleInstallmentChange(index, 'amount', e.target.value)}
-                                    />
+        <>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Default Fee Settings</CardTitle>
+                    <CardDescription>Set the default payment mode for all students. This can be overridden for individual students.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div>
+                        <Label className="font-semibold">Payment Mode</Label>
+                        <RadioGroup value={mode} onValueChange={setMode} className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Label htmlFor="full" className="flex flex-col space-y-2 p-4 border rounded-md has-[:checked]:border-primary cursor-pointer">
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="Full Payment" id="full" />
+                                    <span className="font-semibold">Full Payment</span>
                                 </div>
-                                <div className="space-y-2 sm:col-span-2">
-                                     <Label>Due Date</Label>
-                                    <Input 
-                                        type="date"
-                                        value={inst.dueDate ? inst.dueDate.split('T')[0] : ''}
-                                        onChange={(e) => handleInstallmentChange(index, 'dueDate', e.target.value)}
-                                    />
+                                <p className="text-xs text-muted-foreground ml-6">Student pays the entire fee amount in a single transaction.</p>
+                            </Label>
+                            <Label htmlFor="installments" className="flex flex-col space-y-2 p-4 border rounded-md has-[:checked]:border-primary cursor-pointer">
+                                 <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="Installments" id="installments" />
+                                    <span className="font-semibold">3 Installments</span>
                                 </div>
-                            </div>
-                        ))}
-                        <div className="flex justify-end items-center gap-4 pt-4 border-t">
-                            <span className="text-sm text-muted-foreground">Total Installment Amount:</span>
-                            <span className="font-bold">
-                                ${totalInstallmentAmount.toLocaleString()}
-                            </span>
-                        </div>
-                         {amountMismatch && (
-                            <Alert>
-                                <Info className="h-4 w-4" />
-                                <AlertTitle>Notice</AlertTitle>
-                                <AlertDescription>
-                                    The sum of installments (${totalInstallmentAmount}) does not match the total defined fees (${totalDefinedFees}). Please adjust the values.
-                                </AlertDescription>
-                            </Alert>
-                        )}
+                                <p className="text-xs text-muted-foreground ml-6">Total fee is divided into three scheduled payments.</p>
+                            </Label>
+                        </RadioGroup>
                     </div>
-                )}
-                <Button onClick={handleSave} disabled={isUpdating}>
-                    {isUpdating ? 'Saving...' : 'Save Default Settings'}
-                </Button>
-            </CardContent>
-        </Card>
+
+                    {mode === 'Installments' && (
+                        <div className="space-y-4 p-4 border rounded-lg">
+                            <h4 className="font-semibold">Define Installments</h4>
+                            {installments.map((inst, index) => (
+                                <div key={index} className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                                    <div className="space-y-2">
+                                        <Label>{inst.name}</Label>
+                                        <Input 
+                                            type="number" 
+                                            placeholder="Amount"
+                                            value={inst.amount || ''}
+                                            onChange={(e) => handleInstallmentChange(index, 'amount', e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="space-y-2 sm:col-span-2">
+                                        <Label>Due Date</Label>
+                                        <Input 
+                                            type="date"
+                                            value={inst.dueDate ? inst.dueDate.split('T')[0] : ''}
+                                            onChange={(e) => handleInstallmentChange(index, 'dueDate', e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                            <div className="flex justify-end items-center gap-4 pt-4 border-t">
+                                <span className="text-sm text-muted-foreground">Total Installment Amount:</span>
+                                <span className="font-bold">
+                                    ${totalInstallmentAmount.toLocaleString()}
+                                </span>
+                            </div>
+                            {amountMismatch && (
+                                <Alert>
+                                    <Info className="h-4 w-4" />
+                                    <AlertTitle>Notice</AlertTitle>
+                                    <AlertDescription>
+                                        The sum of installments (${totalInstallmentAmount.toLocaleString()}) does not match the total defined fees (${totalDefinedFees.toLocaleString()}). Please adjust the values.
+                                    </AlertDescription>
+                                </Alert>
+                            )}
+                        </div>
+                    )}
+                    <div className="flex flex-col sm:flex-row gap-2">
+                        <Button onClick={handleSave} disabled={isUpdating}>
+                            {isUpdating ? 'Saving...' : 'Save Default Settings'}
+                        </Button>
+                    </div>
+                </CardContent>
+                <CardHeader className="border-t">
+                    <CardTitle className="text-lg">Bulk Actions</CardTitle>
+                    <CardDescription>Apply default settings to all existing students.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border border-destructive/50 rounded-lg">
+                        <div className="flex-1 mb-4 sm:mb-0">
+                            <p className="font-semibold">Apply to All Students</p>
+                            <p className="text-sm text-muted-foreground">This will reset all individual student fee configurations and apply the saved default mode to everyone.</p>
+                        </div>
+                        <Button variant="outline" onClick={() => setApplyToAllDialogOpen(true)}>
+                            <AlertTriangle className="mr-2 h-4 w-4" />
+                            Apply to All...
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <AlertDialog open={isApplyToAllDialogOpen} onOpenChange={setApplyToAllDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This action cannot be undone. It will remove all custom fee settings for every student and apply the new default mode (<strong>{mode}</strong>). It's recommended to save the default settings first.
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleApplyToAll} disabled={isBulkUpdating}>
+                        {isBulkUpdating ? "Applying..." : "Yes, Apply to All"}
+                    </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </>
     )
 }

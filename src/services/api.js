@@ -574,6 +574,13 @@ export const api = createApi({
         }),
         invalidatesTags: ['StudentFeeSettings'],
     }),
+    applyFeeSettingsToAll: builder.mutation({
+        query: () => ({
+            url: 'settings/apply-to-all-students',
+            method: 'POST',
+        }),
+        invalidatesTags: ['StudentFeeSettings'],
+    }),
   }),
 });
 
@@ -651,4 +658,5 @@ export const {
     useUpdateFeeSettingsMutation,
     useGetStudentFeeSettingsQuery,
     useUpdateStudentFeeSettingsMutation,
+    useApplyFeeSettingsToAllMutation,
 } = api;
