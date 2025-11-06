@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -8,7 +7,7 @@ import { Student, Timetable, Period, DayOfWeek } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Clock, Book, User, Calendar } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 
 const DAYS: DayOfWeek[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -32,105 +31,61 @@ export function ClassSchedule() {
 
     const { data: timetables = [], isLoading } = useGetTimetableQuery({ classId }, { skip: !classId });
 
-    // Process timetable data into a structured format for the table
-    const { schedule, maxPeriods } = React.useMemo(() => {
-        if (isLoading || timetables.length === 0) {
-            return { schedule: [], maxPeriods: 0 };
-        }
+    const getTimetableForDay = (day: DayOfWeek) => {
+        const dayTimetable = timetables.find((tt: Timetable) => tt.day === day);
+        if (!dayTimetable || !dayTimetable.periods) return [];
+        // Create a copy before sorting to avoid mutating read-only data
+        return [...dayTimetable.periods].sort((a, b) => a.periodNumber - b.periodNumber);
+    };
 
-        const scheduleMap = new Map<number, { [key in DayOfWeek]?: Period }>();
-        let maxPeriodsFound = 0;
-
-        timetables.forEach((tt: Timetable) => {
-            tt.periods.forEach(period => {
-                if (period.periodNumber > maxPeriodsFound) {
-                    maxPeriodsFound = period.periodNumber;
-                }
-                if (!scheduleMap.has(period.periodNumber)) {
-                    scheduleMap.set(period.periodNumber, {});
-                }
-                const daySchedule = scheduleMap.get(period.periodNumber)!;
-                daySchedule[tt.day] = period;
-            });
-        });
-        
-        // Ensure at least 8 periods are shown, even if fewer are defined
-        const maxPeriods = Math.max(8, maxPeriodsFound);
-
-        const schedule = Array.from({ length: maxPeriods }, (_, i) => {
-            const periodNumber = i + 1;
-            return {
-                periodNumber,
-                ...scheduleMap.get(periodNumber),
-            };
-        });
-
-        return { schedule, maxPeriods };
-    }, [timetables, isLoading]);
-
-    const renderTableBody = () => {
+    const renderTimetableContent = (day: DayOfWeek) => {
         if (isLoading) {
             return (
-                <TableBody>
-                    {DAYS.map(day => (
-                        <TableRow key={day}>
-                            <TableCell className="font-semibold align-middle p-2 w-28 text-center">{day}</TableCell>
-                            {[...Array(8)].map((_, i) => (
-                                <TableCell key={i} className="p-1 w-40"><Skeleton className="h-24 w-full" /></TableCell>
-                            ))}
-                        </TableRow>
+                <div className="space-y-4">
+                    {[...Array(3)].map((_, i) => (
+                         <Card key={i}>
+                            <CardContent className="p-4 space-y-2">
+                                <Skeleton className="h-5 w-3/4" />
+                                <Skeleton className="h-4 w-1/2" />
+                            </CardContent>
+                        </Card>
                     ))}
-                </TableBody>
-            );
+                </div>
+            )
         }
 
-        if (schedule.length === 0) {
-            return (
-                <TableBody>
-                    <TableRow>
-                        <TableCell colSpan={maxPeriods + 1}>
-                             <EmptyState title="No Schedule Available" description="A timetable has not been set for your class yet." />
-                        </TableCell>
-                    </TableRow>
-                </TableBody>
-            );
+        const periods = getTimetableForDay(day);
+
+        if (periods.length === 0) {
+            return <EmptyState title="No Classes Today" description="You have no classes scheduled for this day." />;
         }
 
         return (
-            <TableBody>
-                {DAYS.map(day => (
-                    <TableRow key={day}>
-                        <TableCell className="font-semibold align-middle p-2 w-28 text-center">{day}</TableCell>
-                        {Array.from({ length: maxPeriods }, (_, i) => i + 1).map(periodNumber => {
-                            const period = schedule.find(p => p.periodNumber === periodNumber)?.[day];
-                            return (
-                                <TableCell key={periodNumber} className="p-1 w-40">
-                                    {period ? (
-                                        <div className="p-2 rounded-md bg-muted/50 h-full flex flex-col justify-between text-left">
-                                            <div className="space-y-1">
-                                                <p className="font-semibold text-sm flex items-start gap-1.5">
-                                                    <Book className="h-4 w-4 mt-0.5 text-primary shrink-0"/>
-                                                    {period.subjectName}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                                                     <User className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0"/>
-                                                    {period.teacherName}
-                                                </p>
-                                            </div>
-                                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-2">
-                                                <Clock className="h-3 w-3 shrink-0" />
-                                                <span>{period.startTime} - {period.endTime}</span>
-                                            </div>
-                                        </div>
-                                    ) : null}
-                                </TableCell>
-                            );
-                        })}
-                    </TableRow>
+            <div className="space-y-4">
+                {periods.map(period => (
+                    <Card key={period.periodNumber}>
+                        <CardContent className="p-4">
+                            <div className="flex flex-col sm:flex-row justify-between gap-4">
+                                <div className="space-y-1">
+                                    <h4 className="font-semibold text-lg">{period.subjectName}</h4>
+                                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                                        <User className="h-4 w-4" /> {period.teacherName}
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                    <Badge variant="outline" className="text-base px-3 py-1">Period {period.periodNumber}</Badge>
+                                    <div className="flex items-center gap-2">
+                                        <Clock className="h-4 w-4" />
+                                        <span>{period.startTime} - {period.endTime}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
                 ))}
-            </TableBody>
-        );
-    };
+            </div>
+        )
+    }
 
     return (
         <Card>
@@ -142,19 +97,18 @@ export function ClassSchedule() {
                 <CardDescription>Your weekly timetable for all subjects.</CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="rounded-md border overflow-x-auto">
-                    <Table className="min-w-[1200px]">
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className="w-28 text-center">Day</TableHead>
-                                {Array.from({ length: maxPeriods }, (_, i) => i + 1).map(periodNum => (
-                                     <TableHead key={periodNum} className="text-center w-40">Period {periodNum}</TableHead>
-                                ))}
-                            </TableRow>
-                        </TableHeader>
-                        {renderTableBody()}
-                    </Table>
-                </div>
+                <Tabs defaultValue="Monday" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-6 mb-6">
+                        {DAYS.map(day => (
+                            <TabsTrigger key={day} value={day}>{day}</TabsTrigger>
+                        ))}
+                    </TabsList>
+                    {DAYS.map(day => (
+                        <TabsContent key={day} value={day}>
+                            {renderTimetableContent(day)}
+                        </TabsContent>
+                    ))}
+                </Tabs>
             </CardContent>
         </Card>
     );
