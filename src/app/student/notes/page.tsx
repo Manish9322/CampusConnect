@@ -30,15 +30,17 @@ import {
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { Student } from "@/lib/types";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 
 const priorityConfig = {
-  low: { color: "bg-blue-500", label: "Low", icon: Bell },
-  medium: { color: "bg-yellow-500", label: "Medium", icon: Clock },
-  high: { color: "bg-orange-500", label: "High", icon: AlertCircle },
-  urgent: { color: "bg-red-500", label: "Urgent", icon: AlertTriangle },
+  low: { color: "bg-blue-500 text-white", label: "Low", icon: Bell },
+  medium: { color: "bg-yellow-500 text-white", label: "Medium", icon: Clock },
+  high: { color: "bg-orange-500 text-white", label: "High", icon: AlertCircle },
+  urgent: { color: "bg-red-500 text-white", label: "Urgent", icon: AlertTriangle },
 };
 
-const categoryConfig = {
+const categoryConfig: {[key: string]: { label: string, icon: React.ElementType, color: string }} = {
   general: { label: "General", icon: FileText, color: "text-gray-600" },
   academic: { label: "Academic", icon: BookOpen, color: "text-blue-600" },
   disciplinary: { label: "Disciplinary", icon: AlertTriangle, color: "text-red-600" },
@@ -138,6 +140,66 @@ export default function StudentNotesPage() {
     setReadFilter("all");
   };
 
+  const renderTableBody = () => {
+    if(isLoading) {
+        return [...Array(5)].map((_, i) => (
+            <TableRow key={i}>
+                <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                <TableCell><Skeleton className="h-5 w-28" /></TableCell>
+                <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+                <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+            </TableRow>
+        ));
+    }
+    if (filteredNotes.length === 0) {
+      return (
+        <TableRow>
+          <TableCell colSpan={6}>
+            <EmptyState
+              title="No Notes Found"
+              description={
+                isFiltered
+                  ? "No notes match your current filters."
+                  : "You haven't received any notes yet."
+              }
+            />
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    return filteredNotes.map((note: any) => {
+      const CategoryIcon = categoryConfig[note.category]?.icon || FileText;
+
+      return (
+        <TableRow key={note._id} onClick={() => handleViewNote(note)} className="cursor-pointer">
+          <TableCell>{format(new Date(note.createdAt), "MMM dd, yyyy")}</TableCell>
+          <TableCell>{note.senderName}</TableCell>
+          <TableCell className="font-medium">{note.subject}</TableCell>
+          <TableCell>
+            <div className="flex items-center gap-2">
+                <CategoryIcon className={`h-4 w-4 ${categoryConfig[note.category]?.color || 'text-gray-600'}`} />
+                <span>{categoryConfig[note.category]?.label || note.category}</span>
+            </div>
+          </TableCell>
+          <TableCell>
+            <Badge className={cn("text-xs", priorityConfig[note.priority as keyof typeof priorityConfig].color)}>
+                {priorityConfig[note.priority as keyof typeof priorityConfig].label}
+            </Badge>
+          </TableCell>
+          <TableCell>
+            {note.isRead ? 
+                <Badge variant="outline">Read</Badge> : 
+                <Badge variant="default">Unread</Badge>
+            }
+          </TableCell>
+        </TableRow>
+      )
+    });
+  }
+
   if (isLoading || !student) {
     return (
       <div className="space-y-4 md:space-y-6 p-4 md:p-6">
@@ -161,7 +223,7 @@ export default function StudentNotesPage() {
           <CardContent>
             <div className="space-y-3">
               {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className="h-24 w-full" />
+                <Skeleton key={i} className="h-12 w-full" />
               ))}
             </div>
           </CardContent>
@@ -226,7 +288,7 @@ export default function StudentNotesPage() {
         </Card>
       </div>
 
-      {/* Filters */}
+      {/* Filters and Table */}
       <Card>
         <CardHeader className="space-y-4">
           <div className="flex flex-col sm:flex-row gap-3">
@@ -281,75 +343,23 @@ export default function StudentNotesPage() {
         </CardHeader>
 
         <CardContent>
-          {filteredNotes.length === 0 ? (
-            <EmptyState
-              title="No Notes Found"
-              description={
-                isFiltered
-                  ? "No notes match your current filters."
-                  : "You haven't received any notes yet."
-              }
-            />
-          ) : (
-            <div className="space-y-3">
-              {filteredNotes.map((note: any) => {
-                const PriorityIcon = priorityConfig[note.priority as keyof typeof priorityConfig].icon;
-                const CategoryIcon = categoryConfig[note.category as keyof typeof categoryConfig].icon;
-                
-                return (
-                  <Card
-                    key={note._id}
-                    className={`cursor-pointer transition-colors hover:bg-accent/50 ${
-                      !note.isRead ? "border-l-4 border-l-primary bg-accent/20" : ""
-                    }`}
-                    onClick={() => handleViewNote(note)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-semibold text-base">{note.subject}</h3>
-                            {!note.isRead && (
-                              <Badge variant="default" className="text-xs">
-                                New
-                              </Badge>
-                            )}
-                            <Badge
-                              variant="outline"
-                              className={`text-xs ${priorityConfig[note.priority as keyof typeof priorityConfig].color}`}
-                            >
-                              <PriorityIcon className="h-3 w-3 mr-1" />
-                              {priorityConfig[note.priority as keyof typeof priorityConfig].label}
-                            </Badge>
-                            <Badge variant="secondary" className="text-xs">
-                              <CategoryIcon className={`h-3 w-3 mr-1 ${categoryConfig[note.category as keyof typeof categoryConfig].color}`} />
-                              {categoryConfig[note.category as keyof typeof categoryConfig].label}
-                            </Badge>
-                          </div>
-                          
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {note.message}
-                          </p>
-                          
-                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                            <span>From: {note.senderName}</span>
-                            <span>•</span>
-                            <span>{format(new Date(note.createdAt), "MMM dd, yyyy 'at' hh:mm a")}</span>
-                          </div>
-                        </div>
-                        
-                        <div className="flex flex-col items-end gap-2">
-                          {note.isRead && (
-                            <CheckCircle2 className="h-5 w-5 text-green-600" />
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+            <div className="rounded-md border">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Date</TableHead>
+                            <TableHead>From</TableHead>
+                            <TableHead>Subject</TableHead>
+                            <TableHead>Category</TableHead>
+                            <TableHead>Priority</TableHead>
+                            <TableHead>Status</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {renderTableBody()}
+                    </TableBody>
+                </Table>
             </div>
-          )}
         </CardContent>
       </Card>
 
@@ -369,12 +379,12 @@ export default function StudentNotesPage() {
                   <>
                     <Badge
                       variant="outline"
-                      className={priorityConfig[selectedNote.priority as keyof typeof priorityConfig].color}
+                      className={cn("text-xs", priorityConfig[selectedNote.priority as keyof typeof priorityConfig].color)}
                     >
                       {priorityConfig[selectedNote.priority as keyof typeof priorityConfig].label} Priority
                     </Badge>
-                    <Badge variant="secondary">
-                      {categoryConfig[selectedNote.category as keyof typeof categoryConfig].label}
+                    <Badge variant="secondary" className="text-xs">
+                      {categoryConfig[selectedNote.category]?.label || selectedNote.category}
                     </Badge>
                   </>
                 )}
