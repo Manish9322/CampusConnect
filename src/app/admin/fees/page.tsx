@@ -28,15 +28,18 @@ export default function FeeManagementPage() {
     const overdueCount = mockFeeRecords.filter(r => r.status === 'Overdue').length;
 
     const stats = [
-        { title: 'Total Defined Fees', value: totalFees, icon: DollarSign, isCurrency: true },
-        { title: 'Paid Records', value: paidCount, icon: CheckCircle },
-        { title: 'Pending Records', value: pendingCount, icon: Clock },
-        { title: 'Overdue Records', value: overdueCount, icon: AlertCircle },
+        { title: 'Total Defined Fees', value: totalFees, icon: DollarSign, isCurrency: true, subtitle: "For current academic year" },
+        { title: 'Paid Records', value: paidCount, icon: CheckCircle, subtitle: "All-time paid records" },
+        { title: 'Pending Records', value: pendingCount, icon: Clock, subtitle: "Awaiting payment" },
+        { title: 'Overdue Records', value: overdueCount, icon: AlertCircle, subtitle: "Past due date" },
     ];
 
     return (
         <div className="space-y-4 md:space-y-6 p-4 md:p-6">
-            <h1 className="text-xl md:text-2xl font-bold">Fee Management</h1>
+            <div>
+                <h1 className="text-xl md:text-2xl font-bold">Fee Management</h1>
+                <p className="text-sm text-muted-foreground mt-1">Monitor fee payments, configure settings, and manage student dues.</p>
+            </div>
             <div className="grid gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
                 {stats.map(stat => (
                      <Card key={stat.title}>
@@ -51,6 +54,7 @@ export default function FeeManagementPage() {
                                     (stat.isCurrency ? `$${stat.value.toLocaleString()}` : stat.value)
                                 }
                             </div>
+                            <p className="text-xs text-muted-foreground">{stat.subtitle}</p>
                         </CardContent>
                     </Card>
                 ))}
