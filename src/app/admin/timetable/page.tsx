@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, Save, AlertCircle, CheckCircle } from 'lucide-react';
-import { useGetClassesQuery, useGetTimetableQuery, useAddTimetableMutation, useUpdateTimetableMutation } from '@/services/api';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useGetClassesQuery, useGetTimetableQuery, useAddTimetableMutation, useUpdateTimetableMutation, useGetPeriodsPerDayQuery, useUpdatePeriodsPerDayMutation } from '@/services/api';
 import { TimetableGrid } from '@/components/admin/timetable-grid';
 import { AddPeriodDialog } from '@/components/admin/add-period-dialog';
 import { DayOfWeek, Period, Timetable } from '@/lib/types';
@@ -23,15 +24,73 @@ export default function TimetablePage() {
   const [periodNumber, setPeriodNumber] = useState(1);
   const [currentTimetable, setCurrentTimetable] = useState<Timetable | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [periodsPerDay, setPeriodsPerDay] = useState<Record<DayOfWeek, number>>({
+    Monday: 8,
+    Tuesday: 8,
+    Wednesday: 8,
+    Thursday: 8,
+    Friday: 8,
+    Saturday: 8,
+  });
 
   const { data: classes = [] } = useGetClassesQuery({});
   const { data: timetables = [], refetch: refetchTimetable } = useGetTimetableQuery(
     { classId: selectedClass },
     { skip: !selectedClass }
   );
+  const { data: periodsPerDayFromAPI, isLoading: isLoadingSettings } = useGetPeriodsPerDayQuery(
+    { classId: selectedClass },
+    { skip: !selectedClass }
+  );
 
   const [addTimetable, { isLoading: isAdding }] = useAddTimetableMutation();
   const [updateTimetable, { isLoading: isUpdating }] = useUpdateTimetableMutation();
+  const [updatePeriodsPerDay] = useUpdatePeriodsPerDayMutation();
+  
+  // Load periods per day from API when class changes
+  useEffect(() => {
+    if (periodsPerDayFromAPI && selectedClass) {
+      setPeriodsPerDay(periodsPerDayFromAPI);
+    }
+  }, [periodsPerDayFromAPI, selectedClass]);
+  
+  // Save periods per day via API
+  const handlePeriodsPerDayChange = async (day: DayOfWeek, value: string) => {
+    if (!selectedClass) {
+      toast({
+        title: "Error",
+        description: "Please select a class first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const num = parseInt(value, 10);
+    if (num >= 1 && num <= 15) {
+      const updatedSettings = { ...periodsPerDay, [day]: num };
+      setPeriodsPerDay(updatedSettings);
+      
+      try {
+        await updatePeriodsPerDay({ 
+          periodsPerDay: updatedSettings, 
+          classId: selectedClass 
+        }).unwrap();
+        toast({
+          title: "Settings Updated",
+          description: `${day}: ${num} ${num === 1 ? 'period' : 'periods'} per day.`,
+        });
+      } catch (error) {
+        console.error('Error updating periods per day:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update settings. Please try again.",
+          variant: "destructive",
+        });
+        // Revert the local state on error
+        setPeriodsPerDay(periodsPerDay);
+      }
+    }
+  };
 
   // Update current timetable when day or timetables change
   useEffect(() => {
@@ -194,6 +253,51 @@ export default function TimetablePage() {
 
       {selectedClass && (
         <>
+          {/* Periods Per Day Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Periods Per Day - {classes.find((c: any) => c._id === selectedClass)?.name}</CardTitle>
+              <CardDescription>
+                Set the number of periods for each day of the week for this class
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoadingSettings ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {DAYS.map((day) => (
+                <div key={day} className="space-y-2">
+                  <Skeleton className="h-4 w-12" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {DAYS.map((day) => (
+                <div key={day} className="space-y-2">
+                  <label className="text-sm font-medium">{day.slice(0, 3)}</label>
+                  <Select 
+                    value={(periodsPerDay[day] || 8).toString()} 
+                    onValueChange={(value) => handlePeriodsPerDayChange(day, value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 15 }, (_, i) => i + 1).map((num) => (
+                        <SelectItem key={num} value={num.toString()}>
+                          {num}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
           {/* Save Changes Alert */}
           {hasUnsavedChanges && (
             <Card className="border-orange-500 bg-orange-50">
@@ -251,6 +355,7 @@ export default function TimetablePage() {
                       onAddPeriod={handleAddPeriod}
                       onEditPeriod={handleEditPeriod}
                       onDeletePeriod={handleDeletePeriod}
+                      maxPeriods={periodsPerDay[day] || 8}
                     />
                   </TabsContent>
                 ))}
@@ -265,7 +370,7 @@ export default function TimetablePage() {
           <CardContent className="p-12 text-center">
             <Calendar className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
             <p className="text-lg text-muted-foreground">
-              Select a class to start managing the timetable
+              Select a class to configure periods and manage the timetable
             </p>
           </CardContent>
         </Card>

@@ -21,10 +21,19 @@ interface TeacherProfileDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   teacher: Teacher;
+  subjects?: any[];
 }
 
-export function TeacherProfileDialog({ open, onOpenChange, teacher }: TeacherProfileDialogProps) {
+export function TeacherProfileDialog({ open, onOpenChange, teacher, subjects = [] }: TeacherProfileDialogProps) {
   if (!teacher) return null;
+  
+  // Helper function to get subject names from IDs
+  const getSubjectNames = (subjectIds: string[]) => {
+    if (!subjectIds || subjectIds.length === 0) return [];
+    return subjectIds
+      .map(id => subjects.find((s: any) => s._id === id)?.name || id)
+      .filter(Boolean);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -66,8 +75,8 @@ export function TeacherProfileDialog({ open, onOpenChange, teacher }: TeacherPro
                         <BookCopy className="h-5 w-5 text-muted-foreground" />
                         <strong>Subjects:</strong> 
                         <div className="flex flex-wrap gap-1">
-                            {teacher.subjects?.map(subject => (
-                                <Badge key={subject} variant="secondary">{subject}</Badge>
+                            {getSubjectNames(teacher.subjects).map((subject, idx) => (
+                                <Badge key={idx} variant="secondary">{subject}</Badge>
                             ))}
                         </div>
                     </div>

@@ -555,6 +555,7 @@ export default function SettingsPage() {
     return (
         <div className="space-y-4 md:space-y-6 p-4 md:p-6">
             <h1 className="text-xl md:text-2xl font-bold">Settings</h1>
+            <span>Manage your account settings and personalize your overall campus connect experience.</span>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                 {renderSubjectTable()}
                 {renderTable(

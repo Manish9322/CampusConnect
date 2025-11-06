@@ -72,8 +72,6 @@ export function AddTeacherDialog({
   const { data: designations = [], isLoading: isLoadingDesignations } = useGetDesignationsQuery({});
   const { data: departments = [], isLoading: isLoadingDepartments } = useGetDepartmentsQuery({});
   const { data: subjects = [], isLoading: isLoadingSubjects } = useGetSubjectsQuery({});
-
-  const subjectOptions = subjects.map((s: any) => ({ label: s.name, value: s._id }));
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -93,6 +91,17 @@ export function AddTeacherDialog({
     },
   });
 
+  // Watch the department field to filter subjects
+  const selectedDepartment = form.watch("department");
+  
+  // Filter subjects based on selected department
+  const filteredSubjects = React.useMemo(() => {
+    if (!selectedDepartment) return subjects;
+    return subjects.filter((s: any) => s.departmentName === selectedDepartment);
+  }, [subjects, selectedDepartment]);
+  
+  const subjectOptions = filteredSubjects.map((s: any) => ({ label: s.name, value: s._id }));
+
   React.useEffect(() => {
     form.reset({
       designation: teacher?.designation || "",
@@ -109,6 +118,13 @@ export function AddTeacherDialog({
       profileImage: teacher?.profileImage || "",
     });
   }, [teacher, form, subjects]);
+  
+  // Clear selected courses when department changes
+  React.useEffect(() => {
+    if (selectedDepartment && !teacher) {
+      form.setValue("courses", []);
+    }
+  }, [selectedDepartment, teacher, form]);
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     if (!teacher && !values.password) {

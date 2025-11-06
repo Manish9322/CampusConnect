@@ -4,7 +4,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest', 'Note', 'Timetable'],
+  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest', 'Note', 'Timetable', 'Settings'],
   endpoints: (builder) => ({
     testDBConnection: builder.query({
       query: () => 'connect',
@@ -437,6 +437,20 @@ export const api = createApi({
         }),
         invalidatesTags: [{ type: 'Timetable', id: 'LIST' }],
     }),
+
+    // Settings endpoints
+    getPeriodsPerDay: builder.query({
+        query: ({ classId }) => `settings/periods-per-day?classId=${classId}`,
+        providesTags: (result, error, { classId }) => [{ type: 'Settings', id: classId }],
+    }),
+    updatePeriodsPerDay: builder.mutation({
+        query: ({ periodsPerDay, classId }) => ({
+            url: 'settings/periods-per-day',
+            method: 'PUT',
+            body: { periodsPerDay, classId },
+        }),
+        invalidatesTags: (result, error, { classId }) => [{ type: 'Settings', id: classId }],
+    }),
   }),
 });
 
@@ -497,4 +511,6 @@ export const {
     useAddTimetableMutation,
     useUpdateTimetableMutation,
     useDeleteTimetableMutation,
+    useGetPeriodsPerDayQuery,
+    useUpdatePeriodsPerDayMutation,
 } = api;

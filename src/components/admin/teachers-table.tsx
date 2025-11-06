@@ -20,7 +20,7 @@ import { DeleteConfirmationDialog } from "../shared/delete-confirmation-dialog"
 import { Badge } from "../ui/badge"
 import { Switch } from "../ui/switch"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select"
-import { useAddTeacherMutation, useDeleteTeacherMutation, useUpdateTeacherMutation } from "@/services/api"
+import { useAddTeacherMutation, useDeleteTeacherMutation, useUpdateTeacherMutation, useGetSubjectsQuery } from "@/services/api"
 import { Skeleton } from "../ui/skeleton"
 import { TeacherProfileDialog } from "./teacher-profile-dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
@@ -44,6 +44,15 @@ export function TeachersTable({ data, isLoading }: TeachersTableProps) {
   const [addTeacher] = useAddTeacherMutation();
   const [updateTeacher] = useUpdateTeacherMutation();
   const [deleteTeacher] = useDeleteTeacherMutation();
+  const { data: subjects = [] } = useGetSubjectsQuery({});
+  
+  // Helper function to get subject names from IDs
+  const getSubjectNames = (subjectIds: string[]) => {
+    if (!subjectIds || subjectIds.length === 0) return [];
+    return subjectIds
+      .map(id => subjects.find((s: any) => s._id === id)?.name || id)
+      .filter(Boolean);
+  };
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -160,6 +169,7 @@ export function TeachersTable({ data, isLoading }: TeachersTableProps) {
               <TableHead>Teacher</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Department</TableHead>
+              <TableHead>Subjects</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -171,6 +181,7 @@ export function TeachersTable({ data, isLoading }: TeachersTableProps) {
                         <TableCell><div className="flex items-center gap-2"><Skeleton className="h-10 w-10 rounded-full" /><Skeleton className="h-5 w-32" /></div></TableCell>
                         <TableCell><Skeleton className="h-5 w-40" /></TableCell>
                         <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                         <TableCell><Skeleton className="h-6 w-11" /></TableCell>
                         <TableCell className="text-right"><Skeleton className="h-8 w-20 ml-auto" /></TableCell>
                     </TableRow>
@@ -189,6 +200,13 @@ export function TeachersTable({ data, isLoading }: TeachersTableProps) {
                     </TableCell>
                     <TableCell>{teacher.email}</TableCell>
                     <TableCell><Badge variant="outline">{teacher.department}</Badge></TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {getSubjectNames(teacher.subjects).map((subject, idx) => (
+                          <Badge key={idx} variant="secondary" className="text-xs">{subject}</Badge>
+                        ))}
+                      </div>
+                    </TableCell>
                     <TableCell>
                         <Switch
                             checked={teacher.status === 'active'}
@@ -211,7 +229,7 @@ export function TeachersTable({ data, isLoading }: TeachersTableProps) {
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={7}
                   className="h-24 text-center"
                 >
                   No results.
@@ -267,6 +285,15 @@ export function TeachersTable({ data, isLoading }: TeachersTableProps) {
                       checked={teacher.status === 'active'}
                       onCheckedChange={(checked) => handleToggleStatus(teacher, checked)}
                     />
+                  </div>
+                </div>
+                
+                <div className="space-y-1">
+                  <div className="text-sm font-medium text-muted-foreground">Subjects:</div>
+                  <div className="flex flex-wrap gap-1">
+                    {getSubjectNames(teacher.subjects).map((subject, idx) => (
+                      <Badge key={idx} variant="secondary" className="text-xs">{subject}</Badge>
+                    ))}
                   </div>
                 </div>
 
@@ -367,6 +394,7 @@ export function TeachersTable({ data, isLoading }: TeachersTableProps) {
                 open={isProfileOpen}
                 onOpenChange={setProfileOpen}
                 teacher={teacherToAction}
+                subjects={subjects}
             />
         </>
        )}
