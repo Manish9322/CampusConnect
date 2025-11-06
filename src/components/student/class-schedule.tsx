@@ -50,7 +50,8 @@ export function ClassSchedule() {
                 if (!scheduleMap.has(period.periodNumber)) {
                     scheduleMap.set(period.periodNumber, {});
                 }
-                scheduleMap.get(period.periodNumber)![tt.day] = period;
+                const daySchedule = scheduleMap.get(period.periodNumber)!;
+                daySchedule[tt.day] = period;
             });
         });
 
