@@ -36,7 +36,8 @@ export function ClassSchedule() {
 
     const getTimetableForDay = (day: DayOfWeek): Period[] => {
         const timetableForDay = timetables.find((tt: Timetable) => tt.day === day);
-        return timetableForDay?.periods.sort((a,b) => a.periodNumber - b.periodNumber) || [];
+        // Create a copy of the array before sorting to avoid mutating read-only data
+        return [...(timetableForDay?.periods || [])].sort((a,b) => a.periodNumber - b.periodNumber);
     };
 
     const renderTimetableContent = (day: DayOfWeek) => {
