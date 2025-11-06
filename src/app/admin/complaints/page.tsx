@@ -12,10 +12,10 @@ import { useGetComplaintsQuery, useUpdateComplaintMutation } from "@/services/ap
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, Clock, CheckCircle, XCircle, MoreHorizontal } from "lucide-react";
+import { FileText, Clock, CheckCircle, XCircle, MoreHorizontal, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function ComplaintsPage() {
-    const { data: complaints = [], isLoading } = useGetComplaintsQuery();
+    const { data: complaints = [], isLoading } = useGetComplaintsQuery(undefined);
     const [updateComplaint] = useUpdateComplaintMutation();
     const { toast } = useToast();
 
@@ -24,6 +24,8 @@ export default function ComplaintsPage() {
         status: "all",
         category: "all"
     });
+    const [page, setPage] = React.useState(0);
+    const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
     const handleUpdateStatus = async (id: string, status: string) => {
         try {
@@ -59,10 +61,14 @@ export default function ComplaintsPage() {
 
     const handleFilterChange = (key: string, value: string) => {
         setFilters(prev => ({ ...prev, [key]: value }));
+        setPage(0);
     };
     
     const categories = ["all", "Academic", "Hostel", "Faculty", "Infrastructure", "Other"];
     const statuses = ["all", "Pending", "In Progress", "Resolved", "Rejected"];
+
+    const totalPages = Math.ceil(filteredComplaints.length / rowsPerPage);
+    const paginatedComplaints = filteredComplaints.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
 
     return (
         <div className="space-y-6">
@@ -76,6 +82,7 @@ export default function ComplaintsPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{stats.total}</div>
+                        <p className="text-xs text-muted-foreground">Across all categories</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -85,6 +92,7 @@ export default function ComplaintsPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{stats.pending}</div>
+                         <p className="text-xs text-muted-foreground">Awaiting initial review</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -94,6 +102,7 @@ export default function ComplaintsPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{stats.resolved}</div>
+                        <p className="text-xs text-muted-foreground">Successfully closed</p>
                     </CardContent>
                 </Card>
                  <Card>
@@ -103,6 +112,7 @@ export default function ComplaintsPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{stats.inProgress}</div>
+                        <p className="text-xs text-muted-foreground">Currently being addressed</p>
                     </CardContent>
                 </Card>
             </div>
@@ -162,14 +172,14 @@ export default function ComplaintsPage() {
                                             <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
                                         </TableRow>
                                     ))
-                                ) : filteredComplaints.length === 0 ? (
+                                ) : paginatedComplaints.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={6}>
                                             <EmptyState title="No Complaints Found" description="There are no complaints matching your filters." />
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    filteredComplaints.map((c: any) => (
+                                    paginatedComplaints.map((c: any) => (
                                         <TableRow key={c._id}>
                                             <TableCell>
                                                 <div className="font-medium">{c.studentName}</div>
@@ -199,6 +209,33 @@ export default function ComplaintsPage() {
                             </TableBody>
                         </Table>
                     </div>
+                     {filteredComplaints.length > rowsPerPage && (
+                        <div className="flex items-center justify-between mt-4">
+                            <div className="text-sm text-muted-foreground">
+                                Page {page + 1} of {totalPages}
+                            </div>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setPage(p => Math.max(0, p - 1))}
+                                    disabled={page === 0}
+                                >
+                                    <ChevronLeft className="h-4 w-4" />
+                                    Previous
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                                    disabled={page >= totalPages - 1}
+                                >
+                                    Next
+                                    <ChevronRight className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
         </div>
