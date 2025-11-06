@@ -81,7 +81,13 @@ export function PaymentModal({ isOpen, onOpenChange, feeRecord, onPaymentSuccess
                 prefill: {
                     name: feeRecord.studentName,
                     email: feeRecord.studentName.toLowerCase().replace(' ', '.') + '@example.com',
-                    contact: '9999999999'
+                    contact: '9999999999',
+                    method: {
+                        upi: true,
+                        card: true,
+                        netbanking: true,
+                        wallet: true
+                    }
                 },
                 notes: {
                     studentId: feeRecord.studentId,
