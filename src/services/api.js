@@ -1,10 +1,11 @@
 
+
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest', 'Note', 'Timetable', 'Settings', 'Complaint'],
+  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest', 'Note', 'Timetable', 'Settings', 'Complaint', 'FeeName'],
   endpoints: (builder) => ({
     testDBConnection: builder.query({
       query: () => 'connect',
@@ -483,6 +484,35 @@ export const api = createApi({
         }),
         invalidatesTags: ['Complaint'],
     }),
+
+    // Fee Name Master endpoints
+    getFeeNames: builder.query({
+        query: () => 'settings/fee-name',
+        providesTags: ['FeeName'],
+    }),
+    addFeeName: builder.mutation({
+        query: (newFeeName) => ({
+            url: 'settings/fee-name',
+            method: 'POST',
+            body: newFeeName,
+        }),
+        invalidatesTags: ['FeeName'],
+    }),
+    updateFeeName: builder.mutation({
+        query: (feeNameToUpdate) => ({
+            url: 'settings/fee-name',
+            method: 'PUT',
+            body: feeNameToUpdate,
+        }),
+        invalidatesTags: ['FeeName'],
+    }),
+    deleteFeeName: builder.mutation({
+        query: (id) => ({
+            url: `settings/fee-name?id=${id}`,
+            method: 'DELETE',
+        }),
+        invalidatesTags: ['FeeName'],
+    }),
   }),
 });
 
@@ -548,4 +578,8 @@ export const {
     useGetComplaintsQuery,
     useAddComplaintMutation,
     useUpdateComplaintMutation,
+    useGetFeeNamesQuery,
+    useAddFeeNameMutation,
+    useUpdateFeeNameMutation,
+    useDeleteFeeNameMutation,
 } = api;
