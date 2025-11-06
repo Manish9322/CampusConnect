@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAddComplaintMutation, useGetComplaintsQuery } from "@/services/api";
 import { Student } from "@/lib/types";
-import { FileText, Clock, CheckCircle, XCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { FileText, Clock, CheckCircle, XCircle, ChevronLeft, ChevronRight, Download, Filter, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -33,6 +33,9 @@ export default function StudentComplaintsPage() {
     const [rowsPerPage, setRowsPerPage] = React.useState(5);
     const [isConfirmOpen, setConfirmOpen] = React.useState(false);
     const [formValues, setFormValues] = React.useState<z.infer<typeof complaintSchema> | null>(null);
+    const [searchTerm, setSearchTerm] = React.useState("");
+    const [statusFilter, setStatusFilter] = React.useState("all");
+    const [categoryFilter, setCategoryFilter] = React.useState("all");
 
     React.useEffect(() => {
         const storedUser = localStorage.getItem('student_user');
@@ -88,8 +91,52 @@ export default function StudentComplaintsPage() {
         };
     }, [complaints]);
 
-    const totalPages = Math.ceil(complaints.length / rowsPerPage);
-    const paginatedComplaints = complaints.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
+    const filteredComplaints = React.useMemo(() => {
+        return complaints.filter((c: any) =>
+            (c.subject.toLowerCase().includes(searchTerm.toLowerCase())) &&
+            (statusFilter === "all" || c.status === statusFilter) &&
+            (categoryFilter === "all" || c.category === categoryFilter)
+        );
+    }, [complaints, searchTerm, statusFilter, categoryFilter]);
+
+    const totalPages = Math.ceil(filteredComplaints.length / rowsPerPage);
+    const paginatedComplaints = filteredComplaints.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
+
+    const handleExport = () => {
+        const headers = ['Date', 'Subject', 'Category', 'Status'];
+        const rows = filteredComplaints.map((c: any) => [
+            new Date(c.createdAt).toLocaleDateString(),
+            c.subject.replace(/,/g, ''),
+            c.category,
+            c.status,
+        ]);
+        const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        if (link.href) {
+            URL.revokeObjectURL(link.href);
+        }
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.setAttribute('download', `complaints-${student?.name}-${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        toast({
+            title: "Export Successful",
+            description: "Your complaint history has been exported as a CSV file.",
+        });
+    };
+
+    const isFiltered = searchTerm !== '' || statusFilter !== 'all' || categoryFilter !== 'all';
+
+    const clearFilters = () => {
+        setSearchTerm('');
+        setStatusFilter('all');
+        setCategoryFilter('all');
+        setPage(0);
+    }
 
     return (
         <div className="space-y-6">
@@ -211,6 +258,41 @@ export default function StudentComplaintsPage() {
                         <CardDescription>A list of all complaints you have submitted.</CardDescription>
                     </CardHeader>
                     <CardContent>
+                        <div className="flex flex-col sm:flex-row items-center gap-2 mb-4">
+                            <Input
+                                placeholder="Search by subject..."
+                                value={searchTerm}
+                                onChange={(e) => {setSearchTerm(e.target.value); setPage(0);}}
+                                className="flex-1"
+                            />
+                            <Select value={statusFilter} onValueChange={(v) => {setStatusFilter(v); setPage(0);}}>
+                                <SelectTrigger className="w-full sm:w-[150px]">
+                                    <SelectValue placeholder="Filter by status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Statuses</SelectItem>
+                                    <SelectItem value="Pending">Pending</SelectItem>
+                                    <SelectItem value="In Progress">In Progress</SelectItem>
+                                    <SelectItem value="Resolved">Resolved</SelectItem>
+                                    <SelectItem value="Rejected">Rejected</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <Select value={categoryFilter} onValueChange={(v) => {setCategoryFilter(v); setPage(0);}}>
+                                <SelectTrigger className="w-full sm:w-[150px]">
+                                    <SelectValue placeholder="Filter by category" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Categories</SelectItem>
+                                    <SelectItem value="Academic">Academic</SelectItem>
+                                    <SelectItem value="Hostel">Hostel</SelectItem>
+                                    <SelectItem value="Faculty">Faculty</SelectItem>
+                                    <SelectItem value="Infrastructure">Infrastructure</SelectItem>
+                                    <SelectItem value="Other">Other</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <Button variant="outline" onClick={handleExport} disabled={filteredComplaints.length === 0}><Download className="mr-2 h-4 w-4"/>Export</Button>
+                            {isFiltered && <Button variant="ghost" size="icon" onClick={clearFilters}><X className="h-4 w-4"/></Button>}
+                        </div>
                         <div className="rounded-md border">
                             <Table>
                                 <TableHeader>
@@ -250,7 +332,7 @@ export default function StudentComplaintsPage() {
                                 </TableBody>
                             </Table>
                         </div>
-                        {complaints.length > rowsPerPage && (
+                        {filteredComplaints.length > rowsPerPage && (
                             <div className="flex items-center justify-between mt-4">
                                 <div className="text-sm text-muted-foreground">
                                     Page {page + 1} of {totalPages}
