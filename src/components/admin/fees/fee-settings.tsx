@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { useGetFeeSettingsQuery, useUpdateFeeSettingsMutation } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { Info } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface FeeSettingsProps {
@@ -146,16 +146,16 @@ export function FeeSettings({ totalDefinedFees }: FeeSettingsProps) {
                         ))}
                         <div className="flex justify-end items-center gap-4 pt-4 border-t">
                             <span className="text-sm text-muted-foreground">Total Installment Amount:</span>
-                            <span className={`font-bold ${amountMismatch ? 'text-destructive' : 'text-primary'}`}>
+                            <span className="font-bold">
                                 ${totalInstallmentAmount.toLocaleString()}
                             </span>
                         </div>
                          {amountMismatch && (
-                            <Alert variant="destructive">
-                                <AlertCircle className="h-4 w-4" />
-                                <AlertTitle>Warning</AlertTitle>
+                            <Alert>
+                                <Info className="h-4 w-4" />
+                                <AlertTitle>Notice</AlertTitle>
                                 <AlertDescription>
-                                    The sum of installments (${totalInstallmentAmount}) does not match the total defined fees (${totalDefinedFees}).
+                                    The sum of installments (${totalInstallmentAmount}) does not match the total defined fees (${totalDefinedFees}). Please adjust the values.
                                 </AlertDescription>
                             </Alert>
                         )}
