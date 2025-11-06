@@ -4,7 +4,6 @@
 import * as React from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { FeeRecord } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useRazorpay } from "@/hooks/use-razorpay";
 import { Loader2 } from "lucide-react";
@@ -12,11 +11,12 @@ import { Loader2 } from "lucide-react";
 interface PaymentModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  feeRecord: FeeRecord;
+  amountToPay: number;
   onPaymentSuccess: () => void;
+  studentName: string;
 }
 
-export function PaymentModal({ isOpen, onOpenChange, feeRecord, onPaymentSuccess }: PaymentModalProps) {
+export function PaymentModal({ isOpen, onOpenChange, amountToPay, onPaymentSuccess, studentName }: PaymentModalProps) {
     const [isProcessing, setIsProcessing] = React.useState(false);
     const { toast } = useToast();
     const { displayRazorpay } = useRazorpay();
@@ -24,14 +24,13 @@ export function PaymentModal({ isOpen, onOpenChange, feeRecord, onPaymentSuccess
     const handlePayment = async () => {
         setIsProcessing(true);
         try {
-            // 1. Create an order on the server
             const orderResponse = await fetch('/api/razorpay', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    amount: feeRecord.dueAmount * 100, // Amount in paise
+                    amount: amountToPay * 100,
                     currency: 'INR',
                 }),
             });
@@ -42,22 +41,18 @@ export function PaymentModal({ isOpen, onOpenChange, feeRecord, onPaymentSuccess
 
             const order = await orderResponse.json();
 
-            // 2. Open Razorpay checkout
             const options = {
                 key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
                 amount: order.amount,
                 currency: order.currency,
                 name: 'CampusConnect',
-                description: `Fee Payment for ${feeRecord.studentName}`,
+                description: `Fee Payment for ${studentName}`,
                 order_id: order.id,
                 handler: async (response: any) => {
-                    // 3. Verify the payment on the server
                     try {
                         const verificationResponse = await fetch('/api/razorpay', {
                             method: 'PUT',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
+                            headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 razorpay_order_id: response.razorpay_order_id,
                                 razorpay_payment_id: response.razorpay_payment_id,
@@ -79,8 +74,8 @@ export function PaymentModal({ isOpen, onOpenChange, feeRecord, onPaymentSuccess
                     }
                 },
                 prefill: {
-                    name: feeRecord.studentName,
-                    email: feeRecord.studentName.toLowerCase().replace(' ', '.') + '@example.com',
+                    name: studentName,
+                    email: studentName.toLowerCase().replace(' ', '.') + '@example.com',
                     contact: '9999999999',
                     method: {
                         upi: true,
@@ -90,12 +85,9 @@ export function PaymentModal({ isOpen, onOpenChange, feeRecord, onPaymentSuccess
                     }
                 },
                 notes: {
-                    studentId: feeRecord.studentId,
-                    feeRecordId: feeRecord.id,
+                    studentId: "STUDENT_ID_PLACEHOLDER", // Replace with actual student ID
                 },
-                theme: {
-                    color: '#3399cc',
-                },
+                theme: { color: '#3399cc' },
             };
             
             await displayRazorpay(options);
@@ -108,6 +100,7 @@ export function PaymentModal({ isOpen, onOpenChange, feeRecord, onPaymentSuccess
             });
         } finally {
             setIsProcessing(false);
+            onOpenChange(false);
         }
     };
     
@@ -117,21 +110,21 @@ export function PaymentModal({ isOpen, onOpenChange, feeRecord, onPaymentSuccess
         <DialogHeader>
           <DialogTitle>Make a Payment</DialogTitle>
           <DialogDescription>
-            You are about to pay the outstanding amount of <strong>${feeRecord.dueAmount.toLocaleString()}</strong>.
+            You are about to pay <strong>${amountToPay.toLocaleString()}</strong>.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="pt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isProcessing}>
             Cancel
           </Button>
-          <Button onClick={handlePayment} disabled={isProcessing}>
+          <Button onClick={handlePayment} disabled={isProcessing || amountToPay <= 0}>
             {isProcessing ? (
                 <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Processing...
                 </>
              ) : (
-                `Pay $${feeRecord.dueAmount.toLocaleString()}`
+                `Pay $${amountToPay.toLocaleString()}`
              )}
           </Button>
         </DialogFooter>

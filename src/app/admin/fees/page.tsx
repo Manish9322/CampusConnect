@@ -6,11 +6,13 @@ import { FeeManagementDashboard } from "@/components/admin/fees/fee-management-d
 import { mockFeeRecords, mockStudents } from "@/lib/mock-data";
 import { DollarSign, CheckCircle, AlertCircle, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useGetFeeStructureQuery } from "@/services/api";
+import { useGetFeeStructureQuery, useGetStudentsQuery } from "@/services/api";
 import { Skeleton } from "@/components/ui/skeleton";
+import { FeeSettings } from "@/components/admin/fees/fee-settings";
 
 export default function FeeManagementPage() {
     const { data: feeStructure = [], isLoading: isLoadingFeeStructure } = useGetFeeStructureQuery();
+    const { data: students = [], isLoading: isLoadingStudents } = useGetStudentsQuery({});
 
     // Calculate total fees from active components
     const totalFees = React.useMemo(() => {
@@ -53,7 +55,8 @@ export default function FeeManagementPage() {
                     </Card>
                 ))}
             </div>
-            <FeeManagementDashboard initialRecords={mockFeeRecords} students={mockStudents} />
+            <FeeSettings totalDefinedFees={totalFees} />
+            <FeeManagementDashboard students={students} feeStructure={feeStructure} />
         </div>
     );
 }

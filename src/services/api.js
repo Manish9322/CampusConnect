@@ -5,7 +5,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest', 'Note', 'Timetable', 'Settings', 'Complaint', 'FeeName', 'FeeStructure'],
+  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest', 'Note', 'Timetable', 'Settings', 'Complaint', 'FeeName', 'FeeStructure', 'FeeSettings', 'StudentFeeSettings'],
   endpoints: (builder) => ({
     testDBConnection: builder.query({
       query: () => 'connect',
@@ -542,6 +542,38 @@ export const api = createApi({
         }),
         invalidatesTags: ['FeeStructure'],
     }),
+
+    // Fee Settings endpoints
+    getFeeSettings: builder.query({
+        query: () => 'settings/fee-settings',
+        providesTags: ['FeeSettings'],
+    }),
+    updateFeeSettings: builder.mutation({
+        query: (settings) => ({
+            url: 'settings/fee-settings',
+            method: 'POST',
+            body: settings,
+        }),
+        invalidatesTags: ['FeeSettings'],
+    }),
+
+     // Student Fee Settings endpoints
+    getStudentFeeSettings: builder.query({
+        query: (params = {}) => {
+            const urlParams = new URLSearchParams();
+            if (params.studentId) urlParams.append('studentId', params.studentId);
+            return `settings/student-fee-settings?${urlParams.toString()}`;
+        },
+        providesTags: ['StudentFeeSettings'],
+    }),
+    updateStudentFeeSettings: builder.mutation({
+        query: (settings) => ({
+            url: 'settings/student-fee-settings',
+            method: 'POST',
+            body: settings,
+        }),
+        invalidatesTags: ['StudentFeeSettings'],
+    }),
   }),
 });
 
@@ -615,4 +647,8 @@ export const {
     useAddFeeStructureMutation,
     useUpdateFeeStructureMutation,
     useDeleteFeeStructureMutation,
+    useGetFeeSettingsQuery,
+    useUpdateFeeSettingsMutation,
+    useGetStudentFeeSettingsQuery,
+    useUpdateStudentFeeSettingsMutation,
 } = api;

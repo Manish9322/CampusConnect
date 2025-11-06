@@ -3,17 +3,19 @@
 
 import * as React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { mockFeeRecords } from "@/lib/mock-data";
-import { FeeStatus, FeeRecord, PaymentHistory } from "@/lib/types";
+import { FeeRecord, PaymentHistory, Student, FeeStatus } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CheckCircle, Clock, AlertCircle, Receipt, Download } from "lucide-react";
+import { CheckCircle, Clock, AlertCircle, Receipt } from "lucide-react";
 import { PaymentModal } from "./payment-modal";
 import { useToast } from "@/hooks/use-toast";
 import { PaymentReceiptModal } from "./payment-receipt-modal";
+import { useGetFeeSettingsQuery, useGetStudentFeeSettingsQuery, useGetFeeStructureQuery } from "@/services/api";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const statusConfig: { [key in FeeStatus]: { icon: React.ElementType, className: string } } = {
     Paid: { icon: CheckCircle, className: 'text-green-600' },
@@ -27,162 +29,203 @@ const statusVariant: { [key in FeeStatus]: "default" | "destructive" | "secondar
     Overdue: "destructive",
 };
 
-export function FeePaymentDetails() {
-    // Assuming logged in student is Alice Johnson
-    const initialFeeRecord = mockFeeRecords.find(record => record.studentId === 'S001')!;
-    const [feeRecord, setFeeRecord] = React.useState<FeeRecord>(initialFeeRecord);
+interface FeePaymentDetailsProps {
+    student: Student;
+}
+
+export function FeePaymentDetails({ student }: FeePaymentDetailsProps) {
+    const { data: feeStructure = [], isLoading: isLoadingStructure } = useGetFeeStructureQuery();
+    const { data: globalSettings, isLoading: isLoadingGlobal } = useGetFeeSettingsQuery({});
+    const { data: studentSettings, isLoading: isLoadingStudent } = useGetStudentFeeSettingsQuery({ studentId: student._id! });
+
+    const [paymentHistory, setPaymentHistory] = React.useState<PaymentHistory[]>([]);
     const [isPaymentModalOpen, setPaymentModalOpen] = React.useState(false);
+    const [amountToPay, setAmountToPay] = React.useState(0);
     const [isReceiptModalOpen, setReceiptModalOpen] = React.useState(false);
     const [selectedPayment, setSelectedPayment] = React.useState<PaymentHistory | null>(null);
     const { toast } = useToast();
 
+    const isLoading = isLoadingStructure || isLoadingGlobal || isLoadingStudent;
+
+    const totalFees = React.useMemo(() => {
+        return feeStructure.reduce((acc: number, item: any) => acc + item.amount, 0);
+    }, [feeStructure]);
+
+    const totalPaid = React.useMemo(() => {
+        return paymentHistory.reduce((acc, p) => acc + p.amount, 0);
+    }, [paymentHistory]);
+    
+    const settings = studentSettings || globalSettings;
+    const isInstallmentMode = settings?.mode === 'Installments';
+
     const handlePaymentSuccess = () => {
-        const updatedRecord: FeeRecord = {
-            ...feeRecord,
-            dueAmount: 0,
-            status: 'Paid',
-            paymentHistory: [
-                ...feeRecord.paymentHistory,
-                {
-                    id: `P${Date.now()}`,
-                    date: new Date().toISOString().split('T')[0],
-                    amount: feeRecord.dueAmount,
-                    method: 'Credit Card', // Mock method
-                    transactionId: `TXN${Date.now()}`
-                }
-            ]
+        const newPayment: PaymentHistory = {
+            id: `P${Date.now()}`,
+            date: new Date().toISOString().split('T')[0],
+            amount: amountToPay,
+            method: 'Credit Card',
+            transactionId: `TXN${Date.now()}`
         };
-        setFeeRecord(updatedRecord);
+        setPaymentHistory(prev => [...prev, newPayment]);
         toast({
             title: "Payment Successful!",
             description: "Your fee payment has been processed successfully.",
         });
     };
 
+    const handlePayClick = (amount: number) => {
+        setAmountToPay(amount);
+        setPaymentModalOpen(true);
+    };
+
     const handleViewReceipt = (payment: PaymentHistory) => {
         setSelectedPayment(payment);
         setReceiptModalOpen(true);
     };
+    
+    const getInstallmentStatus = (installment: any) => {
+        const paidForInstallment = paymentHistory.filter(p => new Date(p.date) <= new Date(installment.dueDate)).reduce((acc, p) => acc + p.amount, 0);
+        
+        let cumulativeAmountDue = 0;
+        for (const inst of settings.installments) {
+            cumulativeAmountDue += inst.amount;
+            if (inst.dueDate === installment.dueDate) break;
+        }
 
-    const StatusIcon = statusConfig[feeRecord.status].icon;
+        if (totalPaid >= cumulativeAmountDue) return "Paid";
+        if (new Date() > new Date(installment.dueDate)) return "Overdue";
+        return "Pending";
+    };
+
+    if (isLoading) {
+        return (
+             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <Card className="lg:col-span-2">
+                    <CardHeader><Skeleton className="h-8 w-48" /></CardHeader>
+                    <CardContent><Skeleton className="h-96 w-full" /></CardContent>
+                </Card>
+                 <div className="space-y-6">
+                    <Skeleton className="h-40 w-full" />
+                    <Skeleton className="h-64 w-full" />
+                </div>
+            </div>
+        );
+    }
+    
+    const progress = totalFees > 0 ? (totalPaid / totalFees) * 100 : 0;
 
     return (
         <>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <Card className="lg:col-span-2">
-                    <CardHeader>
-                        <CardTitle>My Fee Details</CardTitle>
-                        <CardDescription>An overview of your current fee status and payment history.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="grid gap-6">
-                            <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
-                                <div className="p-4 border rounded-lg">
-                                    <div className="text-sm text-muted-foreground">Total Fee</div>
-                                    <div className="text-2xl font-bold">${feeRecord.totalAmount.toLocaleString()}</div>
-                                </div>
-                                <div className="p-4 border rounded-lg">
-                                    <div className="text-sm text-muted-foreground">Amount Paid</div>
-                                    <div className="text-2xl font-bold text-green-600">${(feeRecord.totalAmount - feeRecord.dueAmount).toLocaleString()}</div>
-                                </div>
-                                <div className="p-4 border rounded-lg">
-                                    <div className="text-sm text-muted-foreground">Due Amount</div>
-                                    <div className="text-2xl font-bold text-red-600">${feeRecord.dueAmount.toLocaleString()}</div>
-                                </div>
-                                <div className="p-4 border rounded-lg">
-                                    <div className="text-sm text-muted-foreground">Due Date</div>
-                                    <div className="text-lg font-semibold">{new Date(feeRecord.dueDate).toLocaleDateString()}</div>
-                                </div>
-                            </div>
-                            <div>
-                                <CardTitle className="text-lg mb-4">Payment History</CardTitle>
-                                <div className="rounded-md border">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Date</TableHead>
-                                                <TableHead>Amount</TableHead>
-                                                <TableHead>Method</TableHead>
-                                                <TableHead>Transaction ID</TableHead>
-                                                <TableHead className="text-right">Receipt</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {feeRecord.paymentHistory.map(p => (
-                                                <TableRow key={p.id}>
-                                                    <TableCell>{p.date}</TableCell>
-                                                    <TableCell>${p.amount.toLocaleString()}</TableCell>
-                                                    <TableCell>{p.method}</TableCell>
-                                                    <TableCell>{p.transactionId}</TableCell>
-                                                    <TableCell className="text-right">
-                                                        <Button variant="ghost" size="icon" onClick={() => handleViewReceipt(p)}>
-                                                            <Receipt className="h-4 w-4" />
-                                                        </Button>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </div>
-                            </div>
+            <Card>
+                <CardHeader>
+                    <CardTitle>My Fee Details</CardTitle>
+                    <CardDescription>An overview of your current fee status and payment history.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                        <div className="p-4 border rounded-lg">
+                            <div className="text-sm text-muted-foreground">Total Fee</div>
+                            <div className="text-2xl font-bold">${totalFees.toLocaleString()}</div>
                         </div>
-                    </CardContent>
-                </Card>
-
-                <div className="space-y-6">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center gap-4">
-                            <StatusIcon className={cn("h-8 w-8", statusConfig[feeRecord.status].className)} />
-                            <div>
-                                <CardTitle>Current Status</CardTitle>
-                                <Badge variant={statusVariant[feeRecord.status]} className={cn('mt-1', feeRecord.status === 'Paid' && 'bg-green-600 text-white')}>
-                                    {feeRecord.status}
-                                </Badge>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-sm text-muted-foreground">
-                                {feeRecord.status === 'Paid' 
-                                    ? "All your fees are cleared. Thank you!" 
-                                    : `Your next payment of $${feeRecord.dueAmount} is due on ${new Date(feeRecord.dueDate).toLocaleDateString()}.`}
-                            </p>
-                        </CardContent>
-                        {feeRecord.status !== 'Paid' && (
-                            <CardFooter>
-                                <Button className="w-full" onClick={() => setPaymentModalOpen(true)}>Pay Now</Button>
-                            </CardFooter>
-                        )}
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Fee Breakdown</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                            {feeRecord.components.map((comp, index) => (
-                                <React.Fragment key={comp.name}>
-                                    <div className="flex justify-between items-center text-sm">
-                                        <span className="text-muted-foreground">{comp.name}</span>
-                                        <span className="font-medium">${comp.amount.toLocaleString()}</span>
-                                    </div>
-                                    {index < feeRecord.components.length - 1 && <Separator />}
-                                </React.Fragment>
-                            ))}
-                            <Separator className="my-3"/>
-                             <div className="flex justify-between items-center text-md font-bold">
-                                <span>Total</span>
-                                <span>${feeRecord.totalAmount.toLocaleString()}</span>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
+                        <div className="p-4 border rounded-lg">
+                            <div className="text-sm text-muted-foreground">Amount Paid</div>
+                            <div className="text-2xl font-bold text-green-600">${totalPaid.toLocaleString()}</div>
+                        </div>
+                        <div className="p-4 border rounded-lg">
+                            <div className="text-sm text-muted-foreground">Balance Due</div>
+                            <div className="text-2xl font-bold text-red-600">${(totalFees - totalPaid).toLocaleString()}</div>
+                        </div>
+                    </div>
+                    <div className="mb-6">
+                        <p className="text-sm font-medium mb-2">Payment Progress</p>
+                        <Progress value={progress} className="h-2" />
+                         <p className="text-xs text-muted-foreground mt-1 text-right">{progress.toFixed(0)}% Completed</p>
+                    </div>
+                    
+                    {isInstallmentMode ? (
+                        <div>
+                             <h3 className="text-lg font-semibold mb-2">Installment Schedule</h3>
+                             <div className="space-y-4">
+                                {settings.installments.map((inst: any, index: number) => {
+                                    const status = getInstallmentStatus(inst);
+                                    const StatusIcon = statusConfig[status].icon;
+                                    return (
+                                        <Card key={index}>
+                                            <CardHeader className="flex flex-row items-center justify-between">
+                                                 <div className="flex items-center gap-4">
+                                                    <StatusIcon className={cn("h-6 w-6", statusConfig[status].className)} />
+                                                    <div>
+                                                        <CardTitle>{inst.name}</CardTitle>
+                                                        <CardDescription>Due: {new Date(inst.dueDate).toLocaleDateString()}</CardDescription>
+                                                    </div>
+                                                </div>
+                                                <Badge variant={statusVariant[status]} className={cn('text-sm', status === 'Paid' && 'bg-green-600 text-white')}>{status}</Badge>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-xl font-bold">${inst.amount.toLocaleString()}</span>
+                                                    {status !== 'Paid' && <Button onClick={() => handlePayClick(inst.amount)}>Pay Now</Button>}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    );
+                                })}
+                             </div>
+                        </div>
+                    ) : (
+                        <div className="text-center py-8">
+                            <h3 className="text-lg font-semibold">Full Payment Due</h3>
+                            <p className="text-4xl font-bold my-4">${(totalFees - totalPaid).toLocaleString()}</p>
+                             <Button size="lg" onClick={() => handlePayClick(totalFees - totalPaid)} disabled={totalFees - totalPaid <= 0}>
+                                {totalFees - totalPaid <= 0 ? 'Fully Paid' : 'Pay Full Amount'}
+                            </Button>
+                        </div>
+                    )}
+                    <Separator className="my-6" />
+                     <div>
+                        <h3 className="text-lg font-semibold mb-4">Payment History</h3>
+                        <div className="rounded-md border">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Date</TableHead>
+                                        <TableHead>Amount</TableHead>
+                                        <TableHead>Method</TableHead>
+                                        <TableHead>Transaction ID</TableHead>
+                                        <TableHead className="text-right">Receipt</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {paymentHistory.length > 0 ? paymentHistory.map(p => (
+                                        <TableRow key={p.id}>
+                                            <TableCell>{new Date(p.date).toLocaleDateString()}</TableCell>
+                                            <TableCell>${p.amount.toLocaleString()}</TableCell>
+                                            <TableCell>{p.method}</TableCell>
+                                            <TableCell>{p.transactionId}</TableCell>
+                                            <TableCell className="text-right">
+                                                <Button variant="ghost" size="icon" onClick={() => handleViewReceipt(p)}>
+                                                    <Receipt className="h-4 w-4" />
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    )) : (
+                                        <TableRow>
+                                            <TableCell colSpan={5} className="text-center text-muted-foreground">No payment history found.</TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
 
             <PaymentModal 
                 isOpen={isPaymentModalOpen}
                 onOpenChange={setPaymentModalOpen}
-                feeRecord={feeRecord}
+                amountToPay={amountToPay}
                 onPaymentSuccess={handlePaymentSuccess}
+                studentName={student.name}
             />
 
             {selectedPayment && (
@@ -190,7 +233,8 @@ export function FeePaymentDetails() {
                     isOpen={isReceiptModalOpen}
                     onOpenChange={setReceiptModalOpen}
                     payment={selectedPayment}
-                    studentName={feeRecord.studentName}
+                    studentName={student.name}
+                    feeStructure={feeStructure}
                 />
             )}
         </>

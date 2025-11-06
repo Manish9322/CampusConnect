@@ -2,22 +2,20 @@
 "use client";
 
 import * as React from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { PaymentHistory } from "@/lib/types";
-import { Download } from "lucide-react";
-import { Building2 } from "lucide-react";
-import { mockFeeRecords } from "@/lib/mock-data";
+import { Download, Building2 } from "lucide-react";
 
 interface PaymentReceiptModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   payment: PaymentHistory;
   studentName: string;
+  feeStructure: any[];
 }
 
-export function PaymentReceiptModal({ isOpen, onOpenChange, payment, studentName }: PaymentReceiptModalProps) {
-    const feeRecord = mockFeeRecords.find(record => record.studentName === studentName)!;
+export function PaymentReceiptModal({ isOpen, onOpenChange, payment, studentName, feeStructure }: PaymentReceiptModalProps) {
 
     const handlePrint = () => {
         const printContent = document.getElementById("receipt-content");
@@ -89,7 +87,7 @@ export function PaymentReceiptModal({ isOpen, onOpenChange, payment, studentName
                             </tr>
                         </thead>
                         <tbody>
-                            {feeRecord.components.map((comp) => (
+                            {feeStructure.map((comp) => (
                             <tr key={comp.name}>
                                 <td style={{ padding: '0.75rem', border: '1px solid #eee' }}>{comp.name}</td>
                                 <td style={{ padding: '0.75rem', textAlign: 'right', border: '1px solid #eee' }}>${comp.amount.toLocaleString()}</td>
@@ -103,7 +101,7 @@ export function PaymentReceiptModal({ isOpen, onOpenChange, payment, studentName
                             </tr>
                             <tr style={{ fontWeight: 'bold', backgroundColor: '#f9fafb' }}>
                                 <td style={{ padding: '0.75rem', textAlign: 'right', border: '1px solid #eee' }}>Total Fee</td>
-                                <td style={{ padding: '0.75rem', textAlign: 'right', border: '1px solid #eee' }}>${feeRecord.totalAmount.toLocaleString()}</td>
+                                <td style={{ padding: '0.75rem', textAlign: 'right', border: '1px solid #eee' }}>${feeStructure.reduce((sum, item) => sum + item.amount, 0).toLocaleString()}</td>
                             </tr>
                         </tfoot>
                     </table>

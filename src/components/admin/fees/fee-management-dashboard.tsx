@@ -6,73 +6,52 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, Download, Edit, Bell } from "lucide-react";
+import { ChevronLeft, ChevronRight, Edit, Settings } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FeeRecord, FeeStatus, Student } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { Student } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
-import { UpdateFeeStatusDialog } from "./update-fee-status-dialog";
+import { StudentFeeSettingsDialog } from "./student-fee-settings-dialog";
+import { useGetStudentFeeSettingsQuery } from "@/services/api";
 
 interface FeeManagementDashboardProps {
-    initialRecords: FeeRecord[];
     students: Student[];
+    feeStructure: any[];
 }
 
-const statusVariant: { [key in FeeStatus]: "default" | "destructive" | "secondary" | "outline" } = {
-    Paid: "default",
-    Pending: "secondary",
-    Overdue: "destructive",
-};
-
-export function FeeManagementDashboard({ initialRecords, students }: FeeManagementDashboardProps) {
-    const [records, setRecords] = React.useState(initialRecords);
+export function FeeManagementDashboard({ students, feeStructure }: FeeManagementDashboardProps) {
     const [searchTerm, setSearchTerm] = React.useState("");
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(10);
-    const [statusFilter, setStatusFilter] = React.useState<"all" | FeeStatus>("all");
-    const [isUpdateOpen, setUpdateOpen] = React.useState(false);
-    const [recordToUpdate, setRecordToUpdate] = React.useState<FeeRecord | null>(null);
+    const [isSettingsOpen, setSettingsOpen] = React.useState(false);
+    const [selectedStudent, setSelectedStudent] = React.useState<Student | null>(null);
 
+    const { data: allStudentSettings } = useGetStudentFeeSettingsQuery({});
     const { toast } = useToast();
 
-    const filteredRecords = records
-        .filter(record => statusFilter === 'all' || record.status === statusFilter)
-        .filter(record => 
-            record.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            record.studentId.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+    const filteredStudents = students.filter(student => 
+        student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        student.studentId.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
-    const totalPages = Math.ceil(filteredRecords.length / rowsPerPage);
-    const paginatedRecords = filteredRecords.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
-
-    const handleUpdateStatus = (record: FeeRecord) => {
-        setRecordToUpdate(record);
-        setUpdateOpen(true);
+    const totalPages = Math.ceil(filteredStudents.length / rowsPerPage);
+    const paginatedStudents = filteredStudents.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
+    
+    const handleConfigureClick = (student: Student) => {
+        setSelectedStudent(student);
+        setSettingsOpen(true);
     };
 
-    const handleSaveStatus = (newStatus: FeeStatus) => {
-        if (recordToUpdate) {
-            setRecords(records.map(r => r.id === recordToUpdate.id ? { ...r, status: newStatus } : r));
-            toast({ title: 'Status Updated', description: `Fee status for ${recordToUpdate.studentName} updated to ${newStatus}.` });
-        }
-        setUpdateOpen(false);
-        setRecordToUpdate(null);
-    };
-
-    const sendReminder = (record: FeeRecord) => {
-        toast({
-            title: "Reminder Sent",
-            description: `Fee reminder sent to ${record.studentName}.`
-        });
+    const getStudentFeeMode = (studentId: string) => {
+        const setting = allStudentSettings?.find((s: any) => s.studentId === studentId);
+        return setting ? setting.mode : 'Default';
     };
 
     return (
         <>
             <Card>
                 <CardHeader className="space-y-1.5">
-                    <CardTitle className="text-xl md:text-2xl">Student Fee Records</CardTitle>
-                    <CardDescription className="text-sm">View and manage all student fee payments.</CardDescription>
+                    <CardTitle className="text-xl md:text-2xl">Student-Specific Fee Configuration</CardTitle>
+                    <CardDescription className="text-sm">Override default fee settings for individual students.</CardDescription>
                 </CardHeader>
                 <CardContent className="px-4 md:px-6">
                     <div className="flex flex-col gap-3 mb-4">
@@ -82,63 +61,31 @@ export function FeeManagementDashboard({ initialRecords, students }: FeeManageme
                             onChange={e => setSearchTerm(e.target.value)}
                             className="w-full"
                         />
-                        <div className="flex flex-col sm:flex-row gap-3">
-                            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
-                                <SelectTrigger className="w-full sm:flex-1">
-                                    <SelectValue placeholder="Filter by status" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All Statuses</SelectItem>
-                                    <SelectItem value="Paid">Paid</SelectItem>
-                                    <SelectItem value="Pending">Pending</SelectItem>
-                                    <SelectItem value="Overdue">Overdue</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <Button variant="outline" className="w-full sm:flex-1">
-                                <Download className="mr-2 h-4 w-4" />
-                                Export Report
-                            </Button>
-                        </div>
                     </div>
 
-                    {/* Desktop Table View */}
                     <div className="hidden md:block rounded-md border">
                         <Table>
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Student ID</TableHead>
                                     <TableHead>Student Name</TableHead>
-                                    <TableHead>Total Amount</TableHead>
-                                    <TableHead>Due Amount</TableHead>
-                                    <TableHead>Due Date</TableHead>
-                                    <TableHead>Status</TableHead>
+                                    <TableHead>Class</TableHead>
+                                    <TableHead>Fee Mode</TableHead>
                                     <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {paginatedRecords.map(record => (
-                                    <TableRow key={record.id}>
-                                        <TableCell>{record.studentId}</TableCell>
-                                        <TableCell className="font-medium">{record.studentName}</TableCell>
-                                        <TableCell>${record.totalAmount.toLocaleString()}</TableCell>
-                                        <TableCell>${record.dueAmount.toLocaleString()}</TableCell>
-                                        <TableCell>{record.dueDate}</TableCell>
-                                        <TableCell>
-                                            <Badge variant={statusVariant[record.status]} className={cn(
-                                                record.status === 'Paid' && 'bg-green-600 text-white hover:bg-green-700',
-                                            )}>
-                                                {record.status}
-                                            </Badge>
-                                        </TableCell>
+                                {paginatedStudents.map(student => (
+                                    <TableRow key={student.id}>
+                                        <TableCell>{student.studentId}</TableCell>
+                                        <TableCell className="font-medium">{student.name}</TableCell>
+                                        <TableCell>{(student.classId as any)?.name || 'N/A'}</TableCell>
+                                        <TableCell>{getStudentFeeMode(student._id!)}</TableCell>
                                         <TableCell className="text-right">
-                                            <Button variant="ghost" size="icon" onClick={() => handleUpdateStatus(record)}>
-                                                <Edit className="h-4 w-4" />
+                                            <Button variant="outline" size="sm" onClick={() => handleConfigureClick(student)}>
+                                                <Settings className="mr-2 h-4 w-4" />
+                                                Configure
                                             </Button>
-                                            {record.status !== 'Paid' && (
-                                                <Button variant="ghost" size="icon" onClick={() => sendReminder(record)}>
-                                                    <Bell className="h-4 w-4" />
-                                                </Button>
-                                            )}
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -146,66 +93,35 @@ export function FeeManagementDashboard({ initialRecords, students }: FeeManageme
                         </Table>
                     </div>
 
-                    {/* Mobile Card View */}
                     <div className="md:hidden space-y-4">
-                        {paginatedRecords.map(record => (
-                            <Card key={record.id}>
+                        {paginatedStudents.map(student => (
+                            <Card key={student.id}>
                                 <CardContent className="p-4 space-y-3">
                                     <div className="flex items-start justify-between">
                                         <div>
-                                            <div className="font-semibold text-base">{record.studentName}</div>
-                                            <div className="text-sm text-muted-foreground">ID: {record.studentId}</div>
+                                            <div className="font-semibold text-base">{student.name}</div>
+                                            <div className="text-sm text-muted-foreground">ID: {student.studentId}</div>
                                         </div>
-                                        <Badge variant={statusVariant[record.status]} className={cn(
-                                            record.status === 'Paid' && 'bg-green-600 text-white hover:bg-green-700',
-                                        )}>
-                                            {record.status}
-                                        </Badge>
                                     </div>
-
                                     <div className="grid grid-cols-2 gap-3 text-sm">
                                         <div>
-                                            <div className="text-muted-foreground text-xs">Total Amount</div>
-                                            <div className="font-medium">${record.totalAmount.toLocaleString()}</div>
+                                            <div className="text-muted-foreground text-xs">Class</div>
+                                            <div className="font-medium">{(student.classId as any)?.name || 'N/A'}</div>
                                         </div>
-                                        <div>
-                                            <div className="text-muted-foreground text-xs">Due Amount</div>
-                                            <div className="font-medium">${record.dueAmount.toLocaleString()}</div>
-                                        </div>
-                                        <div className="col-span-2">
-                                            <div className="text-muted-foreground text-xs">Due Date</div>
-                                            <div className="font-medium">{record.dueDate}</div>
+                                         <div>
+                                            <div className="text-muted-foreground text-xs">Fee Mode</div>
+                                            <div className="font-medium">{getStudentFeeMode(student._id!)}</div>
                                         </div>
                                     </div>
-
-                                    <div className="flex gap-2 pt-2">
-                                        <Button 
-                                            variant="outline" 
-                                            size="sm" 
-                                            className="flex-1"
-                                            onClick={() => handleUpdateStatus(record)}
-                                        >
-                                            <Edit className="h-4 w-4 mr-1" />
-                                            Update
-                                        </Button>
-                                        {record.status !== 'Paid' && (
-                                            <Button 
-                                                variant="outline" 
-                                                size="sm"
-                                                className="flex-1"
-                                                onClick={() => sendReminder(record)}
-                                            >
-                                                <Bell className="h-4 w-4 mr-1" />
-                                                Remind
-                                            </Button>
-                                        )}
-                                    </div>
+                                    <Button variant="outline" className="w-full" onClick={() => handleConfigureClick(student)}>
+                                        <Settings className="mr-2 h-4 w-4" />
+                                        Configure Fees
+                                    </Button>
                                 </CardContent>
                             </Card>
                         ))}
                     </div>
                     
-                    {/* Pagination Controls - Responsive */}
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 mt-4">
                         <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
                             <span className="text-sm text-muted-foreground whitespace-nowrap">Rows per page</span>
@@ -235,12 +151,12 @@ export function FeeManagementDashboard({ initialRecords, students }: FeeManageme
                 </CardContent>
             </Card>
             
-            {recordToUpdate && (
-                <UpdateFeeStatusDialog
-                    open={isUpdateOpen}
-                    onOpenChange={setUpdateOpen}
-                    record={recordToUpdate}
-                    onSave={handleSaveStatus}
+            {selectedStudent && (
+                <StudentFeeSettingsDialog
+                    open={isSettingsOpen}
+                    onOpenChange={setSettingsOpen}
+                    student={selectedStudent}
+                    totalFees={feeStructure.reduce((sum, item) => sum + item.amount, 0)}
                 />
             )}
         </>
