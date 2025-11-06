@@ -9,7 +9,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Clock, Book, User, Calendar } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
-import { Badge } from "../ui/badge";
 
 const DAYS: DayOfWeek[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -40,12 +39,12 @@ export function ClassSchedule() {
         }
 
         const scheduleMap = new Map<number, { [key in DayOfWeek]?: Period }>();
-        let maxPeriods = 0;
+        let maxPeriodsFound = 0;
 
         timetables.forEach((tt: Timetable) => {
             tt.periods.forEach(period => {
-                if (period.periodNumber > maxPeriods) {
-                    maxPeriods = period.periodNumber;
+                if (period.periodNumber > maxPeriodsFound) {
+                    maxPeriodsFound = period.periodNumber;
                 }
                 if (!scheduleMap.has(period.periodNumber)) {
                     scheduleMap.set(period.periodNumber, {});
@@ -54,6 +53,9 @@ export function ClassSchedule() {
                 daySchedule[tt.day] = period;
             });
         });
+        
+        // Ensure at least 8 periods are shown, even if fewer are defined
+        const maxPeriods = Math.max(8, maxPeriodsFound);
 
         const schedule = Array.from({ length: maxPeriods }, (_, i) => {
             const periodNumber = i + 1;
@@ -70,11 +72,11 @@ export function ClassSchedule() {
         if (isLoading) {
             return (
                 <TableBody>
-                    {[...Array(8)].map((_, i) => (
-                        <TableRow key={i}>
-                            <TableCell><Skeleton className="h-6 w-12" /></TableCell>
-                            {[...Array(6)].map((_, j) => (
-                                <TableCell key={j}><Skeleton className="h-16 w-full" /></TableCell>
+                    {DAYS.map(day => (
+                        <TableRow key={day}>
+                            <TableCell className="font-semibold align-middle p-2 w-28 text-center">{day}</TableCell>
+                            {[...Array(8)].map((_, i) => (
+                                <TableCell key={i} className="p-1 w-40"><Skeleton className="h-24 w-full" /></TableCell>
                             ))}
                         </TableRow>
                     ))}
@@ -86,7 +88,7 @@ export function ClassSchedule() {
             return (
                 <TableBody>
                     <TableRow>
-                        <TableCell colSpan={DAYS.length + 1}>
+                        <TableCell colSpan={maxPeriods + 1}>
                              <EmptyState title="No Schedule Available" description="A timetable has not been set for your class yet." />
                         </TableCell>
                     </TableRow>
@@ -96,26 +98,27 @@ export function ClassSchedule() {
 
         return (
             <TableBody>
-                {schedule.map(({ periodNumber, ...days }) => (
-                    <TableRow key={periodNumber}>
-                        <TableCell className="font-semibold text-center align-middle p-2">
-                            <div className="flex flex-col items-center justify-center h-full">
-                                <span>Period</span>
-                                <span className="text-xl">{periodNumber}</span>
-                            </div>
-                        </TableCell>
-                        {DAYS.map(day => {
-                            const period = (days as any)[day];
+                {DAYS.map(day => (
+                    <TableRow key={day}>
+                        <TableCell className="font-semibold align-middle p-2 w-28 text-center">{day}</TableCell>
+                        {Array.from({ length: maxPeriods }, (_, i) => i + 1).map(periodNumber => {
+                            const period = schedule.find(p => p.periodNumber === periodNumber)?.[day];
                             return (
-                                <TableCell key={day} className="p-2 align-top h-28">
+                                <TableCell key={periodNumber} className="p-1 w-40">
                                     {period ? (
-                                        <div className="p-2 rounded-md bg-muted/50 h-full flex flex-col justify-between">
-                                            <div>
-                                                <p className="font-semibold text-sm">{period.subjectName}</p>
-                                                <p className="text-xs text-muted-foreground">{period.teacherName}</p>
+                                        <div className="p-2 rounded-md bg-muted/50 h-full flex flex-col justify-between text-left">
+                                            <div className="space-y-1">
+                                                <p className="font-semibold text-sm flex items-start gap-1.5">
+                                                    <Book className="h-4 w-4 mt-0.5 text-primary shrink-0"/>
+                                                    {period.subjectName}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                                                     <User className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0"/>
+                                                    {period.teacherName}
+                                                </p>
                                             </div>
-                                            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
-                                                <Clock className="h-3 w-3" />
+                                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-2">
+                                                <Clock className="h-3 w-3 shrink-0" />
                                                 <span>{period.startTime} - {period.endTime}</span>
                                             </div>
                                         </div>
@@ -140,12 +143,12 @@ export function ClassSchedule() {
             </CardHeader>
             <CardContent>
                 <div className="rounded-md border overflow-x-auto">
-                    <Table className="min-w-[1000px]">
+                    <Table className="min-w-[1200px]">
                         <TableHeader>
                             <TableRow>
-                                <TableHead className="w-24 text-center">Period</TableHead>
-                                {DAYS.map(day => (
-                                    <TableHead key={day} className="text-center">{day}</TableHead>
+                                <TableHead className="w-28 text-center">Day</TableHead>
+                                {Array.from({ length: maxPeriods }, (_, i) => i + 1).map(periodNum => (
+                                     <TableHead key={periodNum} className="text-center w-40">Period {periodNum}</TableHead>
                                 ))}
                             </TableRow>
                         </TableHeader>
