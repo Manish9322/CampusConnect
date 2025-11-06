@@ -27,6 +27,9 @@ import { StudentProfileDialog } from "./student-profile-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "../shared/empty-state";
 import { Skeleton } from "../ui/skeleton";
+import { StudentCard } from "./student-card";
+import { StudentCardSkeleton } from "./student-card-skeleton";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ViewStudentsProps {
     teacherClasses: Class[];
@@ -41,6 +44,7 @@ export function ViewStudents({ teacherClasses, teacherStudents, isLoading }: Vie
   const [classFilter, setClassFilter] = React.useState<string>("all");
   const [selectedStudent, setSelectedStudent] = React.useState<Student | null>(null);
   const [isProfileOpen, setProfileOpen] = React.useState(false);
+  const isMobile = useIsMobile();
 
   // Use real attendance data from API (no more mock data)
   const studentsWithAttendance = React.useMemo(() => {
@@ -92,7 +96,7 @@ export function ViewStudents({ teacherClasses, teacherStudents, isLoading }: Vie
     const actualClassId = typeof classId === 'object' ? classId?._id : classId;
     return teacherClasses.find(c => c._id === actualClassId || c._id?.toString() === actualClassId?.toString())?.name || 'N/A';
   }
-  
+
   const renderTableBody = () => {
     if(isLoading) {
         return (
@@ -175,21 +179,38 @@ export function ViewStudents({ teacherClasses, teacherStudents, isLoading }: Vie
                 </div>
             </div>
             
-            <div className="rounded-md border">
-                <Table>
-                <TableHeader>
-                    <TableRow>
-                    <TableHead>Roll No.</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Class</TableHead>
-                    <TableHead>Attendance</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                </TableHeader>
-                {renderTableBody()}
-                </Table>
-            </div>
+            {isMobile ? (
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {isLoading ? (
+                        [...Array(5)].map((_,i) => <StudentCardSkeleton key={i} />)
+                    ) : paginatedStudents.length > 0 ? (
+                        paginatedStudents.map(student => (
+                            <StudentCard key={student._id} student={student} onVewProfile={() => handleViewProfile(student)} />
+                        ))
+                    ) : (
+                        <div className="sm:col-span-2">
+                            <EmptyState title="No Students Found" description="There are no students matching your filter criteria." />
+                        </div>
+                    )}
+                 </div>
+            ) : (
+                <div className="rounded-md border">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Roll No.</TableHead>
+                                <TableHead>Name</TableHead>
+                                <TableHead>Email</TableHead>
+                                <TableHead>Class</TableHead>
+                                <TableHead>Attendance</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        {renderTableBody()}
+                    </Table>
+                </div>
+            )}
+            
             {paginatedStudents.length > 0 && (
                 <div className="flex items-center justify-between mt-4">
                     <div className="flex items-center space-x-2">
