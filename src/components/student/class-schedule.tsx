@@ -1,62 +1,117 @@
 
-"use client"
+"use client";
 
+import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "../ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useGetTimetableQuery } from "@/services/api";
+import { Student, Timetable, Period, DayOfWeek } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/shared/empty-state";
+import { Clock, Book, User } from "lucide-react";
 
-const schedule = [
-    { time: '09:00 - 10:00', mon: 'CS101', tue: 'PHY101', wed: 'CS101', thu: 'PHY101', fri: 'CS101' },
-    { time: '10:00 - 11:00', mon: 'MTH201', tue: 'CS303', wed: 'MTH201', thu: 'CS303', fri: 'MTH201' },
-    { time: '11:00 - 12:00', mon: 'Break', tue: 'Break', wed: 'Break', thu: 'Break', fri: 'Break' },
-    { time: '12:00 - 01:00', mon: 'PHY101', tue: 'CS101', wed: 'PHY101', thu: 'CS101', fri: 'PHY101' },
-    { time: '01:00 - 02:00', mon: 'CS303', tue: 'MTH201', wed: 'CS303', thu: 'MTH201', fri: 'CS303' },
-];
-
-const subjectColors: { [key: string]: string } = {
-    'CS101': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    'PHY101': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-    'MTH201': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-    'CS303': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
-    'Break': 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
-};
-
+const DAYS: DayOfWeek[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export function ClassSchedule() {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>My Class Schedule</CardTitle>
-        <CardDescription>Your weekly timetable.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="rounded-md border overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-24">Time</TableHead>
-                <TableHead>Monday</TableHead>
-                <TableHead>Tuesday</TableHead>
-                <TableHead>Wednesday</TableHead>
-                <TableHead>Thursday</TableHead>
-                <TableHead>Friday</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {schedule.map((row, index) => (
-                <TableRow key={index}>
-                  <TableCell className="font-medium">{row.time}</TableCell>
-                  <TableCell><Badge className={subjectColors[row.mon]}>{row.mon}</Badge></TableCell>
-                  <TableCell><Badge className={subjectColors[row.tue]}>{row.tue}</Badge></TableCell>
-                  <TableCell><Badge className={subjectColors[row.wed]}>{row.wed}</Badge></TableCell>
-                  <TableCell><Badge className={subjectColors[row.thu]}>{row.thu}</Badge></TableCell>
-                  <TableCell><Badge className={subjectColors[row.fri]}>{row.fri}</Badge></TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
-  );
+    const [student, setStudent] = React.useState<Student | null>(null);
+    const [selectedDay, setSelectedDay] = React.useState<DayOfWeek>(DAYS[new Date().getDay() - 1] || 'Monday');
+
+    React.useEffect(() => {
+        const storedUser = localStorage.getItem('student_user');
+        if (storedUser) {
+            const parsedUser = JSON.parse(storedUser);
+            if (parsedUser.id && !parsedUser._id) {
+                parsedUser._id = parsedUser.id;
+            }
+            setStudent(parsedUser);
+        }
+    }, []);
+    
+    // Handle both string and object ID for classId
+    const classId = typeof student?.classId === 'object' 
+        ? (student.classId as any)?._id 
+        : student?.classId;
+
+    const { data: timetables = [], isLoading } = useGetTimetableQuery({ classId }, { skip: !classId });
+
+    const getTimetableForDay = (day: DayOfWeek): Period[] => {
+        const timetableForDay = timetables.find((tt: Timetable) => tt.day === day);
+        return timetableForDay?.periods.sort((a,b) => a.periodNumber - b.periodNumber) || [];
+    };
+
+    const renderTimetableContent = (day: DayOfWeek) => {
+        if (isLoading) {
+            return (
+                <div className="space-y-4">
+                    {[...Array(4)].map((_, i) => (
+                        <Card key={i}>
+                            <CardContent className="p-4 space-y-2">
+                                <Skeleton className="h-5 w-3/4" />
+                                <Skeleton className="h-4 w-1/2" />
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            )
+        }
+
+        const periods = getTimetableForDay(day);
+
+        if (periods.length === 0) {
+            return <EmptyState title={`No Classes on ${day}`} description="Enjoy your day off!" />;
+        }
+
+        return (
+            <div className="space-y-4">
+                {periods.map(period => (
+                    <Card key={period.periodNumber} className="hover:shadow-md transition-shadow">
+                        <CardContent className="p-4 flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-xl flex-shrink-0">
+                                {period.periodNumber}
+                            </div>
+                            <div className="flex-1 space-y-1">
+                                <h4 className="font-semibold text-lg">{period.subjectName}</h4>
+                                <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
+                                    <div className="flex items-center gap-1.5">
+                                        <User className="h-4 w-4" />
+                                        <span>{period.teacherName}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <Clock className="h-4 w-4" />
+                                        <span>{period.startTime} - {period.endTime}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+        );
+    };
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>My Class Schedule</CardTitle>
+                <CardDescription>Your weekly timetable for all subjects.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                 <Tabs value={selectedDay} onValueChange={(value) => setSelectedDay(value as DayOfWeek)}>
+                    <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 mb-6">
+                        {DAYS.map((day) => (
+                            <TabsTrigger key={day} value={day}>
+                                {day}
+                            </TabsTrigger>
+                        ))}
+                    </TabsList>
+
+                    {DAYS.map((day) => (
+                        <TabsContent key={day} value={day}>
+                           {renderTimetableContent(day)}
+                        </TabsContent>
+                    ))}
+                </Tabs>
+            </CardContent>
+        </Card>
+    );
 }
