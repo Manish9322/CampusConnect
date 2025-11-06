@@ -72,6 +72,11 @@ export async function GET(request) {
       const studentsWithAttendance = await Promise.all(
         students.map(async (student) => {
           const studentObj = student.toObject();
+          // Fallback for students with a classId that no longer exists
+          if (!studentObj.classId) {
+              studentObj.attendancePercentage = 0;
+              return studentObj;
+          }
           const actualClassId = typeof studentObj.classId === 'object' ? studentObj.classId._id : studentObj.classId;
           studentObj.attendancePercentage = await calculateAttendancePercentage(
             studentObj._id.toString(),
