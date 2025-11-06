@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Users, BookCopy, CalendarCheck, LogOut, User as UserIcon, PanelLeft, FileText, BookCheck, ClipboardCheck } from "lucide-react";
+import { Home, Users, BookCopy, CalendarCheck, LogOut, User as UserIcon, PanelLeft, FileText, BookCheck, ClipboardCheck, Calendar } from "lucide-react";
 import * as React from "react";
 
 import {
@@ -49,6 +49,7 @@ export function TeacherNav({ user, onLogout }: TeacherNavProps) {
 
   const menuItems = [
     { href: "/teacher", label: "Dashboard", icon: Home },
+    { href: "/teacher/schedule", label: "My Schedule", icon: Calendar },
     { href: "/teacher/attendance", label: "Take Attendance", icon: CalendarCheck },
     { href: "/teacher/attendance-requests", label: "Attendance Requests", icon: ClipboardCheck },
     { href: "/teacher/classes", label: "My Classes", icon: BookCopy },
