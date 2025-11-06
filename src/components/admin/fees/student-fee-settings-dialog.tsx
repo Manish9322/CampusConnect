@@ -100,7 +100,7 @@ export function StudentFeeSettingsDialog({ open, onOpenChange, student, totalFee
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Fee Settings for {student.name}</DialogTitle>
           <DialogDescription>
@@ -132,13 +132,13 @@ export function StudentFeeSettingsDialog({ open, onOpenChange, student, totalFee
                         Customize the installment plan for this student.
                     </p>
                     <div className="space-y-4">
-                        <div className="grid grid-cols-[1fr_150px_180px] gap-4 px-2 pb-2 text-sm font-medium text-muted-foreground hidden sm:grid">
+                        <div className="grid grid-cols-[1fr_120px_1fr] gap-4 px-2 pb-2 text-sm font-medium text-muted-foreground hidden sm:grid">
                             <Label>Installment</Label>
                             <Label>Amount</Label>
                             <Label>Due Date</Label>
                         </div>
                         {installments.map((inst, index) => (
-                            <div key={index} className="grid grid-cols-1 sm:grid-cols-[1fr_150px_180px] gap-3 items-center rounded-md border sm:border-none p-4 sm:p-2">
+                            <div key={index} className="grid grid-cols-1 sm:grid-cols-[1fr_120px_1fr] gap-3 items-center rounded-md border sm:border-none p-4 sm:p-0">
                                 <Label className="sm:hidden text-muted-foreground">{inst.name}</Label>
                                 <Label className="hidden sm:inline-block text-sm font-medium">{inst.name}</Label>
                                 <div className="relative">
