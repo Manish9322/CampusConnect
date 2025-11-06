@@ -5,7 +5,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest', 'Note', 'Timetable', 'Settings', 'Complaint', 'FeeName'],
+  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest', 'Note', 'Timetable', 'Settings', 'Complaint', 'FeeName', 'FeeStructure'],
   endpoints: (builder) => ({
     testDBConnection: builder.query({
       query: () => 'connect',
@@ -513,6 +513,35 @@ export const api = createApi({
         }),
         invalidatesTags: ['FeeName'],
     }),
+
+    // Fee Structure endpoints
+    getFeeStructure: builder.query({
+        query: () => 'settings/fee-structure',
+        providesTags: ['FeeStructure'],
+    }),
+    addFeeStructure: builder.mutation({
+        query: (newFee) => ({
+            url: 'settings/fee-structure',
+            method: 'POST',
+            body: newFee,
+        }),
+        invalidatesTags: ['FeeStructure'],
+    }),
+    updateFeeStructure: builder.mutation({
+        query: (feeToUpdate) => ({
+            url: 'settings/fee-structure',
+            method: 'PUT',
+            body: feeToUpdate,
+        }),
+        invalidatesTags: ['FeeStructure'],
+    }),
+    deleteFeeStructure: builder.mutation({
+        query: (id) => ({
+            url: `settings/fee-structure?id=${id}`,
+            method: 'DELETE',
+        }),
+        invalidatesTags: ['FeeStructure'],
+    }),
   }),
 });
 
@@ -582,4 +611,8 @@ export const {
     useAddFeeNameMutation,
     useUpdateFeeNameMutation,
     useDeleteFeeNameMutation,
+    useGetFeeStructureQuery,
+    useAddFeeStructureMutation,
+    useUpdateFeeStructureMutation,
+    useDeleteFeeStructureMutation,
 } = api;

@@ -1,20 +1,35 @@
 
+"use client";
+
+import * as React from "react";
 import { FeeManagementDashboard } from "@/components/admin/fees/fee-management-dashboard";
 import { mockFeeRecords, mockStudents } from "@/lib/mock-data";
 import { DollarSign, CheckCircle, AlertCircle, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useGetFeeStructureQuery } from "@/services/api";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function FeeManagementPage() {
-    const totalRecords = mockFeeRecords.length;
+    const { data: feeStructure = [], isLoading: isLoadingFeeStructure } = useGetFeeStructureQuery();
+
+    // Calculate total fees from active components
+    const totalFees = React.useMemo(() => {
+        if (isLoadingFeeStructure || feeStructure.length === 0) return 0;
+        return feeStructure
+            .filter((item: any) => item.isActive)
+            .reduce((sum: number, item: any) => sum + item.amount, 0);
+    }, [feeStructure, isLoadingFeeStructure]);
+
+    // Mock data for now, can be replaced with dynamic data later
     const paidCount = mockFeeRecords.filter(r => r.status === 'Paid').length;
     const pendingCount = mockFeeRecords.filter(r => r.status === 'Pending').length;
     const overdueCount = mockFeeRecords.filter(r => r.status === 'Overdue').length;
 
     const stats = [
-        { title: 'Total Records', value: totalRecords, icon: DollarSign },
-        { title: 'Paid', value: paidCount, icon: CheckCircle },
-        { title: 'Pending', value: pendingCount, icon: Clock },
-        { title: 'Overdue', value: overdueCount, icon: AlertCircle },
+        { title: 'Total Defined Fees', value: totalFees, icon: DollarSign, isCurrency: true },
+        { title: 'Paid Records', value: paidCount, icon: CheckCircle },
+        { title: 'Pending Records', value: pendingCount, icon: Clock },
+        { title: 'Overdue Records', value: overdueCount, icon: AlertCircle },
     ];
 
     return (
@@ -28,7 +43,12 @@ export default function FeeManagementPage() {
                             <stat.icon className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-xl sm:text-2xl font-bold">{stat.value}</div>
+                            <div className="text-xl sm:text-2xl font-bold">
+                                {isLoadingFeeStructure && stat.isCurrency ? 
+                                    <Skeleton className="h-8 w-24" /> : 
+                                    (stat.isCurrency ? `$${stat.value.toLocaleString()}` : stat.value)
+                                }
+                            </div>
                         </CardContent>
                     </Card>
                 ))}

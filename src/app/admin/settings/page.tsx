@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PlusCircle, Trash2, Edit, Eye, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useGetSubjectsQuery, useAddSubjectMutation, useDeleteSubjectMutation, useUpdateSubjectMutation, useGetDepartmentsQuery, useAddDepartmentMutation, useDeleteDepartmentMutation, useUpdateDepartmentMutation, useGetDesignationsQuery, useAddDesignationMutation, useDeleteDesignationMutation, useUpdateDesignationMutation, useGetAnnouncementCategoriesQuery, useAddAnnouncementCategoryMutation, useUpdateAnnouncementCategoryMutation, useDeleteAnnouncementCategoryMutation, useGetFeeNamesQuery, useAddFeeNameMutation, useUpdateFeeNameMutation, useDeleteFeeNameMutation } from "@/services/api";
+import { useGetSubjectsQuery, useAddSubjectMutation, useDeleteSubjectMutation, useUpdateSubjectMutation, useGetDepartmentsQuery, useAddDepartmentMutation, useDeleteDepartmentMutation, useUpdateDepartmentMutation, useGetDesignationsQuery, useAddDesignationMutation, useDeleteDesignationMutation, useUpdateDesignationMutation, useGetAnnouncementCategoriesQuery, useAddAnnouncementCategoryMutation, useUpdateAnnouncementCategoryMutation, useDeleteAnnouncementCategoryMutation, useGetFeeNamesQuery, useAddFeeNameMutation, useUpdateFeeNameMutation, useDeleteFeeNameMutation, useGetFeeStructureQuery, useAddFeeStructureMutation, useUpdateFeeStructureMutation, useDeleteFeeStructureMutation } from "@/services/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Textarea } from "@/components/ui/textarea";
@@ -27,7 +27,7 @@ type Item = {
 }
 
 type FeeComponent = {
-    id: string;
+    _id: string;
     name: string;
     category: 'Academic' | 'Hostel' | 'Transportation' | 'Miscellaneous';
     amount: number;
@@ -36,15 +36,6 @@ type FeeComponent = {
 
 type ItemToModify = Item | null;
 type ItemType = "subject" | "department" | "designation" | "announcementCategory" | "feeName";
-
-const initialFeeComponents: FeeComponent[] = [
-    { id: '1', name: 'Tuition Fees', category: 'Academic', amount: 5000, isActive: true },
-    { id: '2', name: 'Exam Fees', category: 'Academic', amount: 250, isActive: true },
-    { id: '3', name: 'Library Fees', category: 'Miscellaneous', amount: 100, isActive: true },
-    { id: '4', name: 'Admission Fees', category: 'Academic', amount: 500, isActive: true },
-    { id: '5', name: 'Transportation Fees', category: 'Transportation', amount: 300, isActive: false },
-    { id: '6', name: 'Hostel Fees', category: 'Hostel', amount: 1200, isActive: true },
-];
 
 export default function SettingsPage() {
     const [newSubject, setNewSubject] = React.useState({ name: "", description: "", departmentId: "", departmentName: "" });
@@ -65,10 +56,14 @@ export default function SettingsPage() {
     const [viewType, setViewType] = React.useState<ItemType | null>(null);
 
     // Fee Management State
-    const [feeComponents, setFeeComponents] = React.useState<FeeComponent[]>(initialFeeComponents);
+    const { data: feeComponents = [], isLoading: isLoadingFeeComponents } = useGetFeeStructureQuery();
+    const [addFeeStructure] = useAddFeeStructureMutation();
+    const [updateFeeStructure] = useUpdateFeeStructureMutation();
+    const [deleteFeeStructure] = useDeleteFeeStructureMutation();
+
     const [isFeeDialogOpen, setFeeDialogOpen] = React.useState(false);
     const [feeToEdit, setFeeToEdit] = React.useState<FeeComponent | null>(null);
-    const [newFee, setNewFee] = React.useState({ name: "", category: "Miscellaneous" as FeeComponent['category'], amount: "" });
+    const [newFee, setNewFee] = React.useState({ name: "", category: "Miscellaneous" as FeeComponent['category'], amount: "", isActive: true });
 
     const { toast } = useToast();
 
@@ -274,45 +269,60 @@ export default function SettingsPage() {
 
     // Fee Management Handlers
     const totalActiveFees = React.useMemo(() => {
-        return feeComponents.reduce((acc, fee) => (fee.isActive ? acc + fee.amount : acc), 0);
+        return feeComponents.reduce((acc: number, fee: FeeComponent) => (fee.isActive ? acc + fee.amount : acc), 0);
     }, [feeComponents]);
 
-    const handleAddFee = () => {
-        if (newFee.name.trim() && newFee.amount) {
-            const newFeeComponent: FeeComponent = {
-                id: Date.now().toString(),
-                name: newFee.name.trim(),
-                category: newFee.category,
-                amount: parseFloat(newFee.amount),
-                isActive: true,
-            };
-            setFeeComponents([...feeComponents, newFeeComponent]);
-            toast({ title: "Fee Component Added", description: `"${newFeeComponent.name}" has been added.` });
-            setNewFee({ name: "", category: "Miscellaneous", amount: "" });
-        } else {
+    const handleAddOrUpdateFee = async () => {
+        if (!newFee.name.trim() || !newFee.amount) {
             toast({ title: "Validation Error", description: "Fee Name and Amount are required.", variant: "destructive" });
+            return;
+        }
+
+        const feeData = {
+            name: newFee.name.trim(),
+            category: newFee.category,
+            amount: parseFloat(newFee.amount),
+            isActive: newFee.isActive,
+        };
+
+        try {
+            if (feeToEdit) {
+                await updateFeeStructure({ _id: feeToEdit._id, ...feeData }).unwrap();
+                toast({ title: "Fee Component Updated", description: `"${feeData.name}" has been updated.` });
+            } else {
+                await addFeeStructure(feeData).unwrap();
+                toast({ title: "Fee Component Added", description: `"${feeData.name}" has been added.` });
+            }
+            setNewFee({ name: "", category: "Miscellaneous", amount: "", isActive: true });
+            setFeeToEdit(null);
+            setFeeDialogOpen(false);
+        } catch (error) {
+            toast({ title: "Error", description: "Failed to save fee component.", variant: "destructive" });
         }
     };
 
     const handleEditFee = (fee: FeeComponent) => {
         setFeeToEdit(fee);
+        setNewFee({ name: fee.name, category: fee.category, amount: String(fee.amount), isActive: fee.isActive });
         setFeeDialogOpen(true);
     };
 
-    const handleSaveFee = (updatedFee: FeeComponent) => {
-        setFeeComponents(feeComponents.map(f => f.id === updatedFee.id ? updatedFee : f));
-        toast({ title: "Fee Component Updated", description: `"${updatedFee.name}" has been updated.` });
-        setFeeDialogOpen(false);
-        setFeeToEdit(null);
+    const handleRemoveFee = async (feeId: string) => {
+        try {
+            await deleteFeeStructure(feeId).unwrap();
+            toast({ title: "Fee Component Removed" });
+        } catch (error) {
+            toast({ title: "Error", description: "Failed to remove fee component.", variant: "destructive" });
+        }
     };
 
-    const handleRemoveFee = (feeId: string) => {
-        setFeeComponents(feeComponents.filter(f => f.id !== feeId));
-        toast({ title: "Fee Component Removed" });
-    };
-
-    const handleToggleFeeStatus = (feeId: string, isActive: boolean) => {
-        setFeeComponents(feeComponents.map(f => f.id === feeId ? { ...f, isActive } : f));
+    const handleToggleFeeStatus = async (fee: FeeComponent, isActive: boolean) => {
+        try {
+            await updateFeeStructure({ ...fee, isActive }).unwrap();
+            toast({ title: "Status Updated" });
+        } catch (error) {
+            toast({ title: "Error", description: "Failed to update status.", variant: "destructive" });
+        }
     };
 
     const renderSubjectTable = () => (
@@ -681,7 +691,7 @@ export default function SettingsPage() {
                             placeholder="Amount ($)"
                             className="md:col-span-1"
                         />
-                         <Button onClick={handleAddFee} className="w-full md:col-span-1">
+                         <Button onClick={handleAddOrUpdateFee} className="w-full md:col-span-1">
                             <PlusCircle className="mr-2 h-4 w-4" /> Add Fee
                         </Button>
                     </div>
@@ -699,16 +709,26 @@ export default function SettingsPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {feeComponents.length > 0 ? (
-                                feeComponents.map((fee) => (
-                                    <TableRow key={fee.id}>
+                            {isLoadingFeeComponents ? (
+                                [...Array(3)].map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell><Skeleton className="h-5 w-full" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-full" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-full" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-full" /></TableCell>
+                                        <TableCell className="text-right"><Skeleton className="h-8 w-24 ml-auto" /></TableCell>
+                                    </TableRow>
+                                ))
+                            ) : feeComponents.length > 0 ? (
+                                (feeComponents as FeeComponent[]).map((fee) => (
+                                    <TableRow key={fee._id}>
                                         <TableCell className="font-medium">{fee.name}</TableCell>
                                         <TableCell><Badge variant="outline">{fee.category}</Badge></TableCell>
                                         <TableCell className="text-right font-mono">${fee.amount.toLocaleString()}</TableCell>
                                         <TableCell className="text-center">
                                             <Switch
                                                 checked={fee.isActive}
-                                                onCheckedChange={(checked) => handleToggleFeeStatus(fee.id, checked)}
+                                                onCheckedChange={(checked) => handleToggleFeeStatus(fee, checked)}
                                                 aria-label={`Toggle ${fee.name} status`}
                                             />
                                         </TableCell>
@@ -716,7 +736,7 @@ export default function SettingsPage() {
                                             <Button variant="ghost" size="icon" onClick={() => handleEditFee(fee)}>
                                                 <Edit className="h-4 w-4" />
                                             </Button>
-                                            <Button variant="ghost" size="icon" onClick={() => handleRemoveFee(fee.id)}>
+                                            <Button variant="ghost" size="icon" onClick={() => handleRemoveFee(fee._id)}>
                                                 <Trash2 className="h-4 w-4 text-destructive" />
                                             </Button>
                                         </TableCell>
@@ -875,16 +895,52 @@ export default function SettingsPage() {
                 </DialogContent>
             </Dialog>
 
-            {feeToEdit && (
-                <Dialog open={isFeeDialogOpen} onOpenChange={setFeeDialogOpen}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Edit Fee Component</DialogTitle>
-                        </DialogHeader>
-                        {/* A simplified form could go here to edit feeToEdit state, then call handleSaveFee */}
-                    </DialogContent>
-                </Dialog>
-            )}
+            <Dialog open={isFeeDialogOpen} onOpenChange={setFeeDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{feeToEdit ? "Edit" : "Add"} Fee Component</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+                        <Select
+                            value={newFee.name}
+                            onValueChange={(value) => setNewFee({ ...newFee, name: value })}
+                        >
+                            <SelectTrigger className="md:col-span-1">
+                                <SelectValue placeholder="Select Fee Name" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {activeFeeNames.map((fee: Item) => (
+                                    <SelectItem key={fee._id} value={fee.name}>{fee.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <Select
+                            value={newFee.category}
+                            onValueChange={(value) => setNewFee({ ...newFee, category: value as FeeComponent['category'] })}
+                        >
+                            <SelectTrigger className="md:col-span-1">
+                                <SelectValue placeholder="Select Category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Academic">Academic</SelectItem>
+                                <SelectItem value="Hostel">Hostel</SelectItem>
+                                <SelectItem value="Transportation">Transportation</SelectItem>
+                                <SelectItem value="Miscellaneous">Miscellaneous</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Input
+                            type="number"
+                            value={newFee.amount}
+                            onChange={(e) => setNewFee({ ...newFee, amount: e.target.value })}
+                            placeholder="Amount ($)"
+                            className="md:col-span-1"
+                        />
+                         <Button onClick={handleAddOrUpdateFee} className="w-full md:col-span-1">
+                            <PlusCircle className="mr-2 h-4 w-4" /> {feeToEdit ? "Update" : "Add"}
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
 
             <ItemPreviewDialog
                 open={!!itemToView}
@@ -895,4 +951,3 @@ export default function SettingsPage() {
         </div>
     );
 }
-
