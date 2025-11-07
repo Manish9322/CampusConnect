@@ -6,7 +6,6 @@ import { Users, UserCheck, Percent, BookOpen, ArrowUp, ArrowDown } from "lucide-
 import { AttendanceChart } from "@/components/admin/attendance-chart";
 import { EnrollmentChart } from "@/components/admin/enrollment-chart";
 import { RecentAttendance } from "@/components/admin/recent-attendance";
-import { Badge } from "@/components/ui/badge";
 import { ClassSizeChart } from "@/components/admin/class-size-chart";
 import { TeacherStudentRatioChart } from "@/components/admin/teacher-student-ratio-chart";
 import { NewEnrollmentsChart } from "@/components/admin/new-enrollments-chart";
