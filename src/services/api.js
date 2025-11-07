@@ -166,12 +166,11 @@ export const api = createApi({
 
     // Student CRUD endpoints
     getStudents: builder.query({
-      query: ({ classId } = {}) => {
-        let url = 'students';
-        if (classId) {
-            url += `?classId=${classId}`;
-        }
-        return url;
+      query: (params = {}) => {
+        const urlParams = new URLSearchParams();
+        if (params.classId) urlParams.append('classId', params.classId);
+        if (params.includeAttendance) urlParams.append('includeAttendance', params.includeAttendance);
+        return `students?${urlParams.toString()}`;
       },
       providesTags: (result = [], error, arg) => [
         { type: 'Student', id: 'LIST' },

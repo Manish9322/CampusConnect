@@ -25,7 +25,8 @@ export default function TeacherStudentsPage() {
     }, []);
 
     const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery(undefined);
-    const { data: allStudents = [], isLoading: isLoadingStudents } = useGetStudentsQuery({});
+    // Pass includeAttendance: true to ensure the API calculates and returns attendance percentages
+    const { data: allStudents = [], isLoading: isLoadingStudents } = useGetStudentsQuery({ includeAttendance: true });
 
     const isLoading = isLoadingClasses || isLoadingStudents || !user;
 
