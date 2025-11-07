@@ -1,5 +1,6 @@
 
 "use client";
+import * as React from "react";
 import {
   Card,
   CardContent,
@@ -8,42 +9,61 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Student } from "@/lib/types";
+import { Student, Timetable, Period, DayOfWeek } from "@/lib/types";
+import { useGetTimetableQuery } from "@/services/api";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface UpcomingClassesProps {
   student: Student;
 }
 
-// Note: This component maintains its static schedule for now
-// In a full implementation, you would fetch the class schedule from an API
-const todaysSchedule = [
-  { time: "09:00 - 10:00", course: "CS101", type: "Lecture" },
-  { time: "12:00 - 01:00", course: "PHY101", type: "Lab" },
-  { time: "02:00 - 03:00", course: "CS101", type: "Tutorial" },
-];
+const DAYS: DayOfWeek[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export function UpcomingClasses({ student }: UpcomingClassesProps) {
+  const today = new Date();
+  const currentDay = DAYS[today.getDay()];
+
+  const classId = typeof student.classId === 'object' ? (student.classId as any)?._id : student.classId;
+
+  const { data: timetables = [], isLoading } = useGetTimetableQuery(
+    { classId: classId, day: currentDay },
+    { skip: !classId }
+  );
+
+  const todaysSchedule: Period[] = React.useMemo(() => {
+    if (isLoading || timetables.length === 0) return [];
+    const dayTimetable = timetables.find((tt: Timetable) => tt.day === currentDay);
+    if (!dayTimetable || !dayTimetable.periods) return [];
+    return [...dayTimetable.periods].sort((a, b) => a.startTime.localeCompare(b.startTime));
+  }, [timetables, currentDay, isLoading]);
+
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Today's Schedule</CardTitle>
+        <CardTitle>Today's Schedule ({currentDay})</CardTitle>
         <CardDescription>Here are your classes for today.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {todaysSchedule.length > 0 ? (
+        {isLoading ? (
+          <>
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+          </>
+        ) : todaysSchedule.length > 0 ? (
           todaysSchedule.map((item, index) => (
             <div
               key={index}
               className="flex items-center justify-between p-3 rounded-md bg-muted/50"
             >
               <div>
-                <p className="font-semibold">{item.course}</p>
-                <p className="text-sm text-muted-foreground">{item.time}</p>
+                <p className="font-semibold">{item.subjectName}</p>
+                <p className="text-sm text-muted-foreground">{item.startTime} - {item.endTime}</p>
               </div>
               <Badge
-                variant={item.type === "Lab" ? "destructive" : "secondary"}
+                variant={"secondary"}
               >
-                {item.type}
+                {item.teacherName}
               </Badge>
             </div>
           ))
