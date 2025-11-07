@@ -90,18 +90,18 @@ export function PaymentReceiptModal({ isOpen, onOpenChange, payment, studentName
                             {feeStructure.map((comp) => (
                             <tr key={comp.name}>
                                 <td style={{ padding: '0.75rem', border: '1px solid #eee' }}>{comp.name}</td>
-                                <td style={{ padding: '0.75rem', textAlign: 'right', border: '1px solid #eee' }}>${comp.amount.toLocaleString()}</td>
+                                <td style={{ padding: '0.75rem', textAlign: 'right', border: '1px solid #eee' }}>₹{comp.amount.toLocaleString()}</td>
                             </tr>
                             ))}
                         </tbody>
                         <tfoot>
                             <tr style={{ fontWeight: 'bold' }}>
                                 <td style={{ padding: '0.75rem', textAlign: 'right', border: '1px solid #eee' }}>Total Paid</td>
-                                <td style={{ padding: '0.75rem', textAlign: 'right', border: '1px solid #eee' }}>${payment.amount.toLocaleString()}</td>
+                                <td style={{ padding: '0.75rem', textAlign: 'right', border: '1px solid #eee' }}>₹{payment.amount.toLocaleString()}</td>
                             </tr>
                             <tr style={{ fontWeight: 'bold', backgroundColor: '#f9fafb' }}>
                                 <td style={{ padding: '0.75rem', textAlign: 'right', border: '1px solid #eee' }}>Total Fee</td>
-                                <td style={{ padding: '0.75rem', textAlign: 'right', border: '1px solid #eee' }}>${feeStructure.reduce((sum, item) => sum + item.amount, 0).toLocaleString()}</td>
+                                <td style={{ padding: '0.75rem', textAlign: 'right', border: '1px solid #eee' }}>₹{feeStructure.reduce((sum, item) => sum + item.amount, 0).toLocaleString()}</td>
                             </tr>
                         </tfoot>
                     </table>

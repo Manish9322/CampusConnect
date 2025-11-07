@@ -142,7 +142,7 @@ export function StudentFeeSettingsDialog({ open, onOpenChange, student, totalFee
                                 <Label className="sm:hidden text-muted-foreground">{inst.name}</Label>
                                 <Label className="hidden sm:inline-block text-sm font-medium">{inst.name}</Label>
                                 <div className="relative">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">₹</span>
                                     <Input 
                                         type="number" 
                                         placeholder="Amount"
@@ -162,7 +162,7 @@ export function StudentFeeSettingsDialog({ open, onOpenChange, student, totalFee
                     <div className="flex justify-end items-center gap-4 pt-4 border-t">
                         <span className="text-sm text-muted-foreground">Total Installment Amount:</span>
                         <span className={`font-bold ${amountMismatch ? 'text-destructive' : 'text-primary'}`}>
-                            ${totalInstallmentAmount.toLocaleString()}
+                            ₹{totalInstallmentAmount.toLocaleString()}
                         </span>
                     </div>
                      {amountMismatch && (
@@ -170,7 +170,7 @@ export function StudentFeeSettingsDialog({ open, onOpenChange, student, totalFee
                             <Info className="h-4 w-4" />
                             <AlertTitle>Notice</AlertTitle>
                             <AlertDescription>
-                                Sum of installments must equal total fees (${totalFees.toLocaleString()}).
+                                Sum of installments must equal total fees (₹{totalFees.toLocaleString()}).
                             </AlertDescription>
                         </Alert>
                     )}

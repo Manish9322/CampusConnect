@@ -110,7 +110,7 @@ export function PaymentModal({ isOpen, onOpenChange, amountToPay, onPaymentSucce
         <DialogHeader>
           <DialogTitle>Make a Payment</DialogTitle>
           <DialogDescription>
-            You are about to pay <strong>${amountToPay.toLocaleString()}</strong>.
+            You are about to pay <strong>₹{amountToPay.toLocaleString()}</strong>.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="pt-4">
@@ -124,7 +124,7 @@ export function PaymentModal({ isOpen, onOpenChange, amountToPay, onPaymentSucce
                     Processing...
                 </>
              ) : (
-                `Pay $${amountToPay.toLocaleString()}`
+                `Pay ₹${amountToPay.toLocaleString()}`
              )}
           </Button>
         </DialogFooter>

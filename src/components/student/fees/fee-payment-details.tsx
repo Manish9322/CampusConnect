@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CheckCircle, Clock, AlertCircle, Receipt } from "lucide-react";
+import { CheckCircle, Clock, AlertCircle, Receipt, HelpCircle, Phone, Mail } from "lucide-react";
 import { PaymentModal } from "./payment-modal";
 import { useToast } from "@/hooks/use-toast";
 import { PaymentReceiptModal } from "./payment-receipt-modal";
@@ -34,9 +34,9 @@ interface FeePaymentDetailsProps {
 }
 
 export function FeePaymentDetails({ student }: FeePaymentDetailsProps) {
-    const { data: feeStructure = [], isLoading: isLoadingStructure } = useGetFeeStructureQuery();
+    const { data: feeStructure = [], isLoading: isLoadingStructure } = useGetFeeStructureQuery(undefined);
     const { data: globalSettings, isLoading: isLoadingGlobal } = useGetFeeSettingsQuery({});
-    const { data: studentSettings, isLoading: isLoadingStudent } = useGetStudentFeeSettingsQuery({ studentId: student._id! });
+    const { data: studentSettings, isLoading: isLoadingStudent } = useGetStudentFeeSettingsQuery({ studentId: student._id! }, { skip: !student._id });
 
     const [paymentHistory, setPaymentHistory] = React.useState<PaymentHistory[]>([]);
     const [isPaymentModalOpen, setPaymentModalOpen] = React.useState(false);
@@ -87,6 +87,7 @@ export function FeePaymentDetails({ student }: FeePaymentDetailsProps) {
         const paidForInstallment = paymentHistory.filter(p => new Date(p.date) <= new Date(installment.dueDate)).reduce((acc, p) => acc + p.amount, 0);
         
         let cumulativeAmountDue = 0;
+        if (!settings || !settings.installments) return "Pending";
         for (const inst of settings.installments) {
             cumulativeAmountDue += inst.amount;
             if (inst.dueDate === installment.dueDate) break;
@@ -127,15 +128,15 @@ export function FeePaymentDetails({ student }: FeePaymentDetailsProps) {
                             <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
                                 <div className="p-4 border rounded-lg">
                                     <div className="text-sm text-muted-foreground">Total Fee</div>
-                                    <div className="text-2xl font-bold">${totalFees.toLocaleString()}</div>
+                                    <div className="text-2xl font-bold">₹{totalFees.toLocaleString()}</div>
                                 </div>
                                 <div className="p-4 border rounded-lg">
                                     <div className="text-sm text-muted-foreground">Amount Paid</div>
-                                    <div className="text-2xl font-bold text-green-600">${totalPaid.toLocaleString()}</div>
+                                    <div className="text-2xl font-bold text-green-600">₹{totalPaid.toLocaleString()}</div>
                                 </div>
                                 <div className="p-4 border rounded-lg">
                                     <div className="text-sm text-muted-foreground">Balance Due</div>
-                                    <div className="text-2xl font-bold text-red-600">${(totalFees - totalPaid).toLocaleString()}</div>
+                                    <div className="text-2xl font-bold text-red-600">₹{(totalFees - totalPaid).toLocaleString()}</div>
                                 </div>
                             </div>
                             <div className="mb-6">
@@ -165,7 +166,7 @@ export function FeePaymentDetails({ student }: FeePaymentDetailsProps) {
                                                     </CardHeader>
                                                     <CardContent>
                                                         <div className="flex justify-between items-center">
-                                                            <span className="text-xl font-bold">${inst.amount.toLocaleString()}</span>
+                                                            <span className="text-xl font-bold">₹{inst.amount.toLocaleString()}</span>
                                                             {status !== 'Paid' && <Button onClick={() => handlePayClick(inst.amount)}>Pay Now</Button>}
                                                         </div>
                                                     </CardContent>
@@ -177,7 +178,7 @@ export function FeePaymentDetails({ student }: FeePaymentDetailsProps) {
                             ) : (
                                 <div className="text-center py-8">
                                     <h3 className="text-lg font-semibold">Full Payment Due</h3>
-                                    <p className="text-4xl font-bold my-4">${(totalFees - totalPaid).toLocaleString()}</p>
+                                    <p className="text-4xl font-bold my-4">₹{(totalFees - totalPaid).toLocaleString()}</p>
                                     <Button size="lg" onClick={() => handlePayClick(totalFees - totalPaid)} disabled={totalFees - totalPaid <= 0}>
                                         {totalFees - totalPaid <= 0 ? 'Fully Paid' : 'Pay Full Amount'}
                                     </Button>
@@ -207,7 +208,7 @@ export function FeePaymentDetails({ student }: FeePaymentDetailsProps) {
                                         {paymentHistory.length > 0 ? paymentHistory.map(p => (
                                             <TableRow key={p.id}>
                                                 <TableCell>{new Date(p.date).toLocaleDateString()}</TableCell>
-                                                <TableCell>${p.amount.toLocaleString()}</TableCell>
+                                                <TableCell>₹{p.amount.toLocaleString()}</TableCell>
                                                 <TableCell>{p.method}</TableCell>
                                                 <TableCell>{p.transactionId}</TableCell>
                                                 <TableCell className="text-right">
@@ -247,16 +248,50 @@ export function FeePaymentDetails({ student }: FeePaymentDetailsProps) {
                                         {feeStructure.filter((item: any) => item.isActive).map((item: any) => (
                                             <TableRow key={item._id}>
                                                 <TableCell className="font-medium">{item.name}</TableCell>
-                                                <TableCell className="text-right">${item.amount.toLocaleString()}</TableCell>
+                                                <TableCell className="text-right">₹{item.amount.toLocaleString()}</TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
                                     <TableRow className="font-bold border-t-2">
                                         <TableCell>Total</TableCell>
-                                        <TableCell className="text-right">${totalFees.toLocaleString()}</TableCell>
+                                        <TableCell className="text-right">₹{totalFees.toLocaleString()}</TableCell>
                                     </TableRow>
                                 </Table>
                             </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Payment Information</CardTitle>
+                            <CardDescription>Need help with your payments?</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="flex items-start gap-3">
+                                <HelpCircle className="h-5 w-5 text-muted-foreground mt-1 flex-shrink-0" />
+                                <div>
+                                    <p className="text-sm font-medium">What payment methods are accepted?</p>
+                                    <p className="text-sm text-muted-foreground">We accept all major credit/debit cards, UPI, and net banking.</p>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                                <HelpCircle className="h-5 w-5 text-muted-foreground mt-1 flex-shrink-0" />
+                                <div>
+                                    <p className="text-sm font-medium">What if I miss a due date?</p>
+                                    <p className="text-sm text-muted-foreground">A late fee may be applied to your account. Please contact the finance office for details.</p>
+                                </div>
+                            </div>
+                             <Separator />
+                             <div className="space-y-2">
+                                 <h4 className="font-semibold text-sm">Contact Finance Office</h4>
+                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <Phone className="h-4 w-4" />
+                                    <span>+91 123 456 7890</span>
+                                 </div>
+                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <Mail className="h-4 w-4" />
+                                    <span>finance@campus.edu</span>
+                                 </div>
+                             </div>
                         </CardContent>
                     </Card>
                 </div>

@@ -51,7 +51,7 @@ export default function FeeManagementPage() {
                             <div className="text-xl sm:text-2xl font-bold">
                                 {isLoadingFeeStructure && stat.isCurrency ? 
                                     <Skeleton className="h-8 w-24" /> : 
-                                    (stat.isCurrency ? `$${stat.value.toLocaleString()}` : stat.value)
+                                    (stat.isCurrency ? `₹${stat.value.toLocaleString()}` : stat.value)
                                 }
                             </div>
                             <p className="text-xs text-muted-foreground">{stat.subtitle}</p>

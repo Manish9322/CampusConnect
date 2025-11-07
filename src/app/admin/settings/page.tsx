@@ -56,7 +56,7 @@ export default function SettingsPage() {
     const [viewType, setViewType] = React.useState<ItemType | null>(null);
 
     // Fee Management State
-    const { data: feeComponents = [], isLoading: isLoadingFeeComponents } = useGetFeeStructureQuery();
+    const { data: feeComponents = [], isLoading: isLoadingFeeComponents, refetch: refetchFeeComponents } = useGetFeeStructureQuery();
     const [addFeeStructure] = useAddFeeStructureMutation();
     const [updateFeeStructure] = useUpdateFeeStructureMutation();
     const [deleteFeeStructure] = useDeleteFeeStructureMutation();
@@ -296,6 +296,7 @@ export default function SettingsPage() {
             setNewFee({ name: "", category: "Miscellaneous", amount: "", isActive: true });
             setFeeToEdit(null);
             setFeeDialogOpen(false);
+            refetchFeeComponents();
         } catch (error) {
             toast({ title: "Error", description: "Failed to save fee component.", variant: "destructive" });
         }
@@ -311,6 +312,7 @@ export default function SettingsPage() {
         try {
             await deleteFeeStructure(feeId).unwrap();
             toast({ title: "Fee Component Removed" });
+            refetchFeeComponents();
         } catch (error) {
             toast({ title: "Error", description: "Failed to remove fee component.", variant: "destructive" });
         }
@@ -320,6 +322,7 @@ export default function SettingsPage() {
         try {
             await updateFeeStructure({ ...fee, isActive }).unwrap();
             toast({ title: "Status Updated" });
+            refetchFeeComponents();
         } catch (error) {
             toast({ title: "Error", description: "Failed to update status.", variant: "destructive" });
         }
@@ -652,7 +655,7 @@ export default function SettingsPage() {
                         <DollarSign className="h-6 w-6 text-primary" />
                         <span className="text-sm font-medium">Total Active Fees:</span>
                     </div>
-                    <span className="text-2xl font-bold">${totalActiveFees.toLocaleString()}</span>
+                    <span className="text-2xl font-bold">₹{totalActiveFees.toLocaleString()}</span>
                 </div>
 
                 <div className="flex flex-col gap-2 mb-4">
@@ -688,7 +691,7 @@ export default function SettingsPage() {
                             type="number"
                             value={newFee.amount}
                             onChange={(e) => setNewFee({ ...newFee, amount: e.target.value })}
-                            placeholder="Amount ($)"
+                            placeholder="Amount (₹)"
                             className="md:col-span-1"
                         />
                          <Button onClick={handleAddOrUpdateFee} className="w-full md:col-span-1">
@@ -724,7 +727,7 @@ export default function SettingsPage() {
                                     <TableRow key={fee._id}>
                                         <TableCell className="font-medium">{fee.name}</TableCell>
                                         <TableCell><Badge variant="outline">{fee.category}</Badge></TableCell>
-                                        <TableCell className="text-right font-mono">${fee.amount.toLocaleString()}</TableCell>
+                                        <TableCell className="text-right font-mono">₹{fee.amount.toLocaleString()}</TableCell>
                                         <TableCell className="text-center">
                                             <Switch
                                                 checked={fee.isActive}
@@ -932,7 +935,7 @@ export default function SettingsPage() {
                             type="number"
                             value={newFee.amount}
                             onChange={(e) => setNewFee({ ...newFee, amount: e.target.value })}
-                            placeholder="Amount ($)"
+                            placeholder="Amount (₹)"
                             className="md:col-span-1"
                         />
                          <Button onClick={handleAddOrUpdateFee} className="w-full md:col-span-1">

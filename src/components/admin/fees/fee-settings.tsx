@@ -201,7 +201,7 @@ export function FeeSettings({ totalDefinedFees }: FeeSettingsProps) {
                             <div className="flex justify-end items-center gap-4 pt-4 border-t">
                                 <span className="text-sm text-muted-foreground">Total Installment Amount:</span>
                                 <span className="font-bold">
-                                    ${totalInstallmentAmount.toLocaleString()}
+                                    ₹{totalInstallmentAmount.toLocaleString()}
                                 </span>
                             </div>
                             {amountMismatch && (
@@ -209,7 +209,7 @@ export function FeeSettings({ totalDefinedFees }: FeeSettingsProps) {
                                     <Info className="h-4 w-4" />
                                     <AlertTitle>Notice</AlertTitle>
                                     <AlertDescription>
-                                        The sum of installments (${totalInstallmentAmount.toLocaleString()}) does not match the total defined fees (${totalDefinedFees.toLocaleString()}). Please adjust the values.
+                                        The sum of installments (₹{totalInstallmentAmount.toLocaleString()}) does not match the total defined fees (₹{totalDefinedFees.toLocaleString()}). Please adjust the values.
                                     </AlertDescription>
                                 </Alert>
                             )}
