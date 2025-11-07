@@ -25,7 +25,9 @@ import {
   CalendarClock,
   DollarSign,
   FileText,
-  Award
+  Award,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { format } from "date-fns";
@@ -74,6 +76,10 @@ export default function StudentNotesPage() {
   const [selectedNote, setSelectedNote] = React.useState<any>(null);
   const [isNoteDialogOpen, setIsNoteDialogOpen] = React.useState(false);
 
+  // Pagination state
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+
   // Calculate statistics
   const stats = React.useMemo(() => {
     const total = notes.length;
@@ -104,6 +110,15 @@ export default function StudentNotesPage() {
       return matchesSearch && matchesPriority && matchesCategory && matchesRead;
     });
   }, [notes, searchTerm, priorityFilter, categoryFilter, readFilter]);
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredNotes.length / rowsPerPage);
+  const paginatedNotes = filteredNotes.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  
+  const handleRowsPerPageChange = (value: string) => {
+    setRowsPerPage(Number(value));
+    setPage(0);
+  };
 
   const handleMarkAsRead = async (noteId: string) => {
     try {
@@ -138,6 +153,7 @@ export default function StudentNotesPage() {
     setPriorityFilter("all");
     setCategoryFilter("all");
     setReadFilter("all");
+    setPage(0);
   };
 
   const renderTableBody = () => {
@@ -153,7 +169,7 @@ export default function StudentNotesPage() {
             </TableRow>
         ));
     }
-    if (filteredNotes.length === 0) {
+    if (paginatedNotes.length === 0) {
       return (
         <TableRow>
           <TableCell colSpan={6}>
@@ -170,7 +186,7 @@ export default function StudentNotesPage() {
       );
     }
 
-    return filteredNotes.map((note: any) => {
+    return paginatedNotes.map((note: any) => {
       const CategoryIcon = categoryConfig[note.category]?.icon || FileText;
 
       return (
@@ -363,10 +379,10 @@ export default function StudentNotesPage() {
             <div className="md:hidden space-y-4">
                 {isLoading ? (
                     [...Array(3)].map((_, i) => <Card key={i}><CardContent className="p-4"><Skeleton className="h-20 w-full" /></CardContent></Card>)
-                ) : filteredNotes.length === 0 ? (
+                ) : paginatedNotes.length === 0 ? (
                     <EmptyState title="No Notes Found" description={isFiltered ? "No notes match your current filters." : "You haven't received any notes yet."} />
                 ) : (
-                    filteredNotes.map((note: any) => (
+                    paginatedNotes.map((note: any) => (
                         <Card key={note._id} onClick={() => handleViewNote(note)} className="cursor-pointer">
                             <CardContent className="p-4 space-y-3">
                                 <div className="flex justify-between items-start">
@@ -385,6 +401,44 @@ export default function StudentNotesPage() {
                     ))
                 )}
             </div>
+             {filteredNotes.length > 0 && (
+                <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-4">
+                    <div className="flex items-center space-x-2">
+                        <span className="text-sm text-muted-foreground">Rows per page</span>
+                        <Select onValueChange={handleRowsPerPageChange} defaultValue={`${rowsPerPage}`}>
+                            <SelectTrigger className="w-20">
+                                <SelectValue placeholder={`${rowsPerPage}`} />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="5">5</SelectItem>
+                                <SelectItem value="10">10</SelectItem>
+                                <SelectItem value="20">20</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <span className="text-sm text-muted-foreground">
+                            Page {page + 1} of {totalPages}
+                        </span>
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setPage(p => Math.max(0, p - 1))}
+                            disabled={page === 0}
+                        >
+                            <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                            disabled={page >= totalPages - 1}
+                        >
+                            <ChevronRight className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+            )}
         </CardContent>
       </Card>
 
@@ -448,3 +502,5 @@ export default function StudentNotesPage() {
     </div>
   );
 }
+
+    
