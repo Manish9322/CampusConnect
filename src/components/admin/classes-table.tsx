@@ -25,6 +25,7 @@ import { Skeleton } from "../ui/skeleton";
 import { EmptyState } from "../shared/empty-state";
 import { ErrorState } from "../shared/error-state";
 import { Card, CardContent } from "../ui/card";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 interface ClassesTableProps {
   classes: ClassWithDetails[];
@@ -218,7 +219,27 @@ export function ClassesTable({ classes: initialClasses, isLoading, isError, refe
             <TableCell className="font-medium">{c.name}</TableCell>
             <TableCell>{c.teacher}</TableCell>
             <TableCell>
-              {c.subjects.map(sub => <Badge key={sub} variant="outline" className="mr-1">{sub}</Badge>)}
+              <TooltipProvider>
+                <div className="flex flex-wrap gap-1 items-center">
+                  {c.subjects.slice(0, 2).map(sub => (
+                    <Badge key={sub} variant="outline" className="text-xs">{sub}</Badge>
+                  ))}
+                  {c.subjects.length > 2 && (
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Badge variant="secondary" className="cursor-default">+ {c.subjects.length - 2} more</Badge>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="flex flex-col gap-1 text-xs">
+                          {c.subjects.slice(2).map(sub => (
+                            <span key={sub}>{sub}</span>
+                          ))}
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                </div>
+              </TooltipProvider>
             </TableCell>
             <TableCell>{c.studentCount}</TableCell>
             <TableCell>
