@@ -128,26 +128,38 @@ export function GradeDetails({ assignments, grades }: GradeDetailsProps) {
             const status = gradeInfo?.status || 'Pending';
 
             return (
-                <Card key={assignment._id}>
-                    <CardContent className="p-4 space-y-3">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <h3 className="font-semibold">{assignment.title}</h3>
-                                <Badge variant="outline" className="mt-1">{assignment.courseName}</Badge>
+                 <Card key={assignment._id}>
+                    <CardContent className="p-4 space-y-4">
+                        <div className="flex justify-between items-start gap-2">
+                            <div className="flex-1">
+                                <h3 className="font-semibold text-base">{assignment.title}</h3>
+                                <Badge variant="outline" className="mt-1 text-xs">{assignment.courseName}</Badge>
                             </div>
-                             <Badge variant={status === 'Pending' ? 'outline' : status === 'Submitted' ? 'default' : 'destructive'}>
+                             <Badge variant={status === 'Pending' ? 'outline' : status === 'Submitted' ? 'default' : 'destructive'} className="whitespace-nowrap">
                                 {status}
                             </Badge>
                         </div>
-                        <div className="text-sm text-muted-foreground space-y-1">
-                            <div className="flex items-center gap-2"><Calendar className="h-4 w-4"/>Due: {new Date(assignment.dueDate).toLocaleDateString()}</div>
-                        </div>
-                         <div className="flex items-center justify-end font-semibold text-primary pt-2 border-t">
-                             {gradeInfo?.marks !== null && gradeInfo?.marks !== undefined ? (
-                                <>{gradeInfo.marks} / {assignment.totalMarks}</>
-                             ) : (
-                                <span className="text-sm text-muted-foreground">Not Graded</span>
-                             )}
+                        
+                        <div className="border-t pt-3">
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                                <div className="flex items-center gap-2 text-muted-foreground">
+                                    <Calendar className="h-4 w-4"/>
+                                    <span>Due Date</span>
+                                </div>
+                                <div className="font-medium text-right">{new Date(assignment.dueDate).toLocaleDateString()}</div>
+                                
+                                <div className="flex items-center gap-2 text-muted-foreground">
+                                    <Award className="h-4 w-4"/>
+                                    <span>Score</span>
+                                </div>
+                                <div className="font-semibold text-right">
+                                    {gradeInfo?.marks !== null && gradeInfo?.marks !== undefined ? (
+                                        <span>{gradeInfo.marks} / {assignment.totalMarks}</span>
+                                    ) : (
+                                        <span className="text-muted-foreground font-normal">Not Graded</span>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
@@ -267,4 +279,3 @@ export function GradeDetails({ assignments, grades }: GradeDetailsProps) {
         </Card>
     );
 }
-
