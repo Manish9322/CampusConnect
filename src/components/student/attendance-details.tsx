@@ -5,14 +5,14 @@ import * as React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { AttendanceRecord, AttendanceStatus, Student } from "@/lib/types";
+import { AttendanceRecord, AttendanceStatus, Student, Class } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Download, Edit } from "lucide-react";
 import { DatePickerWithRange } from "./date-picker-range";
-import { useGetAttendanceQuery, useAddAttendanceRequestMutation, useGetTeachersQuery } from "@/services/api";
+import { useGetAttendanceQuery, useAddAttendanceRequestMutation, useGetTeachersQuery, useGetClassesQuery } from "@/services/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RequestChangeDialog } from "./attendance/request-change-dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -48,9 +48,10 @@ export function AttendanceDetails() {
   
   const { data: allAttendance = [], isLoading: isLoadingAttendance } = useGetAttendanceQuery({}, { skip: !user });
   const { data: teachers = [], isLoading: isLoadingTeachers } = useGetTeachersQuery(undefined);
+  const { data: classes = [], isLoading: isLoadingClasses } = useGetClassesQuery(undefined);
   const [addAttendanceRequest] = useAddAttendanceRequestMutation();
 
-  const isLoading = isLoadingAttendance || isLoadingTeachers || !user;
+  const isLoading = isLoadingAttendance || isLoadingTeachers || !user || isLoadingClasses;
 
   const studentRecords = React.useMemo(() => {
     if (isLoading || !user) return [];
@@ -69,16 +70,17 @@ export function AttendanceDetails() {
       })
       .map((record: any) => {
         const teacher = teachers.find((t: any) => t._id === record.recordedBy);
+        const course = classes.find((c: Class) => c._id === record.classId);
         return {
             ...record,
             teacherName: teacher ? teacher.name : 'N/A',
-            course: record.classId // Assuming classId is the course name for now
+            course: course ? course.name : 'N/A'
         }
       });
     
     console.log('Filtered student records:', filtered.length);
     return filtered;
-  }, [allAttendance, user, teachers, isLoading]);
+  }, [allAttendance, user, teachers, classes, isLoading]);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
