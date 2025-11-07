@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import _db from '../../../../lib/db';
 import { Student } from '../../../../models/student.model';
