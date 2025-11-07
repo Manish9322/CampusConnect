@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { FeeSettings } from "@/components/admin/fees/fee-settings";
 
 export default function FeeManagementPage() {
-    const { data: feeStructure = [], isLoading: isLoadingFeeStructure } = useGetFeeStructureQuery();
+    const { data: feeStructure = [], isLoading: isLoadingFeeStructure } = useGetFeeStructureQuery(undefined);
     const { data: students = [], isLoading: isLoadingStudents } = useGetStudentsQuery({});
 
     // Calculate total fees from active components

@@ -56,7 +56,7 @@ export default function SettingsPage() {
     const [viewType, setViewType] = React.useState<ItemType | null>(null);
 
     // Fee Management State
-    const { data: feeComponents = [], isLoading: isLoadingFeeComponents, refetch: refetchFeeComponents } = useGetFeeStructureQuery();
+    const { data: feeComponents = [], isLoading: isLoadingFeeComponents, refetch: refetchFeeComponents } = useGetFeeStructureQuery(undefined);
     const [addFeeStructure] = useAddFeeStructureMutation();
     const [updateFeeStructure] = useUpdateFeeStructureMutation();
     const [deleteFeeStructure] = useDeleteFeeStructureMutation();

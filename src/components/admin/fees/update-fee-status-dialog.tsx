@@ -2,11 +2,25 @@
 "use client";
 
 import * as React from "react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { FeeRecord, FeeStatus } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
 
 interface UpdateFeeStatusDialogProps {
   open: boolean;
@@ -15,8 +29,14 @@ interface UpdateFeeStatusDialogProps {
   onSave: (newStatus: FeeStatus) => void;
 }
 
-export function UpdateFeeStatusDialog({ open, onOpenChange, record, onSave }: UpdateFeeStatusDialogProps) {
+export function UpdateFeeStatusDialog({
+  open,
+  onOpenChange,
+  record,
+  onSave,
+}: UpdateFeeStatusDialogProps) {
   const [status, setStatus] = React.useState<FeeStatus>(record.status);
+  const { toast } = useToast();
 
   React.useEffect(() => {
     setStatus(record.status);
@@ -24,6 +44,10 @@ export function UpdateFeeStatusDialog({ open, onOpenChange, record, onSave }: Up
 
   const handleSave = () => {
     onSave(status);
+    toast({
+      title: "Attendance Updated",
+      description: `Attendance for ${record.studentName} on ${record.date} has been updated.`,
+    });
   };
 
   return (
@@ -42,21 +66,24 @@ export function UpdateFeeStatusDialog({ open, onOpenChange, record, onSave }: Up
             </div>
              <div className="grid grid-cols-4 items-center gap-4">
                 <Label className="text-right col-span-1">Due Amount</Label>
-                <span className="col-span-3 font-medium">${record.dueAmount.toLocaleString()}</span>
+                <span className="col-span-3 font-medium">₹{record.dueAmount.toLocaleString()}</span>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="status" className="text-right">
                 Status
                 </Label>
-                <Select value={status} onValueChange={(value) => setStatus(value as FeeStatus)}>
-                    <SelectTrigger id="status" className="col-span-3">
-                        <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="Paid">Paid</SelectItem>
-                        <SelectItem value="Pending">Pending</SelectItem>
-                        <SelectItem value="Overdue">Overdue</SelectItem>
-                    </SelectContent>
+                <Select
+                value={status}
+                onValueChange={(value) => setStatus(value as FeeStatus)}
+                >
+                <SelectTrigger id="status" className="col-span-3">
+                    <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="Paid">Paid</SelectItem>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="Overdue">Overdue</SelectItem>
+                </SelectContent>
                 </Select>
             </div>
         </div>

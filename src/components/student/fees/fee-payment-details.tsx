@@ -9,13 +9,16 @@ import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CheckCircle, Clock, AlertCircle, Receipt, HelpCircle, Phone, Mail } from "lucide-react";
+import { CheckCircle, Clock, AlertCircle, Receipt, HelpCircle, Phone, Mail, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import { PaymentModal } from "./payment-modal";
 import { useToast } from "@/hooks/use-toast";
 import { PaymentReceiptModal } from "./payment-receipt-modal";
 import { useGetFeeSettingsQuery, useGetStudentFeeSettingsQuery, useGetFeeStructureQuery } from "@/services/api";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { EmptyState } from "@/components/shared/empty-state";
+
 
 const statusConfig: { [key in FeeStatus]: { icon: React.ElementType, className: string } } = {
     Paid: { icon: CheckCircle, className: 'text-green-600' },
@@ -45,6 +48,10 @@ export function FeePaymentDetails({ student }: FeePaymentDetailsProps) {
     const [selectedPayment, setSelectedPayment] = React.useState<PaymentHistory | null>(null);
     const { toast } = useToast();
 
+    // Pagination for payment history
+    const [page, setPage] = React.useState(0);
+    const [rowsPerPage, setRowsPerPage] = React.useState(5);
+
     const isLoading = isLoadingStructure || isLoadingGlobal || isLoadingStudent;
 
     const totalFees = React.useMemo(() => {
@@ -57,6 +64,14 @@ export function FeePaymentDetails({ student }: FeePaymentDetailsProps) {
     
     const settings = studentSettings || globalSettings;
     const isInstallmentMode = settings?.mode === 'Installments';
+    
+    const totalPages = Math.ceil(paymentHistory.length / rowsPerPage);
+    const paginatedHistory = paymentHistory.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
+
+    const handleRowsPerPageChange = (value: string) => {
+        setRowsPerPage(Number(value));
+        setPage(0);
+    };
 
     const handlePaymentSuccess = () => {
         const newPayment: PaymentHistory = {
@@ -96,6 +111,26 @@ export function FeePaymentDetails({ student }: FeePaymentDetailsProps) {
         if (totalPaid >= cumulativeAmountDue) return "Paid";
         if (new Date() > new Date(installment.dueDate)) return "Overdue";
         return "Pending";
+    };
+    
+    const handleExport = () => {
+        const headers = ["Date", "Amount", "Method", "Transaction ID"];
+        const rows = paymentHistory.map(p => [
+            new Date(p.date).toLocaleDateString(),
+            `₹${p.amount.toLocaleString()}`,
+            p.method,
+            p.transactionId
+        ]);
+        let csvContent = headers.join(",") + "\n" + rows.map(e => e.join(",")).join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `payment-history-${student.name}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast({ title: "Exported!", description: "Your payment history has been downloaded." });
     };
 
     if (isLoading) {
@@ -189,11 +224,19 @@ export function FeePaymentDetails({ student }: FeePaymentDetailsProps) {
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Payment History</CardTitle>
-                            <CardDescription>A record of all your past fee payments.</CardDescription>
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                                <div>
+                                    <CardTitle>Payment History</CardTitle>
+                                    <CardDescription>A record of all your past fee payments.</CardDescription>
+                                </div>
+                                <Button variant="outline" size="sm" onClick={handleExport} disabled={paymentHistory.length === 0}>
+                                    <Download className="mr-2 h-4 w-4" />
+                                    Export CSV
+                                </Button>
+                            </div>
                         </CardHeader>
                         <CardContent>
-                             <div className="rounded-md border">
+                             <div className="hidden md:block rounded-md border">
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
@@ -205,7 +248,7 @@ export function FeePaymentDetails({ student }: FeePaymentDetailsProps) {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {paymentHistory.length > 0 ? paymentHistory.map(p => (
+                                        {paginatedHistory.length > 0 ? paginatedHistory.map(p => (
                                             <TableRow key={p.id}>
                                                 <TableCell>{new Date(p.date).toLocaleDateString()}</TableCell>
                                                 <TableCell>₹{p.amount.toLocaleString()}</TableCell>
@@ -219,12 +262,78 @@ export function FeePaymentDetails({ student }: FeePaymentDetailsProps) {
                                             </TableRow>
                                         )) : (
                                             <TableRow>
-                                                <TableCell colSpan={5} className="text-center text-muted-foreground">No payment history found.</TableCell>
+                                                <TableCell colSpan={5}>
+                                                    <EmptyState title="No Payments Yet" description="Your payment history will appear here once you make a payment." />
+                                                </TableCell>
                                             </TableRow>
                                         )}
                                     </TableBody>
                                 </Table>
                             </div>
+
+                            <div className="md:hidden space-y-4">
+                                {paginatedHistory.length > 0 ? paginatedHistory.map(p => (
+                                    <Card key={p.id}>
+                                        <CardContent className="p-4 space-y-2">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <div className="font-semibold text-lg">₹{p.amount.toLocaleString()}</div>
+                                                    <div className="text-sm text-muted-foreground">{new Date(p.date).toLocaleDateString()}</div>
+                                                </div>
+                                                <Badge variant="default">Paid</Badge>
+                                            </div>
+                                            <div className="text-xs text-muted-foreground space-y-1">
+                                                <p>Method: {p.method}</p>
+                                                <p>ID: {p.transactionId}</p>
+                                            </div>
+                                            <Button variant="outline" size="sm" className="w-full" onClick={() => handleViewReceipt(p)}>
+                                                <Receipt className="mr-2 h-4 w-4" />
+                                                View Receipt
+                                            </Button>
+                                        </CardContent>
+                                    </Card>
+                                )) : (
+                                    <EmptyState title="No Payments Yet" description="Your payment history will appear here." />
+                                )}
+                            </div>
+                            
+                            {paymentHistory.length > rowsPerPage && (
+                                <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-4">
+                                    <div className="flex items-center space-x-2">
+                                        <span className="text-sm text-muted-foreground">Rows per page</span>
+                                        <Select onValueChange={handleRowsPerPageChange} defaultValue={`${rowsPerPage}`}>
+                                            <SelectTrigger className="w-20">
+                                                <SelectValue placeholder={`${rowsPerPage}`} />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="5">5</SelectItem>
+                                                <SelectItem value="10">10</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <span className="text-sm text-muted-foreground">
+                                            Page {page + 1} of {totalPages}
+                                        </span>
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => setPage(p => Math.max(0, p - 1))}
+                                            disabled={page === 0}
+                                        >
+                                            <ChevronLeft className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                                            disabled={page >= totalPages - 1}
+                                        >
+                                            <ChevronRight className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </div>
