@@ -23,6 +23,7 @@ import { useUpdateGradeMutation } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface GradebookTableProps {
   students: Student[];
@@ -53,6 +54,7 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
 
   const [updateGrade, { isLoading: isUpdatingGrade }] = useUpdateGradeMutation();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const filteredStudentsForClass = students.filter(student => {
     if (classFilter === 'all') return true;
@@ -213,6 +215,58 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
                     : "No assignments have been created yet for this class. Create assignments first."
                 }
             />
+          ) : isMobile ? (
+            <div className="space-y-4">
+              {paginatedStudents.map(student => (
+                <Card key={student._id}>
+                  <CardHeader>
+                    <CardTitle className="text-base">{student.name}</CardTitle>
+                    <CardDescription>{student.rollNo}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {filteredAssignments.map(assignment => {
+                        const grade = getStudentGrade(student._id!, assignment._id);
+                        return (
+                           <div key={assignment._id} className="p-3 bg-muted/50 rounded-lg">
+                               <div className="flex justify-between items-start">
+                                    <div>
+                                        <p className="font-medium">{assignment.title}</p>
+                                        <p className="text-xs text-muted-foreground">{assignment.courseName}</p>
+                                    </div>
+                                    {grade ? (
+                                        <Badge className={cn("text-xs", statusColor[grade.status])}>
+                                            {grade.status}
+                                        </Badge>
+                                     ) : (
+                                        <Badge variant="outline" className="text-xs">
+                                            Not Submitted
+                                        </Badge>
+                                    )}
+                               </div>
+                               <div className="flex justify-between items-end mt-2">
+                                   <div>
+                                        <p className="text-xs text-muted-foreground">Grade</p>
+                                        {grade ? (
+                                            <span className={cn("font-semibold", grade.marks && grade.marks < (assignment.totalMarks / 2) && "text-destructive")}>
+                                                {grade.marks !== null ? `${grade.marks}/${assignment.totalMarks}` : 'Not Graded'}
+                                            </span>
+                                        ) : (
+                                            <span className="text-muted-foreground text-sm">-</span>
+                                        )}
+                                   </div>
+                                    {grade && (
+                                        <Button size="sm" variant="outline" onClick={() => handleViewSubmission(student, assignment)}>
+                                            Grade
+                                        </Button>
+                                    )}
+                               </div>
+                           </div>
+                        )
+                    })}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           ) : (
           <>
             <div className="rounded-md border overflow-x-auto">
@@ -365,5 +419,3 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
     </>
   );
 }
-
-    
