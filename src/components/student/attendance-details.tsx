@@ -205,7 +205,9 @@ export function AttendanceDetails() {
                   Export CSV
               </Button>
           </div>
-          <div className="rounded-md border">
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -221,10 +223,51 @@ export function AttendanceDetails() {
               </TableBody>
             </Table>
           </div>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden space-y-4">
+            {isLoading ? (
+                [...Array(3)].map((_, i) => (
+                    <Card key={i}>
+                        <CardContent className="p-4 space-y-3">
+                            <Skeleton className="h-6 w-3/4" />
+                            <Skeleton className="h-4 w-1/2" />
+                            <Skeleton className="h-10 w-full" />
+                        </CardContent>
+                    </Card>
+                ))
+            ) : paginatedRecords.length === 0 ? (
+                <EmptyState title="No Records Found" description="Your attendance records will appear here." />
+            ) : (
+                paginatedRecords.map((record: any) => (
+                    <Card key={record._id}>
+                        <CardContent className="p-4 space-y-3">
+                            <div className="flex items-start justify-between">
+                                <div>
+                                    <h3 className="font-semibold text-base">{record.course || 'N/A'}</h3>
+                                    <p className="text-sm text-muted-foreground mt-1">
+                                        {new Date(record.date).toLocaleDateString()}
+                                    </p>
+                                </div>
+                                <Badge variant={statusVariant[record.status as AttendanceStatus] || 'default'}>
+                                    {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+                                </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground">Marked by: {record.teacherName}</p>
+                            <Button variant="outline" size="sm" className="w-full" onClick={() => handleRequestChangeClick(record)}>
+                                <Edit className="mr-2 h-3 w-3" />
+                                Request Change
+                            </Button>
+                        </CardContent>
+                    </Card>
+                ))
+            )}
+          </div>
+          
           {paginatedRecords.length > 0 && (
-            <div className="flex items-center justify-between mt-4">
-              <div className="flex items-center space-x-2">
-                  <span className="text-sm text-muted-foreground">Rows per page</span>
+            <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-4">
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
+                  <span className="text-sm text-muted-foreground whitespace-nowrap">Rows per page</span>
                   <Select onValueChange={handleRowsPerPageChange} defaultValue={`${rowsPerPage}`}>
                       <SelectTrigger className="w-20">
                           <SelectValue placeholder={`${rowsPerPage}`} />
@@ -236,26 +279,28 @@ export function AttendanceDetails() {
                       </SelectContent>
                   </Select>
               </div>
-              <div className="flex items-center space-x-2">
-                  <span className="text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground whitespace-nowrap">
                       Page {page + 1} of {totalPages || 1}
                   </span>
-                  <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setPage(p => Math.max(0, p - 1))}
-                      disabled={page === 0}
-                  >
-                      <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-                      disabled={page >= totalPages - 1}
-                  >
-                      <ChevronRight className="h-4 w-4" />
-                  </Button>
+                  <div className="flex gap-1">
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setPage(p => Math.max(0, p - 1))}
+                        disabled={page === 0}
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                        disabled={page >= totalPages - 1}
+                    >
+                        <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
               </div>
             </div>
           )}
