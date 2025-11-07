@@ -18,10 +18,6 @@ export function StudentDashboardHeader({ name, profileImage }: StudentDashboardH
           Here is your academic overview for the semester.
         </p>
       </div>
-      <Avatar className="h-12 w-12 hidden sm:flex">
-        <AvatarImage src={profileImage || "https://placehold.co/100x100.png"} alt={name} />
-        <AvatarFallback>{name.charAt(0)}</AvatarFallback>
-      </Avatar>
     </div>
   );
 }
