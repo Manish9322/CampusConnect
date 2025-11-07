@@ -115,28 +115,29 @@ export function AssignmentsList({ student }: AssignmentsListProps) {
         const hasAttachment = assignment.attachments && assignment.attachments.length > 0;
 
         return (
-            <Card key={assignment._id} className="flex flex-col hover:shadow-md transition-shadow">
+            <Card key={assignment._id} className="flex flex-col hover:shadow-md transition-shadow duration-300">
                 <CardHeader>
                     <div className="flex justify-between items-start gap-2">
-                        <CardTitle className="text-lg">{assignment.title}</CardTitle>
                         <Badge variant="outline">{assignment.courseName}</Badge>
+                        <Badge variant={config.variant} className="flex items-center gap-2">
+                            <config.icon className="h-4 w-4" />
+                            <span>{status}</span>
+                         </Badge>
                     </div>
+                    <CardTitle className="text-lg pt-2">{assignment.title}</CardTitle>
                     <CardDescription>Due: {new Date(assignment.dueDate).toLocaleDateString()}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1 space-y-4">
                     <p className="text-sm text-muted-foreground line-clamp-2 min-h-[40px]">{assignment.description}</p>
-                    <div className="flex items-center justify-between pt-2">
-                         <Badge variant={config.variant} className="flex items-center gap-2">
-                            <config.icon className="h-4 w-4" />
-                            <span>{status}</span>
-                         </Badge>
-                         {gradeInfo?.marks !== null && gradeInfo?.marks !== undefined && (
-                            <div className="flex items-center gap-2 text-primary font-semibold">
+                    {gradeInfo?.marks !== null && gradeInfo?.marks !== undefined && (
+                        <div className="flex items-center justify-between pt-2 border-t">
+                             <div className="flex items-center gap-2 text-primary font-semibold">
                                 <Award className="h-4 w-4" />
-                                <span>Grade: {gradeInfo.marks} / {assignment.totalMarks}</span>
+                                <span>Grade</span>
                             </div>
-                        )}
-                    </div>
+                            <span className="font-bold text-lg">{gradeInfo.marks} / {assignment.totalMarks}</span>
+                        </div>
+                    )}
                 </CardContent>
                 <CardFooter className="flex gap-2">
                     {hasAttachment && (
@@ -148,19 +149,19 @@ export function AssignmentsList({ student }: AssignmentsListProps) {
                         </a>
                     )}
                     {status === 'Pending' && (
-                        <Button className="w-full flex-1" onClick={() => handleOpenSubmit(assignment)}>
+                        <Button className={cn("w-full", hasAttachment ? "flex-1" : "w-full")} onClick={() => handleOpenSubmit(assignment)}>
                             <Upload className="mr-2 h-4 w-4" />
                             Submit
                         </Button>
                     )}
                      {(status === 'Submitted' || status === 'Late') && !gradeInfo?.marks && (
-                        <Button className="w-full flex-1" variant="secondary" disabled>
+                        <Button className="w-full" variant="secondary" disabled>
                             <CheckCircle className="mr-2 h-4 w-4" />
                             Submitted
                         </Button>
                     )}
                     {gradeInfo?.marks !== null && gradeInfo?.marks !== undefined && (
-                         <Button className="w-full flex-1" variant="outline" disabled>
+                         <Button className="w-full" variant="outline" disabled>
                             Graded
                         </Button>
                     )}
@@ -177,9 +178,10 @@ export function AssignmentsList({ student }: AssignmentsListProps) {
 
   return (
     <>
-      {/* Stat Cards Section */}
       <div className="mb-6">
-        <AssignmentStatCards assignments={assignments} grades={grades} />
+        <div className="grid gap-4 md:grid-cols-2">
+            <AssignmentStatCards assignments={assignments} grades={grades} />
+        </div>
       </div>
       
       <Card>
