@@ -3,15 +3,21 @@
 import * as React from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { mockStudents } from "@/lib/mock-data";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, BookCopy, CalendarCheck, Users } from "lucide-react";
 import Link from "next/link";
 import { UpcomingClassesCard } from "./upcoming-classes-card";
 import { Skeleton } from "../ui/skeleton";
 import { EmptyState } from "../shared/empty-state";
+import { Student, Teacher, Class } from "@/lib/types";
 
-export function TeacherDashboardCards() {
+interface TeacherDashboardCardsProps {
+    teacher: Teacher | null;
+    teacherClasses: Class[];
+    teacherStudents: Student[];
+}
+
+export function TeacherDashboardCards({ teacher, teacherClasses, teacherStudents }: TeacherDashboardCardsProps) {
     const [isLoading, setIsLoading] = React.useState(true);
 
     React.useEffect(() => {
@@ -19,7 +25,9 @@ export function TeacherDashboardCards() {
         return () => clearTimeout(timer);
     }, []);
     
-    const recentlyAbsent = mockStudents.filter(s => s.attendancePercentage < 80).slice(0, 3);
+    const recentlyAbsent = teacherStudents
+        .filter(s => (s.attendancePercentage || 100) < 80)
+        .slice(0, 3);
 
     if (isLoading) {
         return (
@@ -110,7 +118,7 @@ export function TeacherDashboardCards() {
 
             {/* Upcoming Classes Card */}
             <Card className="lg:col-span-2">
-               <UpcomingClassesCard />
+               <UpcomingClassesCard teacher={teacher} />
             </Card>
 
              {/* Total Students Card */}
@@ -120,7 +128,7 @@ export function TeacherDashboardCards() {
                     <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">45</div>
+                    <div className="text-2xl font-bold">{teacherStudents.length}</div>
                     <p className="text-xs text-muted-foreground">Across all your classes</p>
                 </CardContent>
                 <CardFooter>
@@ -137,8 +145,8 @@ export function TeacherDashboardCards() {
                     <BookCopy className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">2</div>
-                    <p className="text-xs text-muted-foreground">CS101, CS303</p>
+                    <div className="text-2xl font-bold">{teacherClasses.length}</div>
+                    <p className="text-xs text-muted-foreground truncate">{teacherClasses.map(c => c.name).join(', ')}</p>
                 </CardContent>
                  <CardFooter>
                      <Button variant="link" asChild className="p-0 h-auto">
@@ -150,15 +158,15 @@ export function TeacherDashboardCards() {
              {/* Recent Absences Card */}
             <Card className="lg:col-span-2">
                 <CardHeader>
-                    <CardTitle>Recent Absences</CardTitle>
-                    <CardDescription>Students with low recent attendance.</CardDescription>
+                    <CardTitle>Low Attendance Students</CardTitle>
+                    <CardDescription>Students with attendance below 80%.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {recentlyAbsent.length > 0 ? recentlyAbsent.map(student => (
-                         <div key={student.id} className="flex items-center justify-between">
+                         <div key={student._id} className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
                                 <Avatar>
-                                    <AvatarImage src={`https://placehold.co/40x40.png`} data-ai-hint="person portrait" />
+                                    <AvatarImage src={student.profileImage} data-ai-hint="person portrait" />
                                     <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
                                 </Avatar>
                                 <div>
