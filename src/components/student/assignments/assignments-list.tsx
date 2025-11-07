@@ -6,7 +6,7 @@ import { Assignment, Grade, SubmissionStatus, Student } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, CheckCircle, Upload, Award, AlertTriangle, ListFilter, ChevronsUpDown } from "lucide-react";
+import { Clock, CheckCircle, Upload, Award, AlertTriangle, ListFilter, ChevronsUpDown, File } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -112,6 +112,7 @@ export function AssignmentsList({ student }: AssignmentsListProps) {
         const gradeInfo = getGradeInfo(assignment._id);
         const status = gradeInfo?.status || 'Pending';
         const config = statusConfig[status as SubmissionStatus];
+        const hasAttachment = assignment.attachments && assignment.attachments.length > 0;
 
         return (
             <Card key={assignment._id} className="flex flex-col hover:shadow-md transition-shadow">
@@ -137,21 +138,29 @@ export function AssignmentsList({ student }: AssignmentsListProps) {
                         )}
                     </div>
                 </CardContent>
-                <CardFooter>
+                <CardFooter className="flex gap-2">
+                    {hasAttachment && (
+                        <a href={assignment.attachments![0].url} target="_blank" rel="noopener noreferrer" className="flex-1">
+                            <Button variant="outline" className="w-full">
+                                <File className="mr-2 h-4 w-4" />
+                                View Attachment
+                            </Button>
+                        </a>
+                    )}
                     {status === 'Pending' && (
-                        <Button className="w-full" onClick={() => handleOpenSubmit(assignment)}>
+                        <Button className="w-full flex-1" onClick={() => handleOpenSubmit(assignment)}>
                             <Upload className="mr-2 h-4 w-4" />
-                            Submit Assignment
+                            Submit
                         </Button>
                     )}
                      {(status === 'Submitted' || status === 'Late') && !gradeInfo?.marks && (
-                        <Button className="w-full" variant="secondary" disabled>
+                        <Button className="w-full flex-1" variant="secondary" disabled>
                             <CheckCircle className="mr-2 h-4 w-4" />
-                            Submitted for Grading
+                            Submitted
                         </Button>
                     )}
                     {gradeInfo?.marks !== null && gradeInfo?.marks !== undefined && (
-                         <Button className="w-full" variant="outline" disabled>
+                         <Button className="w-full flex-1" variant="outline" disabled>
                             Graded
                         </Button>
                     )}
