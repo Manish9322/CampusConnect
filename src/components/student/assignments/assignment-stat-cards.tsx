@@ -29,28 +29,24 @@ export function AssignmentStatCards({ assignments, grades }: AssignmentStatCards
       value: totalAssignments,
       icon: ClipboardList,
       color: "text-blue-500",
-      bgColor: "bg-blue-50 dark:bg-blue-950",
     },
     {
       title: "Pending",
       value: pendingAssignments.length,
       icon: Clock,
       color: "text-yellow-500",
-      bgColor: "bg-yellow-50 dark:bg-yellow-950",
     },
     {
       title: "Submitted",
       value: grades.length,
       icon: CheckCircle,
       color: "text-green-500",
-      bgColor: "bg-green-50 dark:bg-green-950",
     },
     {
       title: "Late Submissions",
       value: lateSubmissions.length,
       icon: AlertTriangle,
       color: "text-red-500",
-      bgColor: "bg-red-50 dark:bg-red-950",
     },
   ];
 
@@ -60,9 +56,7 @@ export function AssignmentStatCards({ assignments, grades }: AssignmentStatCards
         <Card key={index} className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-            <div className={`p-2 rounded-lg ${stat.bgColor}`}>
               <stat.icon className={`h-4 w-4 ${stat.color}`} />
-            </div>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stat.value}</div>
