@@ -124,8 +124,8 @@ export function AssignmentsList({ student }: AssignmentsListProps) {
                     <CardDescription>Due: {new Date(assignment.dueDate).toLocaleDateString()}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1 space-y-4">
-                    <p className="text-sm text-muted-foreground line-clamp-2 h-10">{assignment.description}</p>
-                    <div className="flex items-center gap-4 pt-2">
+                    <p className="text-sm text-muted-foreground line-clamp-2 min-h-[40px]">{assignment.description}</p>
+                    <div className="flex items-center justify-between pt-2">
                          <Badge variant={config.variant} className="flex items-center gap-2">
                             <config.icon className="h-4 w-4" />
                             <span>{status}</span>
