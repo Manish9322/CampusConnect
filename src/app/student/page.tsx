@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -7,7 +8,6 @@ import { UpcomingClasses } from "@/components/student/dashboard/upcoming-classes
 import { RecentAttendance } from "@/components/student/dashboard/recent-attendance";
 import { QuickLinks } from "@/components/student/dashboard/quick-links";
 import { UpcomingAssignments } from "@/components/student/dashboard/upcoming-assignments";
-import { MarkAttendanceCard } from "@/components/student/dashboard/mark-attendance-card";
 import { StudentAttendanceChart } from "@/components/student/dashboard/student-attendance-chart";
 import { GradeDistributionChart } from "@/components/student/dashboard/grade-distribution-chart";
 import { SubjectPerformanceChart } from "@/components/student/dashboard/subject-performance-chart";
@@ -62,7 +62,10 @@ export default function StudentDashboardPage() {
       />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:order-2 lg:col-span-1">
-            <MarkAttendanceCard student={student} />
+            <GradeDistributionChart 
+              assignments={assignments}
+              grades={grades}
+            />
         </div>
         <div className="lg:order-1 lg:col-span-2">
           <StudentAttendanceChart 
@@ -71,13 +74,13 @@ export default function StudentDashboardPage() {
         </div>
       </div>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <GradeDistributionChart 
-          assignments={assignments}
-          grades={grades}
-        />
         <SubjectPerformanceChart 
           assignments={assignments}
           grades={grades}
+        />
+        <UpcomingAssignments 
+            assignments={assignments}
+            grades={grades}
         />
       </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -89,10 +92,6 @@ export default function StudentDashboardPage() {
             />
         </div>
         <div className="lg:col-span-1 space-y-6">
-            <UpcomingAssignments 
-              assignments={assignments}
-              grades={grades}
-            />
             <QuickLinks />
         </div>
       </div>
