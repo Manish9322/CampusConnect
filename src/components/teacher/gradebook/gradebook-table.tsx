@@ -38,10 +38,14 @@ const statusColor: { [key in SubmissionStatus]: string } = {
     'Late': 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300',
 };
 
+const ASSIGNMENTS_PER_PAGE = 3;
+
 export function GradebookTable({ students, assignments, grades, classes, onGradeUpdate }: GradebookTableProps) {
   const [searchTerm, setSearchTerm] = React.useState("");
   const [classFilter, setClassFilter] = React.useState<string>(classes[0]?._id || "all");
-  const [page, setPage] = React.useState(0);
+  const [assignmentFilter, setAssignmentFilter] = React.useState<string>("all");
+  const [studentPage, setStudentPage] = React.useState(0);
+  const [assignmentPage, setAssignmentPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
   const [isGradingDialogOpen, setGradingDialogOpen] = React.useState(false);
@@ -52,7 +56,6 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
 
   const filteredStudentsForClass = students.filter(student => {
     if (classFilter === 'all') return true;
-    // Handle both string and object ID comparisons
     const studentClassId = typeof student.classId === 'object' ? (student.classId as any)?._id : student.classId;
     return studentClassId === classFilter || studentClassId?.toString() === classFilter?.toString();
   });
@@ -61,96 +64,40 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
     (student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (student.rollNo && student.rollNo.toLowerCase().includes(searchTerm.toLowerCase())))
   );
-  
-  console.log('Filtered Students Debug:', {
-    totalStudentsPassed: students.length,
-    classFilter,
-    studentsAfterClassFilter: filteredStudentsForClass.length,
-    studentsAfterSearch: filteredStudents.length,
-    sampleStudent: students[0] ? {
-      id: students[0]._id,
-      name: students[0].name,
-      classId: students[0].classId
-    } : null
-  });
 
-  // Pagination calculations
-  const totalPages = Math.ceil(filteredStudents.length / rowsPerPage);
-  const paginatedStudents = filteredStudents.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
+  const studentTotalPages = Math.ceil(filteredStudents.length / rowsPerPage);
+  const paginatedStudents = filteredStudents.slice(studentPage * rowsPerPage, (studentPage + 1) * rowsPerPage);
 
   const handleRowsPerPageChange = (value: string) => {
     setRowsPerPage(Number(value));
-    setPage(0);
+    setStudentPage(0);
   };
 
-  // Reset page when search or filter changes
   React.useEffect(() => {
-    setPage(0);
-  }, [searchTerm, classFilter]);
+    setStudentPage(0);
+  }, [searchTerm, classFilter, assignmentFilter]);
 
-  // Filter assignments based on selected class
+  const classAssignments = React.useMemo(() => {
+    return assignments
+      .filter(assignment => classFilter === 'all' || assignment.courseId === classFilter)
+      .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+  }, [assignments, classFilter]);
+    
   const filteredAssignments = React.useMemo(() => {
-    // Filter assignments by class selection
-    const classFilteredAssignments = assignments.filter(assignment => {
-      return classFilter === 'all' || assignment.courseId === classFilter;
-    });
-    
-    // Get submission statistics for debugging
-    const submittedAssignmentIds = new Set(
-      grades
-        .filter(grade => {
-          const gradeStudentId = typeof grade.studentId === 'object' ? (grade.studentId as any)?._id : grade.studentId;
-          return filteredStudentsForClass.some(s => s._id === gradeStudentId || s._id?.toString() === gradeStudentId?.toString());
-        })
-        .map(grade => {
-          const gradeAssignmentId = typeof grade.assignmentId === 'object' ? (grade.assignmentId as any)?._id : grade.assignmentId;
-          return gradeAssignmentId;
-        })
-    );
-    
-    console.log('=== GRADEBOOK DEBUG ===');
-    console.log('Assignments:', {
-      total: assignments.length,
-      classFiltered: classFilteredAssignments.length,
-      assignmentIds: classFilteredAssignments.map(a => ({ id: a._id, title: a.title, courseId: a.courseId })),
-    });
-    console.log('Students:', {
-      total: filteredStudentsForClass.length,
-      studentIds: filteredStudentsForClass.map(s => ({ id: s._id, name: s.name, classId: s.classId })),
-    });
-    console.log('Grades:', {
-      total: grades.length,
-      allGrades: grades.map(g => ({ 
-        studentId: typeof g.studentId === 'object' ? (g.studentId as any)?._id : g.studentId,
-        assignmentId: typeof g.assignmentId === 'object' ? (g.assignmentId as any)?._id : g.assignmentId,
-        status: g.status,
-        marks: g.marks 
-      })),
-      submittedAssignmentIds: Array.from(submittedAssignmentIds),
-    });
-    console.log('Filter:', { classFilter });
-    
-    // Return assignments sorted by due date
-    return classFilteredAssignments.sort((a, b) => 
-      new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
-    );
-  }, [assignments, grades, classFilter, filteredStudentsForClass]);
+      if (assignmentFilter === 'all') return classAssignments;
+      return classAssignments.filter(a => a._id === assignmentFilter);
+  }, [classAssignments, assignmentFilter]);
+
+  const assignmentTotalPages = Math.ceil(filteredAssignments.length / ASSIGNMENTS_PER_PAGE);
+  const paginatedAssignments = filteredAssignments.slice(assignmentPage * ASSIGNMENTS_PER_PAGE, (assignmentPage + 1) * ASSIGNMENTS_PER_PAGE);
 
   const getStudentGrade = (studentId: string, assignmentId: string) => {
-    const grade = grades.find(g => {
-      // Handle both string and object ID comparisons
+    return grades.find(g => {
       const gradeStudentId = typeof g.studentId === 'object' ? (g.studentId as any)?._id : g.studentId;
       const gradeAssignmentId = typeof g.assignmentId === 'object' ? (g.assignmentId as any)?._id : g.assignmentId;
-      
       return (gradeStudentId === studentId || gradeStudentId === studentId.toString()) && 
              (gradeAssignmentId === assignmentId || gradeAssignmentId === assignmentId.toString());
     });
-    
-    if (grade) {
-      console.log('Found grade match:', { studentId, assignmentId, gradeStudentId: grade.studentId, gradeAssignmentId: grade.assignmentId });
-    }
-    
-    return grade;
   };
   
   const getSubmissionCount = (assignmentId: string) => {
@@ -228,22 +175,33 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
             <CardDescription>View, enter, and edit grades for all students and assignments.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
             <Input
               placeholder="Search by student name or roll no..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full sm:max-w-sm"
+              className="w-full md:max-w-xs"
             />
-            <Select value={classFilter} onValueChange={setClassFilter}>
-              <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Filter by class"/>
-              </SelectTrigger>
-              <SelectContent>
-                  <SelectItem value="all">All My Classes</SelectItem>
-                  {classes.map(c => <SelectItem key={c._id} value={c._id!}>{c.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
+                <Select value={classFilter} onValueChange={setClassFilter}>
+                  <SelectTrigger className="w-full sm:w-48">
+                      <SelectValue placeholder="Filter by class"/>
+                  </SelectTrigger>
+                  <SelectContent>
+                      <SelectItem value="all">All My Classes</SelectItem>
+                      {classes.map(c => <SelectItem key={c._id} value={c._id!}>{c.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                 <Select value={assignmentFilter} onValueChange={setAssignmentFilter}>
+                  <SelectTrigger className="w-full sm:w-48">
+                      <SelectValue placeholder="Filter by assignment"/>
+                  </SelectTrigger>
+                  <SelectContent>
+                      <SelectItem value="all">All Assignments</SelectItem>
+                      {classAssignments.map(a => <SelectItem key={a._id} value={a._id!}>{a.title}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+            </div>
           </div>
       
           {(filteredStudents.length === 0 || filteredAssignments.length === 0) ? (
@@ -262,7 +220,7 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
                 <TableHeader>
                     <TableRow>
                         <TableHead className="sticky left-0 bg-background z-10 min-w-40">Student Name</TableHead>
-                        {filteredAssignments.map(assignment => {
+                        {paginatedAssignments.map(assignment => {
                             const submissionCount = getSubmissionCount(assignment._id);
                             const totalStudents = filteredStudentsForClass.length;
                             return (
@@ -290,7 +248,7 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
                     {paginatedStudents.map(student => (
                         <TableRow key={student._id}>
                             <TableCell className="font-medium sticky left-0 bg-background z-10">{student.name}</TableCell>
-                            {filteredAssignments.map(assignment => {
+                            {paginatedAssignments.map(assignment => {
                                 const grade = getStudentGrade(student._id!, assignment._id);
                                 return (
                                     <React.Fragment key={assignment._id}>
@@ -330,7 +288,7 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
             </div>
             <div className="flex items-center justify-between mt-4">
                 <div className="flex items-center space-x-2">
-                    <span className="text-sm text-muted-foreground">Rows per page</span>
+                    <span className="text-sm text-muted-foreground">Students per page</span>
                     <Select onValueChange={handleRowsPerPageChange} defaultValue={`${rowsPerPage}`}>
                         <SelectTrigger className="w-20">
                             <SelectValue placeholder={`${rowsPerPage}`} />
@@ -343,23 +301,46 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
                         </SelectContent>
                     </Select>
                 </div>
-                <div className="flex items-center space-x-2">
+
+                 <div className="flex items-center space-x-2">
                     <span className="text-sm text-muted-foreground">
-                        Page {totalPages > 0 ? page + 1 : 0} of {totalPages || 1}
+                        Assignment Page {assignmentPage + 1} of {assignmentTotalPages}
                     </span>
                     <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => setPage(p => Math.max(0, p - 1))}
-                        disabled={page === 0}
+                        onClick={() => setAssignmentPage(p => Math.max(0, p - 1))}
+                        disabled={assignmentPage === 0}
                     >
                         <ChevronLeft className="h-4 w-4" />
                     </Button>
                     <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-                        disabled={page >= totalPages - 1 || totalPages === 0}
+                        onClick={() => setAssignmentPage(p => Math.min(assignmentTotalPages - 1, p + 1))}
+                        disabled={assignmentPage >= assignmentTotalPages - 1}
+                    >
+                        <ChevronRight className="h-4 w-4" />
+                    </Button>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                    <span className="text-sm text-muted-foreground">
+                        Student Page {studentTotalPages > 0 ? studentPage + 1 : 0} of {studentTotalPages}
+                    </span>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setStudentPage(p => Math.max(0, p - 1))}
+                        disabled={studentPage === 0}
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setStudentPage(p => Math.min(studentTotalPages - 1, p + 1))}
+                        disabled={studentPage >= studentTotalPages - 1 || studentTotalPages === 0}
                     >
                         <ChevronRight className="h-4 w-4" />
                     </Button>
@@ -384,3 +365,5 @@ export function GradebookTable({ students, assignments, grades, classes, onGrade
     </>
   );
 }
+
+    
