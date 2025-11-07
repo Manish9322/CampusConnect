@@ -28,25 +28,25 @@ export function AssignmentStatCards({ assignments, grades }: AssignmentStatCards
       title: "Total Assignments",
       value: totalAssignments,
       icon: ClipboardList,
-      color: "text-blue-500",
+      color: "text-muted-foreground",
     },
     {
       title: "Pending",
       value: pendingAssignments.length,
       icon: Clock,
-      color: "text-yellow-500",
+      color: "text-muted-foreground",
     },
     {
       title: "Submitted",
       value: grades.length,
       icon: CheckCircle,
-      color: "text-green-500",
+      color: "text-muted-foreground",
     },
     {
       title: "Late Submissions",
       value: lateSubmissions.length,
       icon: AlertTriangle,
-      color: "text-red-500",
+      color: "text-muted-foreground",
     },
   ];
 
