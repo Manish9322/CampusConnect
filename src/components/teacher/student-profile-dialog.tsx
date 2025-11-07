@@ -53,7 +53,7 @@ const examMarksData = [
 const chartConfig = {
   attendance: {
     label: "Attendance (%)",
-    color: "hsl(var(--primary))",
+    color: "hsl(var(--chart-1))",
   },
   score: {
     label: "Score (%)",
