@@ -16,7 +16,7 @@ export function PublicFooter() {
           &copy; {new Date().getFullYear()} CampusConnect. All rights reserved.
         </p>
         <nav className="sm:ml-auto flex items-center gap-4 sm:gap-6">
-          <Button variant="outline" size="sm" onClick={() => setFeedbackModalOpen(true)}>Provide Feedback</Button>
+          <Button variant="link" className="text-xs hover:underline underline-offset-4 px-0 h-auto" onClick={() => setFeedbackModalOpen(true)}>Provide Feedback</Button>
           <Link href="/terms" className="text-xs hover:underline underline-offset-4">
             Terms of Service
           </Link>
