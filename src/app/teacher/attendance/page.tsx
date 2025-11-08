@@ -29,7 +29,7 @@ export default function TeacherAttendancePage() {
     
     const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery(undefined);
     const { data: allStudents = [], isLoading: isLoadingStudents } = useGetStudentsQuery({});
-    const { data: allTimetables = [], isLoading: isLoadingTimetables } = useGetTimetableQuery({ day: today }, { skip: !today });
+    const { data: allTimetables = [], isLoading: isLoadingTimetables } = useGetTimetableQuery({}, { skip: !teacher });
 
     const isLoading = isLoadingClasses || isLoadingStudents || isLoadingTimetables || !user;
 
@@ -38,11 +38,13 @@ export default function TeacherAttendancePage() {
         
         const teacherId = user?._id || user?.id;
         if (!teacherId) return [];
-        
+
         const scheduledClassIds = allTimetables
             .filter((tt: Timetable) => tt.day === today)
             .flatMap((tt: Timetable) => 
-                tt.periods.filter(p => (p.teacherId?._id || p.teacherId) === teacherId).map(() => tt.classId?._id || tt.classId)
+                tt.periods
+                  .filter(p => (p.teacherId as any)?._id === teacherId || p.teacherId === teacherId)
+                  .map(() => (tt.classId as any)?._id || tt.classId)
             );
         
         const uniqueClassIds = [...new Set(scheduledClassIds)];
