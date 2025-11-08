@@ -12,7 +12,7 @@ export function LatestNewsSection() {
   const { data: news = [], isLoading } = useGetNewsQuery(undefined);
 
   // Directly use the latest news items without filtering by isPublished on the landing page
-  const latestNewsItems = news.slice(0, 3);
+  const latestNewsItems = news.slice(0, 4);
   const [latestNews, ...otherNews] = latestNewsItems;
 
   if (isLoading) {
@@ -35,7 +35,7 @@ export function LatestNewsSection() {
                 </div>
               </div>
               <div className="flex flex-col justify-center space-y-8">
-                {[...Array(2)].map((_, index) => (
+                {[...Array(3)].map((_, index) => (
                   <div key={index}>
                     <div className="group grid grid-cols-[100px_1fr] items-center gap-6">
                       <Skeleton className="h-24 w-24 rounded-lg" />
@@ -45,7 +45,7 @@ export function LatestNewsSection() {
                         <Skeleton className="h-4 w-3/5" />
                       </div>
                     </div>
-                    {index < 1 && <hr className="mt-8" />}
+                    {index < 2 && <hr className="mt-8" />}
                   </div>
                 ))}
               </div>
