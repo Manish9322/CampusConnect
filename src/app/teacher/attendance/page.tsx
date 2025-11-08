@@ -4,57 +4,64 @@ import * as React from "react";
 import { AttendanceTool } from "@/components/teacher/attendance-tool";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookCopy, Users, BarChart, Clock } from "lucide-react";
-import { useGetClassesQuery, useGetStudentsQuery } from "@/services/api";
+import { useGetClassesQuery, useGetStudentsQuery, useGetTimetableQuery } from "@/services/api";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Class, Student } from "@/lib/types";
+import { Class, Student, Teacher, Timetable, DayOfWeek } from "@/lib/types";
+
+const DAYS: DayOfWeek[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export default function TeacherAttendancePage() {
-    const [user, setUser] = React.useState<any>(null);
+    const [user, setUser] = React.useState<Teacher | null>(null);
+    const [today, setToday] = React.useState<DayOfWeek>('Monday');
 
     React.useEffect(() => {
         const storedUser = localStorage.getItem('teacher_user');
         if (storedUser) {
             const parsedUser = JSON.parse(storedUser);
-            // Ensure both id and _id are set for compatibility
             if (parsedUser.id && !parsedUser._id) {
                 parsedUser._id = parsedUser.id;
             }
             setUser(parsedUser);
         }
+        setToday(DAYS[new Date().getDay()]);
     }, []);
     
     const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery(undefined);
     const { data: allStudents = [], isLoading: isLoadingStudents } = useGetStudentsQuery({});
+    const { data: allTimetables = [], isLoading: isLoadingTimetables } = useGetTimetableQuery({ day: today }, { skip: !today });
 
-    const isLoading = isLoadingClasses || isLoadingStudents || !user;
+    const isLoading = isLoadingClasses || isLoadingStudents || isLoadingTimetables || !user;
 
-    const teacherClassesWithDetails = React.useMemo(() => {
-        if (!user || allClasses.length === 0) return [];
+    const teacherClassesForToday = React.useMemo(() => {
+        if (isLoading) return [];
         
-        const userId = user._id || user.id;
-        return allClasses
-            .filter((c: Class) => {
-                const classTeacherId = typeof c.teacherId === 'object' ? c.teacherId?._id : c.teacherId;
-                return classTeacherId === userId;
-            })
-            .map((c: Class) => {
-                // Filter students by matching classId (handle both string and object ID)
-                const studentsInClass = allStudents.filter((s: Student) => {
-                    const studentClassId = typeof s.classId === 'object' ? (s.classId as any)?._id : s.classId;
-                    return studentClassId === c._id || studentClassId === (c._id as any)?.toString();
-                });
-                
-                return {
-                    ...c,
-                    teacher: typeof c.teacherId === 'object' ? c.teacherId?.name : user.name,
-                    studentCount: studentsInClass.length,
-                    students: studentsInClass,
-                };
-            });
-    }, [user, allClasses, allStudents]);
+        const teacherId = user?._id || user?.id;
+        
+        // Find all unique class IDs the teacher is scheduled for today from the timetables
+        const scheduledClassIds = allTimetables
+            .filter((tt: Timetable) => tt.day === today)
+            .flatMap((tt: Timetable) => 
+                tt.periods.filter(p => (p.teacherId?._id || p.teacherId) === teacherId).map(() => tt.classId)
+            );
+        
+        const uniqueClassIds = [...new Set(scheduledClassIds)];
+        
+        // Get the full class details for those IDs
+        return allClasses.filter((c: Class) => uniqueClassIds.includes(c._id!));
+
+    }, [user, allClasses, allTimetables, today, isLoading]);
+
+    const teacherStudents = React.useMemo(() => {
+        if (!teacherClassesForToday.length || !allStudents.length) return [];
+        const classIds = teacherClassesForToday.map(c => c._id);
+        return allStudents.filter((s: Student) => {
+             const studentClassId = typeof s.classId === 'object' ? (s.classId as any)?._id : s.classId;
+             return classIds.includes(studentClassId);
+        });
+    }, [teacherClassesForToday, allStudents]);
 
     const stats = React.useMemo(() => {
-        if (isLoading || teacherClassesWithDetails.length === 0) {
+        if (isLoading || teacherClassesForToday.length === 0) {
             return {
                 coursesAssigned: 0,
                 totalStudents: 0,
@@ -63,9 +70,9 @@ export default function TeacherAttendancePage() {
             };
         }
 
-        const coursesAssigned = teacherClassesWithDetails.length;
-        const activeCourses = teacherClassesWithDetails.filter((c: any) => c.status === 'active').length;
-        const totalStudents = teacherClassesWithDetails.reduce((acc: number, c: any) => acc + c.studentCount, 0);
+        const coursesAssigned = teacherClassesForToday.length;
+        const activeCourses = teacherClassesForToday.filter((c: any) => c.status === 'active').length;
+        const totalStudents = teacherStudents.length;
         const avgClassSize = coursesAssigned > 0 ? Math.round(totalStudents / coursesAssigned) : 0;
 
         return {
@@ -75,7 +82,7 @@ export default function TeacherAttendancePage() {
             activeCourses,
         };
 
-    }, [isLoading, teacherClassesWithDetails]);
+    }, [isLoading, teacherClassesForToday, teacherStudents]);
 
     const renderStatCards = () => {
         if(isLoading) {
@@ -101,27 +108,27 @@ export default function TeacherAttendancePage() {
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Courses Assigned</CardTitle>
+                        <CardTitle className="text-sm font-medium">Courses Today</CardTitle>
                         <BookCopy className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{stats.coursesAssigned}</div>
-                        <p className="text-xs text-muted-foreground">
-                            {teacherClassesWithDetails.length > 0 
-                                ? teacherClassesWithDetails.map((c: Class) => c.name).join(', ')
-                                : 'No classes assigned'}
+                        <p className="text-xs text-muted-foreground truncate">
+                            {teacherClassesForToday.length > 0 
+                                ? teacherClassesForToday.map((c: Class) => c.name).join(', ')
+                                : 'No classes scheduled today'}
                         </p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Students</CardTitle>
+                        <CardTitle className="text-sm font-medium">Total Students Today</CardTitle>
                         <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{stats.totalStudents}</div>
                         <p className="text-xs text-muted-foreground">
-                            Across all classes
+                            Across all your classes today
                         </p>
                     </CardContent>
                 </Card>
@@ -156,7 +163,10 @@ export default function TeacherAttendancePage() {
     return (
         <div className="space-y-6">
             {renderStatCards()}
-            <AttendanceTool />
+            <AttendanceTool 
+                teacher={user}
+                teacherClasses={teacherClassesForToday}
+            />
         </div>
     );
 }

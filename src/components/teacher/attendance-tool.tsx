@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -13,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
 import { format, differenceInDays } from "date-fns";
-import { useAddAttendanceMutation, useGetAttendanceQuery, useGetClassesQuery, useGetStudentsQuery, useGetTimetableQuery } from "@/services/api";
+import { useAddAttendanceMutation, useGetAttendanceQuery, useGetStudentsQuery } from "@/services/api";
 import { Skeleton } from "../ui/skeleton";
 import { EmptyState } from "../shared/empty-state";
 import { ThreeStateToggle } from "../shared/three-state-toggle";
@@ -23,12 +22,14 @@ type AttendanceState = {
   [studentId: string]: AttendanceStatus;
 };
 
-const DAYS: DayOfWeek[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+interface AttendanceToolProps {
+    teacher: Teacher | null;
+    teacherClasses: Class[];
+}
 
-export function AttendanceTool() {
+export function AttendanceTool({ teacher, teacherClasses }: AttendanceToolProps) {
   const { toast } = useToast();
   
-  const [user, setUser] = React.useState<Teacher | null>(null);
   const [selectedClassId, setSelectedClassId] = React.useState<string>("");
   const [attendance, setAttendance] = React.useState<AttendanceState>({});
   const [page, setPage] = React.useState(0);
@@ -36,43 +37,12 @@ export function AttendanceTool() {
   const [date, setDate] = React.useState<Date | undefined>(new Date());
 
   React.useEffect(() => {
-    const storedUser = localStorage.getItem('teacher_user');
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      if (parsedUser.id && !parsedUser._id) {
-        parsedUser._id = parsedUser.id;
-      }
-      setUser(parsedUser);
-    }
-  }, []);
-
-  const selectedDay = date ? DAYS[date.getDay()] : undefined;
-
-  const { data: allTimetables = [], isLoading: isLoadingTimetables } = useGetTimetableQuery({ day: selectedDay }, { skip: !selectedDay });
-  const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery();
-  
-  const teacherClassesToday = React.useMemo(() => {
-    if (user && allClasses.length > 0 && allTimetables.length > 0) {
-      const teacherId = user._id || user.id;
-      const classIdsForTeacherToday = allTimetables
-        .flatMap((tt: Timetable) => tt.periods.map(p => ({ ...p, classId: tt.classId })))
-        .filter(period => (period.teacherId?._id || period.teacherId) === teacherId)
-        .map(period => period.classId);
-
-      const uniqueClassIds = [...new Set(classIdsForTeacherToday)];
-      
-      return allClasses.filter((c: any) => uniqueClassIds.includes(c._id));
-    }
-    return [];
-  }, [user, allClasses, allTimetables]);
-
-  React.useEffect(() => {
-    if (teacherClassesToday.length > 0 && !teacherClassesToday.find(c => c._id === selectedClassId)) {
-        setSelectedClassId(teacherClassesToday[0]._id!);
-    } else if (teacherClassesToday.length === 0) {
+    if (teacherClasses.length > 0 && !teacherClasses.find(c => c._id === selectedClassId)) {
+        setSelectedClassId(teacherClasses[0]._id!);
+    } else if (teacherClasses.length === 0) {
         setSelectedClassId("");
     }
-  }, [teacherClassesToday, selectedClassId]);
+  }, [teacherClasses, selectedClassId]);
 
   const { data: studentsInCourse = [], isLoading: isLoadingStudents } = useGetStudentsQuery(
     { classId: selectedClassId }, 
@@ -98,6 +68,8 @@ export function AttendanceTool() {
             newAttendance[student._id!] = record ? record.status : 'present';
         });
         setAttendance(newAttendance);
+    } else {
+        setAttendance({});
     }
   }, [studentsInCourse, existingAttendance]);
 
@@ -120,14 +92,14 @@ export function AttendanceTool() {
   };
 
   const handleSubmit = async () => {
-    if (!selectedClassId || !formattedDate || !user || isLocked) return;
+    if (!selectedClassId || !formattedDate || !teacher || isLocked) return;
 
     const attendanceData: Omit<AttendanceRecord, '_id' | 'id'>[] = studentsInCourse.map((student: Student) => ({
       studentId: student._id!,
       classId: selectedClassId,
       date: formattedDate,
       status: attendance[student._id!] || 'present',
-      recordedBy: user._id!,
+      recordedBy: teacher._id!,
     }));
 
     try {
@@ -155,10 +127,10 @@ export function AttendanceTool() {
     setAttendance(newAttendance);
   }
 
-  const isLoading = isLoadingClasses || isLoadingTimetables || !user;
+  const isLoading = isLoadingStudents;
 
   const renderTableBody = () => {
-    if (isLoading || isLoadingStudents || isLoadingExistingAttendance) {
+    if (isLoading || isLoadingExistingAttendance) {
       return [...Array(rowsPerPage)].map((_, i) => (
         <TableRow key={i}>
             <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-20"/></TableCell>
@@ -199,12 +171,12 @@ export function AttendanceTool() {
               </div>
                <div className="flex flex-col sm:flex-row items-center gap-2">
                    <Select value={selectedClassId} onValueChange={setSelectedClassId}>
-                      <SelectTrigger className="w-full sm:w-[200px]" disabled={isLoading}>
+                      <SelectTrigger className="w-full sm:w-[200px]" disabled={teacherClasses.length === 0}>
                           <SelectValue placeholder="Select a class for today" />
                       </SelectTrigger>
                       <SelectContent>
-                          {teacherClassesToday.length === 0 && <div className="p-2 text-sm text-muted-foreground">No classes scheduled today.</div>}
-                          {teacherClassesToday.map((c: any) => (
+                          {teacherClasses.length === 0 && <div className="p-2 text-sm text-muted-foreground">No classes scheduled today.</div>}
+                          {teacherClasses.map((c: any) => (
                                <SelectItem key={c._id} value={c._id}>{c.name}</SelectItem>
                           ))}
                       </SelectContent>
