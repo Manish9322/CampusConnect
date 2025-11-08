@@ -109,13 +109,6 @@ export async function GET() {
             .populate('classId', 'name')
             .lean();
 
-        const recentAttendanceFormatted = recentAttendance.map(record => ({
-            studentName: record.studentId?.name || 'Unknown',
-            subject: record.classId?.name || 'Unknown',
-            status: record.status,
-            date: record.date
-        }));
-
         // Get enrollment data (last 6 months)
         const enrollmentData = [];
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -147,7 +140,7 @@ export async function GET() {
                 attendanceChange: parseFloat(attendanceChange)
             },
             weeklyAttendance,
-            recentAttendance: recentAttendanceFormatted,
+            recentAttendance: recentAttendance,
             enrollmentData
         });
 
