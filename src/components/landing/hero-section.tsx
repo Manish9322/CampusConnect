@@ -1,4 +1,3 @@
-
 "use client";
 
 import Image from 'next/image';
@@ -6,12 +5,20 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, School, Users2, Briefcase, UserCheck } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useGetTeachersQuery } from '@/services/api';
+import { useGetTeachersQuery, useGetStudentsQuery, useGetClassesQuery } from '@/services/api';
 import { Skeleton } from '../ui/skeleton';
 
 export function HeroSection() {
-  const { data: teachers = [], isLoading } = useGetTeachersQuery(undefined);
+  const { data: teachers = [], isLoading: isLoadingTeachers } = useGetTeachersQuery(undefined);
+  const { data: students = [], isLoading: isLoadingStudents } = useGetStudentsQuery(undefined);
+  const { data: classes = [], isLoading: isLoadingClasses } = useGetClassesQuery(undefined);
+
+  const isLoading = isLoadingTeachers || isLoadingStudents || isLoadingClasses;
+
   const totalTeachers = teachers.length;
+  const totalStudents = students.length;
+  const totalUsers = totalTeachers + totalStudents;
+  const totalClasses = classes.length;
 
   return (
     <section className="w-full py-12 md:py-20 lg:py-24 bg-gradient-to-br from-background to-muted/50">
@@ -52,14 +59,22 @@ export function HeroSection() {
               <div className="flex flex-col items-start gap-1">
                 <div className="flex items-center gap-2">
                   <Users2 className="w-5 h-5 text-accent" />
-                  <span className="text-2xl font-bold">10k+</span>
+                  {isLoading ? (
+                    <Skeleton className="h-8 w-20" />
+                  ) : (
+                    <span className="text-2xl font-bold">{totalUsers}+</span>
+                  )}
                 </div>
                 <p className="text-sm text-muted-foreground">Users</p>
               </div>
               <div className="flex flex-col items-start gap-1">
                 <div className="flex items-center gap-2">
                   <Briefcase className="w-5 h-5 text-accent" />
-                  <span className="text-2xl font-bold">1k+</span>
+                   {isLoading ? (
+                    <Skeleton className="h-8 w-16" />
+                  ) : (
+                    <span className="text-2xl font-bold">{totalClasses}+</span>
+                  )}
                 </div>
                 <p className="text-sm text-muted-foreground">Classes Managed</p>
               </div>
