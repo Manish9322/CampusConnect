@@ -9,9 +9,9 @@ import { useGetNewsItemQuery, useUpdateNewsInteractionMutation, useAddCommentMut
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import { Calendar, User, ThumbsUp, Share2, Eye, Folder, Flame } from 'lucide-react';
+import { Calendar, User, ThumbsUp, Share2, Eye, Folder, Flame, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -181,6 +181,7 @@ export default function NewsDetailsPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle>Related News</CardTitle>
+                            <CardDescription>More from this category.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             {relatedNews.length > 0 ? (
@@ -206,6 +207,7 @@ export default function NewsDetailsPage() {
                                 <Flame className="h-5 w-5 text-destructive" />
                                 Trending
                             </CardTitle>
+                            <CardDescription>What others are reading.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             {trendingNews.map((trending: any) => (
@@ -222,6 +224,7 @@ export default function NewsDetailsPage() {
                                 <Folder className="h-5 w-5 text-primary" />
                                 Categories
                             </CardTitle>
+                            <CardDescription>Explore different topics.</CardDescription>
                         </CardHeader>
                         <CardContent className="flex flex-wrap gap-2">
                             {categories.map((category: string) => (
