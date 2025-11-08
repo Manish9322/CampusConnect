@@ -1,0 +1,309 @@
+
+"use client";
+
+import * as React from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useGetCommentsQuery, useUpdateCommentMutation, useDeleteCommentMutation, useGetNewsQuery } from "@/services/api";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/shared/empty-state";
+import { useToast } from "@/hooks/use-toast";
+import { Check, X, Trash2, ChevronLeft, ChevronRight, Eye } from "lucide-react";
+import { DeleteConfirmationDialog } from "@/components/shared/delete-confirmation-dialog";
+import Link from "next/link";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+
+export default function CommentsPage() {
+    const { data: comments = [], isLoading } = useGetCommentsQuery(undefined);
+    const { data: news = [], isLoading: isLoadingNews } = useGetNewsQuery(undefined);
+    const [updateComment] = useUpdateCommentMutation();
+    const [deleteComment] = useDeleteCommentMutation();
+    const { toast } = useToast();
+
+    const [commentToAction, setCommentToAction] = React.useState<any>(null);
+    const [isDeleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+    const [isViewDialogOpen, setViewDialogOpen] = React.useState(false);
+
+    // Filtering and Pagination state
+    const [searchTerm, setSearchTerm] = React.useState("");
+    const [statusFilter, setStatusFilter] = React.useState<"all" | "approved" | "pending">("all");
+    const [page, setPage] = React.useState(0);
+    const [rowsPerPage, setRowsPerPage] = React.useState(10);
+
+    const handleUpdateStatus = async (id: string, approved: boolean) => {
+        try {
+            await updateComment({ _id: id, approved }).unwrap();
+            toast({
+                title: "Status Updated",
+                description: `Comment status has been updated to ${approved ? 'Approved' : 'Pending'}.`
+            });
+        } catch (error) {
+            toast({
+                title: "Update Failed",
+                description: "There was an error updating the comment status.",
+                variant: "destructive"
+            });
+        }
+    };
+    
+    const handleDeleteClick = (comment: any) => {
+        setCommentToAction(comment);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleViewClick = (comment: any) => {
+        setCommentToAction(comment);
+        setViewDialogOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (commentToAction) {
+            try {
+                await deleteComment(commentToAction._id).unwrap();
+                toast({ title: "Comment Deleted" });
+                setDeleteDialogOpen(false);
+            } catch (error) {
+                toast({ title: "Error deleting comment", variant: "destructive" });
+            }
+        }
+    };
+    
+    const getNewsTitle = (newsId: string) => {
+        const newsItem = news.find((n: any) => n._id === newsId);
+        return newsItem ? newsItem.title : "Unknown Article";
+    };
+    
+    const getNewsSlug = (newsId: string) => {
+        const newsItem = news.find((n: any) => n._id === newsId);
+        return newsItem ? newsItem.slug : null;
+    }
+
+    const filteredComments = React.useMemo(() => {
+        return comments.filter((c: any) => {
+            const matchesSearch = c.authorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                c.content.toLowerCase().includes(searchTerm.toLowerCase());
+            
+            const matchesStatus = statusFilter === 'all' ||
+                (statusFilter === 'approved' && c.approved) ||
+                (statusFilter === 'pending' && !c.approved);
+
+            return matchesSearch && matchesStatus;
+        });
+    }, [comments, searchTerm, statusFilter]);
+
+    const totalPages = Math.ceil(filteredComments.length / rowsPerPage);
+    const paginatedComments = filteredComments.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
+
+    return (
+        <div className="space-y-6 p-4 md:p-6">
+            <div>
+                <h1 className="text-2xl font-bold">Comment Moderation</h1>
+                <p className="text-muted-foreground mt-1">Review and approve user-submitted comments.</p>
+            </div>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>All Comments</CardTitle>
+                    <CardDescription>Approve, unapprove, or delete comments.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex flex-col sm:flex-row items-center gap-4 mb-4">
+                        <Input
+                            placeholder="Search by author or content..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="max-w-sm"
+                        />
+                        <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
+                            <SelectTrigger className="w-full sm:w-[180px]">
+                                <SelectValue placeholder="Filter by status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Statuses</SelectItem>
+                                <SelectItem value="approved">Approved</SelectItem>
+                                <SelectItem value="pending">Pending</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="hidden md:block rounded-md border">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Author</TableHead>
+                                    <TableHead>Comment</TableHead>
+                                    <TableHead>Article</TableHead>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {isLoading || isLoadingNews ? (
+                                    [...Array(5)].map((_, i) => (
+                                        <TableRow key={i}>
+                                            <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                                            <TableCell><Skeleton className="h-5 w-48" /></TableCell>
+                                            <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                                            <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                                            <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                                            <TableCell className="text-right"><Skeleton className="h-8 w-24 ml-auto" /></TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : paginatedComments.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={6}>
+                                            <EmptyState title="No Comments Found" description="No comments match your current filters." />
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    paginatedComments.map((c: any) => (
+                                        <TableRow key={c._id}>
+                                            <TableCell className="font-medium">{c.authorName}</TableCell>
+                                            <TableCell className="max-w-xs truncate">{c.content}</TableCell>
+                                            <TableCell>
+                                                <Link href={`/news/${getNewsSlug(c.newsId)}`} target="_blank" className="hover:underline text-primary">
+                                                    {getNewsTitle(c.newsId)}
+                                                </Link>
+                                            </TableCell>
+                                            <TableCell>{new Date(c.createdAt).toLocaleDateString()}</TableCell>
+                                            <TableCell>
+                                                <Badge variant={c.approved ? "default" : "secondary"}>
+                                                    {c.approved ? 'Approved' : 'Pending'}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <Button size="icon" variant="ghost" className="text-muted-foreground" onClick={() => handleViewClick(c)}>
+                                                    <Eye className="h-4 w-4" />
+                                                </Button>
+                                                {!c.approved ? (
+                                                    <Button size="icon" variant="ghost" className="text-green-600" onClick={() => handleUpdateStatus(c._id, true)}>
+                                                        <Check className="h-4 w-4" />
+                                                    </Button>
+                                                ) : (
+                                                    <Button size="icon" variant="ghost" className="text-yellow-600" onClick={() => handleUpdateStatus(c._id, false)}>
+                                                        <X className="h-4 w-4" />
+                                                    </Button>
+                                                )}
+                                                <Button size="icon" variant="ghost" className="text-destructive" onClick={() => handleDeleteClick(c)}>
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
+
+                    <div className="md:hidden space-y-4">
+                      {isLoading || isLoadingNews ? (
+                        [...Array(5)].map((_, i) => (
+                          <Card key={i}>
+                            <CardContent className="p-4 space-y-4">
+                              <Skeleton className="h-5 w-24" />
+                              <Skeleton className="h-10 w-full" />
+                              <Skeleton className="h-8 w-full" />
+                            </CardContent>
+                          </Card>
+                        ))
+                      ) : paginatedComments.length === 0 ? (
+                        <EmptyState title="No Comments Found" description="No comments match your current filters." />
+                      ) : (
+                        paginatedComments.map((c: any) => (
+                           <Card key={c._id}>
+                              <CardContent className="p-4 space-y-3">
+                                  <div className="flex justify-between items-start">
+                                      <div>
+                                          <h3 className="font-semibold">{c.authorName}</h3>
+                                          <p className="text-sm text-muted-foreground">{new Date(c.createdAt).toLocaleString()}</p>
+                                      </div>
+                                      <Badge variant={c.approved ? "default" : "secondary"}>
+                                          {c.approved ? 'Approved' : 'Pending'}
+                                      </Badge>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground line-clamp-3">{c.content}</p>
+                                  <div className="text-xs text-muted-foreground">
+                                    On: <Link href={`/news/${getNewsSlug(c.newsId)}`} target="_blank" className="hover:underline text-primary">{getNewsTitle(c.newsId)}</Link>
+                                  </div>
+                                  <div className="flex justify-end gap-2 pt-2 border-t">
+                                      <Button size="sm" variant="ghost" onClick={() => handleViewClick(c)}>View</Button>
+                                      {!c.approved ? (
+                                          <Button size="sm" variant="outline" className="text-green-600" onClick={() => handleUpdateStatus(c._id, true)}>Approve</Button>
+                                      ) : (
+                                          <Button size="sm" variant="outline" className="text-yellow-600" onClick={() => handleUpdateStatus(c._id, false)}>Unapprove</Button>
+                                      )}
+                                      <Button size="sm" variant="destructive" onClick={() => handleDeleteClick(c)}>Delete</Button>
+                                  </div>
+                              </CardContent>
+                          </Card>
+                        ))
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between mt-4">
+                        <div>
+                            <span className="text-sm text-muted-foreground">
+                                Page {page + 1} of {totalPages || 1}
+                            </span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => setPage(p => Math.max(0, p - 1))}
+                                disabled={page === 0}
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                                disabled={page >= totalPages - 1}
+                            >
+                                <ChevronRight className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+            <DeleteConfirmationDialog 
+                open={isDeleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
+                onConfirm={handleDeleteConfirm}
+                itemName="this comment"
+            />
+             {commentToAction && (
+                <Dialog open={isViewDialogOpen} onOpenChange={setViewDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Comment Details</DialogTitle>
+                            <DialogDescription>
+                                From: {commentToAction.authorName} on {new Date(commentToAction.createdAt).toLocaleString()}
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="py-4 space-y-4">
+                            <div>
+                                <p className="text-sm font-medium">Article</p>
+                                <Link href={`/news/${getNewsSlug(commentToAction.newsId)}`} target="_blank" className="text-primary hover:underline">
+                                    {getNewsTitle(commentToAction.newsId)}
+                                </Link>
+                            </div>
+                            <div>
+                                <p className="text-sm font-medium">Comment</p>
+                                <p className="text-muted-foreground mt-1 bg-muted p-3 rounded-md">{commentToAction.content}</p>
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setViewDialogOpen(false)}>Close</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            )}
+        </div>
+    );
+}
