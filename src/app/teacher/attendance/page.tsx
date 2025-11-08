@@ -29,7 +29,7 @@ export default function TeacherAttendancePage() {
     
     const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery(undefined);
     const { data: allStudents = [], isLoading: isLoadingStudents } = useGetStudentsQuery({});
-    const { data: allTimetables = [], isLoading: isLoadingTimetables } = useGetTimetableQuery({}, { skip: !teacher });
+    const { data: allTimetables = [], isLoading: isLoadingTimetables } = useGetTimetableQuery({}, { skip: !user });
 
     const isLoading = isLoadingClasses || isLoadingStudents || isLoadingTimetables || !user;
 
@@ -43,7 +43,10 @@ export default function TeacherAttendancePage() {
             .filter((tt: Timetable) => tt.day === today)
             .flatMap((tt: Timetable) => 
                 tt.periods
-                  .filter(p => (p.teacherId as any)?._id === teacherId || p.teacherId === teacherId)
+                  .filter(p => {
+                      const periodTeacherId = (p.teacherId as any)?._id || p.teacherId;
+                      return periodTeacherId === teacherId;
+                  })
                   .map(() => (tt.classId as any)?._id || tt.classId)
             );
         
