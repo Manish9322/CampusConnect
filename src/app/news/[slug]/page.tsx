@@ -9,7 +9,7 @@ import { useGetNewsItemQuery, useUpdateNewsInteractionMutation, useAddCommentMut
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import { Calendar, User, ThumbsUp, Share2, Eye, Folder, Flame, Clock } from 'lucide-react';
+import { Calendar, User, ThumbsUp, Share2, Eye, Folder, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -204,7 +204,7 @@ export default function NewsDetailsPage() {
                      <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <Flame className="h-5 w-5 text-destructive" />
+                                <Flame className="h-5 w-5 text-primary" />
                                 Trending
                             </CardTitle>
                             <CardDescription>What others are reading.</CardDescription>
