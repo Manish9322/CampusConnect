@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react";
@@ -33,15 +34,16 @@ export default function TeacherAttendancePage() {
     const isLoading = isLoadingClasses || isLoadingStudents || isLoadingTimetables || !user;
 
     const teacherClassesForToday = React.useMemo(() => {
-        if (isLoading) return [];
+        if (isLoading || !allTimetables || !allClasses) return [];
         
         const teacherId = user?._id || user?.id;
+        if (!teacherId) return [];
         
         // Find all unique class IDs the teacher is scheduled for today from the timetables
         const scheduledClassIds = allTimetables
             .filter((tt: Timetable) => tt.day === today)
             .flatMap((tt: Timetable) => 
-                tt.periods.filter(p => (p.teacherId?._id || p.teacherId) === teacherId).map(() => tt.classId)
+                tt.periods.filter(p => (p.teacherId?._id || p.teacherId) === teacherId).map(() => tt.classId?._id || tt.classId)
             );
         
         const uniqueClassIds = [...new Set(scheduledClassIds)];

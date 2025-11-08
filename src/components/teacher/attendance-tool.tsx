@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -7,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Send, ChevronLeft, ChevronRight, CalendarIcon, AlertTriangle, Lock } from "lucide-react";
-import { AttendanceRecord, AttendanceStatus, Student, Teacher, Class, DayOfWeek, Timetable } from "@/lib/types";
+import { AttendanceRecord, AttendanceStatus, Student, Teacher, Class } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
@@ -37,7 +38,7 @@ export function AttendanceTool({ teacher, teacherClasses }: AttendanceToolProps)
   const [date, setDate] = React.useState<Date | undefined>(new Date());
 
   React.useEffect(() => {
-    if (teacherClasses.length > 0 && !teacherClasses.find(c => c._id === selectedClassId)) {
+    if (teacherClasses.length > 0 && !teacherClasses.some(c => c._id === selectedClassId)) {
         setSelectedClassId(teacherClasses[0]._id!);
     } else if (teacherClasses.length === 0) {
         setSelectedClassId("");
