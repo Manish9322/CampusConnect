@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from 'react';
@@ -16,13 +15,13 @@ export function PublicFooter() {
           &copy; {new Date().getFullYear()} CampusConnect. All rights reserved.
         </p>
         <nav className="sm:ml-auto flex items-center gap-4 sm:gap-6">
-          <Button variant="link" className="text-xs hover:underline underline-offset-4 px-0 h-auto" onClick={() => setFeedbackModalOpen(true)}>Provide Feedback</Button>
-          <Link href="/terms" className="text-xs hover:underline underline-offset-4">
-            Terms of Service
-          </Link>
           <Link href="/privacy" className="text-xs hover:underline underline-offset-4">
             Privacy Policy
           </Link>
+          <Link href="/terms" className="text-xs hover:underline underline-offset-4">
+            Terms of Service
+          </Link>
+          <Button variant="link" className="text-xs hover:underline underline-offset-4 px-0 h-auto" onClick={() => setFeedbackModalOpen(true)}>Provide Feedback</Button>
         </nav>
       </footer>
       <FeedbackModal isOpen={isFeedbackModalOpen} onOpenChange={setFeedbackModalOpen} />
