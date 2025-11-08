@@ -16,9 +16,24 @@ export async function POST(request) {
   await _db();
   try {
     const body = await request.json();
-    const newNews = new News(body);
-    await newNews.save();
-    return NextResponse.json(newNews, { status: 201 });
+
+    if (Array.isArray(body)) {
+      // Handle bulk creation
+      const newsWithSlugs = body.map(item => ({
+        ...item,
+        slug: item.slug || item.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '')
+      }));
+      const newNewsItems = await News.insertMany(newsWithSlugs);
+      return NextResponse.json({ 
+        message: `${newNewsItems.length} news articles created successfully`,
+        data: newNewsItems 
+      }, { status: 201 });
+    } else {
+      // Handle single creation
+      const newNews = new News(body);
+      await newNews.save();
+      return NextResponse.json(newNews, { status: 201 });
+    }
   } catch (error) {
     return NextResponse.json({ message: 'Error creating news', error: error.message }, { status: 400 });
   }
