@@ -10,9 +10,12 @@ import { useGetCommentsQuery, useUpdateCommentMutation, useDeleteCommentMutation
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { useToast } from "@/hooks/use-toast";
-import { Check, X, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Check, X, Trash2, ChevronLeft, ChevronRight, Eye } from "lucide-react";
 import { DeleteConfirmationDialog } from "@/components/shared/delete-confirmation-dialog";
 import Link from "next/link";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 export default function CommentsPage() {
     const { data: comments = [], isLoading } = useGetCommentsQuery(undefined);
@@ -23,6 +26,11 @@ export default function CommentsPage() {
 
     const [commentToAction, setCommentToAction] = React.useState<any>(null);
     const [isDeleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+    const [isViewDialogOpen, setViewDialogOpen] = React.useState(false);
+
+    // Filtering and Pagination state
+    const [searchTerm, setSearchTerm] = React.useState("");
+    const [statusFilter, setStatusFilter] = React.useState<"all" | "approved" | "pending">("all");
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
@@ -31,7 +39,7 @@ export default function CommentsPage() {
             await updateComment({ _id: id, approved }).unwrap();
             toast({
                 title: "Status Updated",
-                description: `Comment status has been updated to ${approved ? 'Approved' : 'Unapproved'}.`
+                description: `Comment status has been updated to ${approved ? 'Approved' : 'Pending'}.`
             });
         } catch (error) {
             toast({
@@ -45,6 +53,11 @@ export default function CommentsPage() {
     const handleDeleteClick = (comment: any) => {
         setCommentToAction(comment);
         setDeleteDialogOpen(true);
+    };
+
+    const handleViewClick = (comment: any) => {
+        setCommentToAction(comment);
+        setViewDialogOpen(true);
     };
 
     const handleDeleteConfirm = async () => {
@@ -69,8 +82,21 @@ export default function CommentsPage() {
         return newsItem ? newsItem.slug : null;
     }
 
-    const totalPages = Math.ceil(comments.length / rowsPerPage);
-    const paginatedComments = comments.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
+    const filteredComments = React.useMemo(() => {
+        return comments.filter((c: any) => {
+            const matchesSearch = c.authorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                c.content.toLowerCase().includes(searchTerm.toLowerCase());
+            
+            const matchesStatus = statusFilter === 'all' ||
+                (statusFilter === 'approved' && c.approved) ||
+                (statusFilter === 'pending' && !c.approved);
+
+            return matchesSearch && matchesStatus;
+        });
+    }, [comments, searchTerm, statusFilter]);
+
+    const totalPages = Math.ceil(filteredComments.length / rowsPerPage);
+    const paginatedComments = filteredComments.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
 
     return (
         <div className="space-y-6 p-4 md:p-6">
@@ -85,6 +111,24 @@ export default function CommentsPage() {
                     <CardDescription>Approve, unapprove, or delete comments.</CardDescription>
                 </CardHeader>
                 <CardContent>
+                    <div className="flex flex-col sm:flex-row items-center gap-4 mb-4">
+                        <Input
+                            placeholder="Search by author or content..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="max-w-sm"
+                        />
+                        <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
+                            <SelectTrigger className="w-full sm:w-[180px]">
+                                <SelectValue placeholder="Filter by status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Statuses</SelectItem>
+                                <SelectItem value="approved">Approved</SelectItem>
+                                <SelectItem value="pending">Pending</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                     <div className="rounded-md border">
                         <Table>
                             <TableHeader>
@@ -112,7 +156,7 @@ export default function CommentsPage() {
                                 ) : paginatedComments.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={6}>
-                                            <EmptyState title="No Comments" description="No comments have been submitted yet." />
+                                            <EmptyState title="No Comments Found" description="No comments match your current filters." />
                                         </TableCell>
                                     </TableRow>
                                 ) : (
@@ -132,6 +176,9 @@ export default function CommentsPage() {
                                                 </Badge>
                                             </TableCell>
                                             <TableCell className="text-right">
+                                                <Button size="icon" variant="ghost" className="text-muted-foreground" onClick={() => handleViewClick(c)}>
+                                                    <Eye className="h-4 w-4" />
+                                                </Button>
                                                 {!c.approved ? (
                                                     <Button size="icon" variant="ghost" className="text-green-600" onClick={() => handleUpdateStatus(c._id, true)}>
                                                         <Check className="h-4 w-4" />
@@ -185,6 +232,33 @@ export default function CommentsPage() {
                 onConfirm={handleDeleteConfirm}
                 itemName="this comment"
             />
+             {commentToAction && (
+                <Dialog open={isViewDialogOpen} onOpenChange={setViewDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Comment Details</DialogTitle>
+                            <DialogDescription>
+                                From: {commentToAction.authorName} on {new Date(commentToAction.createdAt).toLocaleString()}
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="py-4 space-y-4">
+                            <div>
+                                <p className="text-sm font-medium">Article</p>
+                                <Link href={`/news/${getNewsSlug(commentToAction.newsId)}`} target="_blank" className="text-primary hover:underline">
+                                    {getNewsTitle(commentToAction.newsId)}
+                                </Link>
+                            </div>
+                            <div>
+                                <p className="text-sm font-medium">Comment</p>
+                                <p className="text-muted-foreground mt-1 bg-muted p-3 rounded-md">{commentToAction.content}</p>
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setViewDialogOpen(false)}>Close</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            )}
         </div>
     );
 }
