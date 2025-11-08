@@ -9,7 +9,7 @@ import { useGetNewsItemQuery, useUpdateNewsInteractionMutation, useAddCommentMut
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import { Calendar, User, ThumbsUp, Share2, MessageSquare, Send, Eye, Folder, Flame } from 'lucide-react';
+import { Calendar, User, ThumbsUp, Share2, MessageSquare, Send, Eye, Clock, Folder, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -183,7 +183,8 @@ export default function NewsDetailsPage() {
                             <CardTitle>Related News</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {relatedNews.map((related: any) => (
+                            {relatedNews.length > 0 ? (
+                                relatedNews.map((related: any) => (
                                 <Link key={related._id} href={`/news/${related.slug}`} className="block group">
                                     <div className="flex items-center gap-4">
                                         <Image src={related.bannerImage} alt={related.title} width={80} height={80} className="rounded-md object-cover w-20 h-20"/>
@@ -193,7 +194,10 @@ export default function NewsDetailsPage() {
                                         </div>
                                     </div>
                                 </Link>
-                            ))}
+                                ))
+                            ) : (
+                                <p className="text-sm text-muted-foreground">No related news found.</p>
+                            )}
                         </CardContent>
                     </Card>
                      <Card>
