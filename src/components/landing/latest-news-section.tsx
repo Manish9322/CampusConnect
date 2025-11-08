@@ -11,8 +11,8 @@ import { EmptyState } from '../shared/empty-state';
 export function LatestNewsSection() {
   const { data: news = [], isLoading } = useGetNewsQuery(undefined);
 
-  const publishedNews = news.filter((item: any) => item.isPublished);
-  const latestNewsItems = publishedNews.slice(0, 3);
+  // Directly use the latest news items without filtering by isPublished on the landing page
+  const latestNewsItems = news.slice(0, 3);
   const [latestNews, ...otherNews] = latestNewsItems;
 
   if (isLoading) {

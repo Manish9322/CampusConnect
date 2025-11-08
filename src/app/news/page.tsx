@@ -15,10 +15,12 @@ import Link from 'next/link';
 export default function NewsListPage() {
   const { data: news = [], isLoading } = useGetNewsQuery(undefined);
   const [filter, setFilter] = React.useState("All");
+  
+  const publishedNews = news.filter((item: any) => item.isPublished);
 
-  const categories = ["All", ...Array.from(new Set(news.map((item: any) => item.category)))];
+  const categories = ["All", ...Array.from(new Set(publishedNews.map((item: any) => item.category)))];
 
-  const filteredNews = news.filter((item: any) => filter === "All" || item.category === filter);
+  const filteredNews = publishedNews.filter((item: any) => filter === "All" || item.category === filter);
 
   const renderContent = () => {
     if (isLoading) {
