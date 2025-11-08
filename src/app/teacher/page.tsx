@@ -7,7 +7,7 @@ import { TeacherAttendanceOverviewChart } from "@/components/teacher/teacher-att
 import { StudentEngagementChart } from "@/components/teacher/student-engagement-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Users, Percent, ArrowUp } from "lucide-react";
-import { useGetClassesQuery, useGetStudentsQuery, useGetAssignmentsQuery, useGetGradesQuery } from "@/services/api";
+import { useGetClassesQuery, useGetStudentsQuery, useGetAssignmentsQuery, useGetGradesQuery, useGetAttendanceQuery } from "@/services/api";
 import { Teacher } from "@/lib/types";
 
 export default function TeacherDashboardPage() {
@@ -28,21 +28,63 @@ export default function TeacherDashboardPage() {
     const { data: allStudents = [], isLoading: isLoadingStudents } = useGetStudentsQuery({ includeAttendance: true });
     const { data: allAssignments = [], isLoading: isLoadingAssignments } = useGetAssignmentsQuery({});
     const { data: allGrades = [], isLoading: isLoadingGrades } = useGetGradesQuery(undefined);
+    const { data: allAttendance = [], isLoading: isLoadingAttendance } = useGetAttendanceQuery({});
     
-    const isLoading = isLoadingClasses || isLoadingStudents || isLoadingAssignments || isLoadingGrades || !teacher;
+    const isLoading = isLoadingClasses || isLoadingStudents || isLoadingAssignments || isLoadingGrades || isLoadingAttendance || !teacher;
 
     const teacherName = teacher ? `${teacher.designation || ''} ${teacher.name}` : 'Teacher';
 
-    const { teacherClasses, teacherStudents } = React.useMemo(() => {
+    const { teacherClasses, teacherStudents, teacherStudentIds } = React.useMemo(() => {
         if (!teacher || !allClasses.length || !allStudents.length) {
-            return { teacherClasses: [], teacherStudents: [] };
+            return { teacherClasses: [], teacherStudents: [], teacherStudentIds: [] };
         }
         const teacherId = teacher._id || teacher.id;
         const classesForTeacher = allClasses.filter((c: any) => (c.teacherId?._id || c.teacherId) === teacherId);
         const classIdsForTeacher = classesForTeacher.map((c: any) => c._id);
         const studentsForTeacher = allStudents.filter((s: any) => classIdsForTeacher.includes(s.classId?._id || s.classId));
-        return { teacherClasses: classesForTeacher, teacherStudents: studentsForTeacher };
+        const studentIdsForTeacher = studentsForTeacher.map((s: any) => s._id);
+        return { teacherClasses: classesForTeacher, teacherStudents: studentsForTeacher, teacherStudentIds: studentIdsForTeacher };
     }, [teacher, allClasses, allStudents]);
+
+    const weeklyAttendanceData = React.useMemo(() => {
+        if (isLoading || teacherStudentIds.length === 0) return [];
+        
+        const weeklyData: { [key: string]: { present: number, total: number } } = {};
+        const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const today = new Date();
+
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date(today);
+            date.setDate(today.getDate() - i);
+            const dayKey = daysOfWeek[date.getDay()];
+            weeklyData[dayKey] = { present: 0, total: 0 };
+        }
+
+        const oneWeekAgo = new Date(today);
+        oneWeekAgo.setDate(today.getDate() - 6);
+        oneWeekAgo.setHours(0,0,0,0);
+
+        const relevantAttendance = allAttendance.filter((att: any) => 
+            teacherStudentIds.includes(att.studentId) && new Date(att.date) >= oneWeekAgo
+        );
+
+        relevantAttendance.forEach((att: any) => {
+            const date = new Date(att.date);
+            const dayKey = daysOfWeek[date.getDay()];
+            if (weeklyData[dayKey]) {
+                weeklyData[dayKey].total++;
+                if (att.status === 'present' || att.status === 'late') {
+                    weeklyData[dayKey].present++;
+                }
+            }
+        });
+
+        return Object.entries(weeklyData).map(([day, data]) => ({
+            day,
+            attendance: data.total > 0 ? Math.round((data.present / data.total) * 100) : 0
+        }));
+
+    }, [isLoading, allAttendance, teacherStudentIds]);
 
     const stats = React.useMemo(() => {
         if(isLoading) return { totalStudents: 0, avgClassSize: 0, avgAttendance: 0, assignmentsGraded: '0/0' };
@@ -119,7 +161,7 @@ export default function TeacherDashboardPage() {
             </div>
             
             <div className="grid gap-6 md:grid-cols-2">
-                <TeacherAttendanceOverviewChart />
+                <TeacherAttendanceOverviewChart data={weeklyAttendanceData} isLoading={isLoading} />
                 <StudentEngagementChart />
             </div>
 
