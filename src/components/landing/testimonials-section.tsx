@@ -8,58 +8,12 @@ import {
   CarouselContent,
   CarouselItem,
 } from "@/components/ui/carousel"
+import { useGetTestimonialsQuery } from "@/services/api";
+import { Skeleton } from "../ui/skeleton";
+import { EmptyState } from "../shared/empty-state";
 
 export function TestimonialsSection() {
-  const testimonials = [
-    {
-      quote: "CampusConnect has revolutionized how we manage attendance. It's saved us countless hours.",
-      name: "Dr. Alan Turing",
-      role: "Head of Computer Science",
-      avatar: "https://placehold.co/40x40.png",
-      aiHint: "male portrait",
-      initials: "AT"
-    },
-    {
-      quote: "As a student, it's so easy to keep track of my classes and grades. Everything is in one place!",
-      name: "Alice Johnson",
-      role: "Computer Science Student",
-      avatar: "https://placehold.co/40x40.png",
-      aiHint: "female portrait",
-      initials: "AJ"
-    },
-    {
-      quote: "The admin dashboard gives us a complete overview of the entire institution at a glance. It's incredibly powerful.",
-      name: "Admin User",
-      role: "University Administrator",
-      avatar: "https://placehold.co/40x40.png",
-      aiHint: "person portrait",
-      initials: "AU"
-    },
-    {
-      quote: "The AI-powered analytics help us identify at-risk students before it's too late. A game-changer for student success.",
-      name: "Prof. Marie Curie",
-      role: "Dean of Academic Affairs",
-      avatar: "https://placehold.co/40x40.png",
-      aiHint: "female scientist",
-      initials: "MC"
-    },
-    {
-        quote: "The integration with our existing SIS was seamless. The support team was fantastic.",
-        name: "John von Neumann",
-        role: "IT Director",
-        avatar: "https://placehold.co/40x40.png",
-        aiHint: "male professional",
-        initials: "JVN"
-    },
-    {
-        quote: "I love the mobile app. It's so convenient to check my schedule and get notifications on the go.",
-        name: "Grace Hopper",
-        role: "Engineering Student",
-        avatar: "https://placehold.co/40x40.png",
-        aiHint: "female student",
-        initials: "GH"
-    }
-  ];
+  const { data: testimonials = [], isLoading } = useGetTestimonialsQuery({ approvedOnly: true });
 
   return (
     <section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
@@ -75,35 +29,54 @@ export function TestimonialsSection() {
             Hear from educators and students who have transformed their campus experience.
           </p>
         </div>
-        <Carousel
-          opts={{
-            align: "start",
-            loop: true,
-          }}
-          className="w-full max-w-6xl mx-auto"
-        >
-          <CarouselContent>
-            {testimonials.map((testimonial, index) => (
-              <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
-                <div className="p-8 h-full">
-                  <blockquote className="text-lg font-semibold leading-snug lg:text-xl lg:leading-normal">
-                    “{testimonial.quote}”
-                  </blockquote>
-                  <div className="mt-6 flex items-center gap-4">
-                    <Avatar>
-                      <AvatarImage src={testimonial.avatar} data-ai-hint={testimonial.aiHint} />
-                      <AvatarFallback>{testimonial.initials}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-semibold text-primary">{testimonial.name}</p>
-                      <p className="text-sm text-muted-foreground">{testimonial.role}</p>
-                    </div>
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="p-8 space-y-4">
+                <Skeleton className="h-20 w-full" />
+                <div className="flex items-center gap-4">
+                  <Skeleton className="h-12 w-12 rounded-full" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-3 w-32" />
                   </div>
                 </div>
-              </CarouselItem>
+              </div>
             ))}
-          </CarouselContent>
-        </Carousel>
+          </div>
+        ) : testimonials.length > 0 ? (
+          <Carousel
+            opts={{
+              align: "start",
+              loop: true,
+            }}
+            className="w-full max-w-6xl mx-auto"
+          >
+            <CarouselContent>
+              {testimonials.map((testimonial: any, index: number) => (
+                <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
+                  <div className="p-8 h-full">
+                    <blockquote className="text-lg font-semibold leading-snug lg:text-xl lg:leading-normal">
+                      “{testimonial.quote}”
+                    </blockquote>
+                    <div className="mt-6 flex items-center gap-4">
+                      <Avatar>
+                        <AvatarImage src={testimonial.avatar} />
+                        <AvatarFallback>{testimonial.initials}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-semibold text-primary">{testimonial.name}</p>
+                        <p className="text-sm text-muted-foreground">{testimonial.designation}</p>
+                      </div>
+                    </div>
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+          </Carousel>
+        ) : (
+          <EmptyState title="No Testimonials Yet" description="Check back later to see what our users are saying."/>
+        )}
       </div>
     </section>
   );

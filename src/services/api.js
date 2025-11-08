@@ -5,7 +5,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest', 'Note', 'Timetable', 'Settings', 'Complaint', 'FeeName', 'FeeStructure', 'FeeSettings', 'StudentFeeSettings', 'AcademicYear'],
+  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest', 'Note', 'Timetable', 'Settings', 'Complaint', 'FeeName', 'FeeStructure', 'FeeSettings', 'StudentFeeSettings', 'AcademicYear', 'Testimonial'],
   endpoints: (builder) => ({
     testDBConnection: builder.query({
       query: () => 'connect',
@@ -595,6 +595,39 @@ export const api = createApi({
         }),
         invalidatesTags: ['AcademicYear'],
     }),
+
+    // Testimonial endpoints
+    getTestimonials: builder.query({
+        query: (params = {}) => {
+          const urlParams = new URLSearchParams();
+          if (params.approvedOnly) urlParams.append('approvedOnly', 'true');
+          return `testimonials?${urlParams.toString()}`;
+        },
+        providesTags: ['Testimonial'],
+    }),
+    addTestimonial: builder.mutation({
+        query: (newTestimonial) => ({
+            url: 'testimonials',
+            method: 'POST',
+            body: newTestimonial,
+        }),
+        invalidatesTags: ['Testimonial'],
+    }),
+    updateTestimonial: builder.mutation({
+        query: (testimonialToUpdate) => ({
+            url: 'testimonials',
+            method: 'PUT',
+            body: testimonialToUpdate,
+        }),
+        invalidatesTags: ['Testimonial'],
+    }),
+    deleteTestimonial: builder.mutation({
+        query: (id) => ({
+            url: `testimonials?id=${id}`,
+            method: 'DELETE',
+        }),
+        invalidatesTags: ['Testimonial'],
+    }),
   }),
 });
 
@@ -675,6 +708,10 @@ export const {
     useApplyFeeSettingsToAllMutation,
     useGetAcademicYearSettingsQuery,
     useUpdateAcademicYearSettingsMutation,
+    useGetTestimonialsQuery,
+    useAddTestimonialMutation,
+    useUpdateTestimonialMutation,
+    useDeleteTestimonialMutation,
 } = api;
 
     
