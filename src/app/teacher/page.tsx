@@ -86,6 +86,33 @@ export default function TeacherDashboardPage() {
 
     }, [isLoading, allAttendance, teacherStudentIds]);
 
+    const studentEngagementData = React.useMemo(() => {
+        if (isLoading || teacherStudents.length === 0) return [];
+        
+        const engagement = {
+            'Highly Engaged': 0,
+            'Moderately Engaged': 0,
+            'Low Engagement': 0,
+        };
+
+        teacherStudents.forEach(student => {
+            const attendance = student.attendancePercentage || 0;
+            if (attendance >= 90) {
+                engagement['Highly Engaged']++;
+            } else if (attendance >= 75) {
+                engagement['Moderately Engaged']++;
+            } else {
+                engagement['Low Engagement']++;
+            }
+        });
+
+        return [
+            { type: "Highly Engaged", value: engagement['Highly Engaged'] },
+            { type: "Moderately Engaged", value: engagement['Moderately Engaged'] },
+            { type: "Low Engagement", value: engagement['Low Engagement'] },
+        ];
+    }, [isLoading, teacherStudents]);
+
     const stats = React.useMemo(() => {
         if(isLoading) return { totalStudents: 0, avgClassSize: 0, avgAttendance: 0, assignmentsGraded: '0/0' };
         
@@ -162,7 +189,7 @@ export default function TeacherDashboardPage() {
             
             <div className="grid gap-6 md:grid-cols-2">
                 <TeacherAttendanceOverviewChart data={weeklyAttendanceData} isLoading={isLoading} />
-                <StudentEngagementChart />
+                <StudentEngagementChart data={studentEngagementData} isLoading={isLoading} />
             </div>
 
             <TeacherDashboardCards teacher={teacher} teacherClasses={teacherClasses} teacherStudents={teacherStudents} />
