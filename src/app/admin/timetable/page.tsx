@@ -66,7 +66,7 @@ export default function TimetablePage() {
     }
 
     const num = parseInt(value, 10);
-    if (num >= 1 && num <= 15) {
+    if (num >= 1 && num <= 15 && periodsPerDay[day] !== num) {
       const updatedSettings = { ...periodsPerDay, [day]: num };
       setPeriodsPerDay(updatedSettings);
       
