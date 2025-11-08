@@ -9,7 +9,7 @@ import { useGetNewsItemQuery, useUpdateNewsInteractionMutation, useAddCommentMut
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import { Calendar, User, ThumbsUp, Share2, MessageSquare, Send, Clock } from 'lucide-react';
+import { Calendar, User, ThumbsUp, Share2, MessageSquare, Send, Eye, Folder, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -81,8 +81,7 @@ export default function NewsDetailsPage() {
     return <div>Error loading news article.</div>;
   }
 
-  const { newsItem, comments, relatedNews } = data;
-  const readTime = Math.ceil(newsItem.content.split(' ').length / 200);
+  const { newsItem, comments, relatedNews, trendingNews, categories } = data;
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
 
   return (
@@ -115,8 +114,8 @@ export default function NewsDetailsPage() {
                             <span>{new Date(newsItem.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4" />
-                            <span>{readTime} min read</span>
+                            <Eye className="h-4 w-4" />
+                            <span>{newsItem.visitCount} views</span>
                         </div>
                     </div>
                     
@@ -193,6 +192,37 @@ export default function NewsDetailsPage() {
                                             <p className="text-xs text-muted-foreground mt-1">{new Date(related.date).toLocaleDateString()}</p>
                                         </div>
                                     </div>
+                                </Link>
+                            ))}
+                        </CardContent>
+                    </Card>
+                     <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Flame className="h-5 w-5 text-destructive" />
+                                Trending
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            {trendingNews.map((trending: any) => (
+                                <Link key={trending._id} href={`/news/${trending.slug}`} className="block group">
+                                    <p className="font-medium leading-tight group-hover:text-primary">{trending.title}</p>
+                                    <p className="text-xs text-muted-foreground">{trending.visitCount} views</p>
+                                </Link>
+                            ))}
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Folder className="h-5 w-5 text-primary" />
+                                Categories
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex flex-wrap gap-2">
+                            {categories.map((category: string) => (
+                                <Link key={category} href={`/news?category=${category}`}>
+                                    <Badge variant="secondary">{category}</Badge>
                                 </Link>
                             ))}
                         </CardContent>
