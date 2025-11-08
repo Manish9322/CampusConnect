@@ -7,7 +7,11 @@ import { Teacher } from '@/models/teacher.model.js';
 export async function GET() {
   await _db();
   try {
-    const classes = await Class.find({}).populate('teacherId');
+    const classes = await Class.find({}).populate({
+      path: 'teacherId',
+      model: Teacher,
+      select: 'name designation'
+    });
     return NextResponse.json(classes, { status: 200 });
   } catch (error) {
     return NextResponse.json({ message: 'Error fetching classes', error: error.message }, { status: 500 });

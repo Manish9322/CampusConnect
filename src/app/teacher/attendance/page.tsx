@@ -24,7 +24,8 @@ export default function TeacherAttendancePage() {
             }
             setUser(parsedUser);
         }
-        setToday(DAYS[new Date().getDay()]);
+        const currentDayIndex = new Date().getDay();
+        setToday(DAYS[currentDayIndex]);
     }, []);
     
     const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery(undefined);
@@ -34,19 +35,16 @@ export default function TeacherAttendancePage() {
     const isLoading = isLoadingClasses || isLoadingStudents || isLoadingTimetables || !user;
 
     const teacherClassesForToday = React.useMemo(() => {
-        if (!allTimetables || !allClasses || !user) return [];
+        if (isLoading || !allTimetables || !allClasses || !user) return [];
         
-        const teacherId = user?._id || user?.id;
+        const teacherId = user?.teacherId;
         if (!teacherId) return [];
 
         const scheduledClassIds = allTimetables
             .filter((tt: Timetable) => tt.day === today)
             .flatMap((tt: Timetable) => 
                 tt.periods
-                  .filter(p => {
-                      const periodTeacherId = (p.teacherId as any)?._id || p.teacherId;
-                      return periodTeacherId === teacherId;
-                  })
+                  .filter(p => p.teacherId === teacherId)
                   .map(() => (tt.classId as any)?._id || tt.classId)
             );
         
@@ -54,7 +52,7 @@ export default function TeacherAttendancePage() {
         
         return allClasses.filter((c: Class) => uniqueClassIds.includes(c._id!));
 
-    }, [user, allClasses, allTimetables, today]);
+    }, [user, allClasses, allTimetables, today, isLoading]);
 
     const teacherStudents = React.useMemo(() => {
         if (teacherClassesForToday.length === 0 || !allStudents || allStudents.length === 0) return [];
