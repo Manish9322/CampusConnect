@@ -9,7 +9,7 @@ import { useGetNewsItemQuery, useUpdateNewsInteractionMutation, useAddCommentMut
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import { Calendar, User, ThumbsUp, Share2, MessageSquare, Send, Eye, Clock, Folder, Flame } from 'lucide-react';
+import { Calendar, User, ThumbsUp, Share2, Eye, Folder, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -154,7 +154,7 @@ export default function NewsDetailsPage() {
                                     <Input value={commenterName} onChange={(e) => setCommenterName(e.target.value)} placeholder="Your Name" required />
                                     <Textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Write a comment..." required />
                                     <Button type="submit">
-                                        <Send className="mr-2 h-4 w-4" /> Post Comment
+                                        Post Comment
                                     </Button>
                                 </form>
                                 <Separator className="my-6" />
@@ -177,7 +177,7 @@ export default function NewsDetailsPage() {
                     </section>
                 </div>
                 
-                <aside className="lg:col-span-1 space-y-8">
+                <aside className="lg:col-span-1 space-y-8 sticky top-24 self-start">
                     <Card>
                         <CardHeader>
                             <CardTitle>Related News</CardTitle>
