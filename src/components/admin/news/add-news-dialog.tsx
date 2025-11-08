@@ -30,7 +30,7 @@ const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters."),
   shortDescription: z.string().min(10, "Short description must be at least 10 characters.").max(200, "Must be less than 200 characters."),
   content: z.string().min(50, "Content must be at least 50 characters."),
-  bannerImage: z.string().url("Please enter a valid image URL."),
+  bannerImage: z.any().refine(val => val !== null && val !== undefined && val !== '', "Banner image is required."),
   category: z.string().nonempty("Category is required."),
   date: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Invalid date" }),
 });
@@ -57,7 +57,7 @@ export function AddNewsDialog({
       title: newsData?.title || "",
       shortDescription: newsData?.shortDescription || "",
       content: newsData?.content || "",
-      bannerImage: newsData?.bannerImage || "https://picsum.photos/seed/news-default/1200/600",
+      bannerImage: newsData?.bannerImage || "",
       category: newsData?.category || undefined,
       date: newsData ? new Date(newsData.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     },
@@ -68,7 +68,7 @@ export function AddNewsDialog({
       title: newsData?.title || "",
       shortDescription: newsData?.shortDescription || "",
       content: newsData?.content || "",
-      bannerImage: newsData?.bannerImage || "https://picsum.photos/seed/news-default/1200/600",
+      bannerImage: newsData?.bannerImage || "",
       category: newsData?.category || undefined,
       date: newsData ? new Date(newsData.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     });
@@ -141,11 +141,11 @@ export function AddNewsDialog({
             <FormField
               control={form.control}
               name="bannerImage"
-              render={({ field }) => (
+              render={({ field: { onChange, value, ...rest } }) => (
                 <FormItem>
-                  <FormLabel>Banner Image URL</FormLabel>
+                  <FormLabel>Banner Image</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://picsum.photos/seed/example/1200/600" {...field} />
+                    <Input type="file" accept="image/*" onChange={e => onChange(e.target.files?.[0])} {...rest} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

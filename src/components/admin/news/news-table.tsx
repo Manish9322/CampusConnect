@@ -23,6 +23,7 @@ import { useAddNewsMutation, useDeleteNewsMutation, useUpdateNewsMutation } from
 import { AddNewsDialog } from "./add-news-dialog";
 import Link from "next/link";
 import Image from "next/image";
+import { useFileUpload } from "@/hooks/use-file-upload";
 
 interface NewsTableProps {
   news: any[];
@@ -41,6 +42,7 @@ export function NewsTable({ news, isLoading }: NewsTableProps) {
   const [addNews] = useAddNewsMutation();
   const [updateNews] = useUpdateNewsMutation();
   const [deleteNews] = useDeleteNewsMutation();
+  const { uploadFile, uploading: isUploadingFile } = useFileUpload({ type: 'announcement' });
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -89,11 +91,18 @@ export function NewsTable({ news, isLoading }: NewsTableProps) {
   
   const handleSave = async (data: any) => {
     try {
+      let bannerImageUrl = data.bannerImage;
+      if (data.bannerImage instanceof File) {
+        bannerImageUrl = await uploadFile(data.bannerImage);
+      }
+      
+      const payload = { ...data, bannerImage: bannerImageUrl };
+
       if (newsToAction) {
-        await updateNews({ ...data, _id: newsToAction._id }).unwrap();
+        await updateNews({ ...payload, _id: newsToAction._id }).unwrap();
         toast({ title: "News Updated" });
       } else {
-        await addNews({ ...data, author: "Admin User" }).unwrap();
+        await addNews({ ...payload, author: "Admin User" }).unwrap();
         toast({ title: "News Created" });
       }
       setAddDialogOpen(false);
