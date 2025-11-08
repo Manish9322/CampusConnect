@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Student, Class, Teacher } from "@/lib/types";
-import { Eye, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Eye, ChevronLeft, ChevronRight, X, AlertTriangle } from "lucide-react";
 import { Progress } from "../ui/progress";
 import {
   Select,
@@ -132,7 +132,12 @@ export function ViewStudents({ teacherClasses, teacherStudents, isLoading }: Vie
             {paginatedStudents.map((student) => (
             <TableRow key={student._id}>
                 <TableCell>{student.rollNo}</TableCell>
-                <TableCell className="font-medium">{student.name}</TableCell>
+                <TableCell className="font-medium flex items-center gap-2">
+                    {student.name}
+                    {student.attendancePercentage < 75 && (
+                        <AlertTriangle className="h-4 w-4 text-destructive" title="Attendance below 75%" />
+                    )}
+                </TableCell>
                 <TableCell>{student.email}</TableCell>
                 <TableCell><Badge variant="outline">{getClassName(student.classId)}</Badge></TableCell>
                 <TableCell>

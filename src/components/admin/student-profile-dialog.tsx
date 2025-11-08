@@ -17,9 +17,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../ui/chart";
 import { Badge } from "../ui/badge";
-import { Mail, Phone, BookOpen } from "lucide-react";
+import { Mail, Phone, BookOpen, AlertTriangle } from "lucide-react";
 import { ScrollArea } from "../ui/scroll-area";
 import { Skeleton } from "../ui/skeleton";
+import { Alert, AlertTitle } from "../ui/alert";
 
 interface StudentProfileDialogProps {
   isOpen: boolean;
@@ -191,6 +192,14 @@ export function StudentProfileDialog({ isOpen, onOpenChange, student, classes }:
                        </div>
                     </CardContent>
                 </Card>
+
+                {student.attendancePercentage < 75 && (
+                    <Alert variant="destructive">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTitle>Low Attendance Warning</AlertTitle>
+                        This student's attendance is below the 75% threshold.
+                    </Alert>
+                )}
 
                 <div className="grid md:grid-cols-2 gap-6">
                     <Card>

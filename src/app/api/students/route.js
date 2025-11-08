@@ -8,27 +8,10 @@ import bcrypt from 'bcryptjs';
 // Helper function to calculate attendance percentage
 async function calculateAttendancePercentage(studentId, classId) {
   try {
-    // Get current month start and end dates
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    
-    // Format dates as YYYY-MM-DD
-    const formatDate = (date) => {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    };
-    
-    const startDateStr = formatDate(startOfMonth);
-    const endDateStr = formatDate(endOfMonth);
-    
-    // Get all attendance records for this student in current month
+    // Get all attendance records for this student in the specific class
     const attendanceRecords = await Attendance.find({
       studentId: studentId,
       classId: classId,
-      date: { $gte: startDateStr, $lte: endDateStr }
     });
     
     if (attendanceRecords.length === 0) {
@@ -40,7 +23,7 @@ async function calculateAttendancePercentage(studentId, classId) {
       record => record.status === 'present' || record.status === 'late'
     ).length;
     
-    // Total days with records (present + absent + late)
+    // Total days with records
     const totalDays = attendanceRecords.length;
     
     // Calculate percentage
