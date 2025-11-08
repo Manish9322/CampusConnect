@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { Calendar, User, ThumbsUp, Share2, MessageSquare, Send, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
