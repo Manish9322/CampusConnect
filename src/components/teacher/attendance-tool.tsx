@@ -8,12 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Send, ChevronLeft, ChevronRight, CalendarIcon, AlertTriangle, Lock } from "lucide-react";
-import { AttendanceRecord, AttendanceStatus, Student, Teacher, Class } from "@/lib/types";
+import { AttendanceRecord, AttendanceStatus, Student, Teacher, Class, DayOfWeek, Timetable } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
 import { format, differenceInDays } from "date-fns";
-import { useAddAttendanceMutation, useGetAttendanceQuery, useGetClassesQuery, useGetStudentsQuery } from "@/services/api";
+import { useAddAttendanceMutation, useGetAttendanceQuery, useGetClassesQuery, useGetStudentsQuery, useGetTimetableQuery } from "@/services/api";
 import { Skeleton } from "../ui/skeleton";
 import { EmptyState } from "../shared/empty-state";
 import { ThreeStateToggle } from "../shared/three-state-toggle";
@@ -22,6 +22,8 @@ import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 type AttendanceState = {
   [studentId: string]: AttendanceStatus;
 };
+
+const DAYS: DayOfWeek[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export function AttendanceTool() {
   const { toast } = useToast();
@@ -35,67 +37,48 @@ export function AttendanceTool() {
 
   React.useEffect(() => {
     const storedUser = localStorage.getItem('teacher_user');
-    console.log('=== ATTENDANCE TOOL DEBUG ===');
-    console.log('Stored teacher user:', storedUser);
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
-      console.log('Parsed teacher user:', parsedUser);
-      // Ensure both id and _id are set for compatibility
       if (parsedUser.id && !parsedUser._id) {
         parsedUser._id = parsedUser.id;
-        console.log('Added _id field from id:', parsedUser._id);
       }
       setUser(parsedUser);
     }
   }, []);
 
+  const selectedDay = date ? DAYS[date.getDay()] : undefined;
+
+  const { data: allTimetables = [], isLoading: isLoadingTimetables } = useGetTimetableQuery({ day: selectedDay }, { skip: !selectedDay });
   const { data: allClasses = [], isLoading: isLoadingClasses } = useGetClassesQuery();
   
-  console.log('=== CLASSES DEBUG ===');
-  console.log('All classes:', allClasses);
-  console.log('All classes length:', allClasses.length);
-  console.log('Is loading classes:', isLoadingClasses);
-  console.log('Current user:', user);
-  
-  const teacherClasses = React.useMemo(() => {
-    if (user && allClasses.length > 0) {
-      const userId = user._id || user.id;
-      console.log('Filtering classes for teacher ID:', userId);
-      const filtered = allClasses.filter((c: any) => {
-        // Handle both populated and non-populated teacherId
-        const classTeacherId = c.teacherId?._id || c.teacherId;
-        const matches = classTeacherId === userId;
-        console.log('Class:', c.name, 'TeacherId:', classTeacherId, 'Matches:', matches);
-        return matches;
-      });
-      console.log('Filtered teacher classes:', filtered);
-      return filtered;
+  const teacherClassesToday = React.useMemo(() => {
+    if (user && allClasses.length > 0 && allTimetables.length > 0) {
+      const teacherId = user._id || user.id;
+      const classIdsForTeacherToday = allTimetables
+        .flatMap((tt: Timetable) => tt.periods.map(p => ({ ...p, classId: tt.classId })))
+        .filter(period => (period.teacherId?._id || period.teacherId) === teacherId)
+        .map(period => period.classId);
+
+      const uniqueClassIds = [...new Set(classIdsForTeacherToday)];
+      
+      return allClasses.filter((c: any) => uniqueClassIds.includes(c._id));
     }
-    console.log('No user or classes available');
     return [];
-  }, [user, allClasses]);
+  }, [user, allClasses, allTimetables]);
 
   React.useEffect(() => {
-    if (teacherClasses.length > 0 && !selectedClassId) {
-        console.log('Setting default class to:', teacherClasses[0]._id);
-        setSelectedClassId(teacherClasses[0]._id!);
+    if (teacherClassesToday.length > 0 && !teacherClassesToday.find(c => c._id === selectedClassId)) {
+        setSelectedClassId(teacherClassesToday[0]._id!);
+    } else if (teacherClassesToday.length === 0) {
+        setSelectedClassId("");
     }
-  }, [teacherClasses, selectedClassId]);
-
-  console.log('=== SELECTED CLASS DEBUG ===');
-  console.log('Selected class ID:', selectedClassId);
-  console.log('Teacher classes:', teacherClasses);
+  }, [teacherClassesToday, selectedClassId]);
 
   const { data: studentsInCourse = [], isLoading: isLoadingStudents } = useGetStudentsQuery(
     { classId: selectedClassId }, 
     { skip: !selectedClassId }
   );
   
-  console.log('=== STUDENTS DEBUG ===');
-  console.log('Students in course:', studentsInCourse);
-  console.log('Students count:', studentsInCourse.length);
-  console.log('Is loading students:', isLoadingStudents);
-
   const formattedDate = date ? format(date, "yyyy-MM-dd") : "";
   const { data: existingAttendance = [], isLoading: isLoadingExistingAttendance, refetch: refetchAttendance } = useGetAttendanceQuery(
     { classId: selectedClassId, date: formattedDate },
@@ -172,7 +155,7 @@ export function AttendanceTool() {
     setAttendance(newAttendance);
   }
 
-  const isLoading = isLoadingClasses || !user;
+  const isLoading = isLoadingClasses || isLoadingTimetables || !user;
 
   const renderTableBody = () => {
     if (isLoading || isLoadingStudents || isLoadingExistingAttendance) {
@@ -187,7 +170,7 @@ export function AttendanceTool() {
       ));
     }
     if (paginatedStudents.length === 0) {
-      return <TableRow><TableCell colSpan={5}><EmptyState title="No Students" description="There are no students in the selected class." /></TableCell></TableRow>
+      return <TableRow><TableCell colSpan={5}><EmptyState title="No Students Found" description="There are no students in the selected class." /></TableCell></TableRow>
     }
     return paginatedStudents.map((student: Student) => (
         <TableRow key={student._id}>
@@ -217,10 +200,11 @@ export function AttendanceTool() {
                <div className="flex flex-col sm:flex-row items-center gap-2">
                    <Select value={selectedClassId} onValueChange={setSelectedClassId}>
                       <SelectTrigger className="w-full sm:w-[200px]" disabled={isLoading}>
-                          <SelectValue placeholder="Select course" />
+                          <SelectValue placeholder="Select a class for today" />
                       </SelectTrigger>
                       <SelectContent>
-                          {teacherClasses.map((c: any) => (
+                          {teacherClassesToday.length === 0 && <div className="p-2 text-sm text-muted-foreground">No classes scheduled today.</div>}
+                          {teacherClassesToday.map((c: any) => (
                                <SelectItem key={c._id} value={c._id}>{c.name}</SelectItem>
                           ))}
                       </SelectContent>
