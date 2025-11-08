@@ -4,14 +4,28 @@ import _db from '@/lib/db';
 import { Student } from '@/models/student.model.js';
 import { Attendance } from '@/models/attendance.model.js';
 import bcrypt from 'bcryptjs';
+import { AcademicYear } from '@/models/academic-year.model.js';
 
 // Helper function to calculate attendance percentage
 async function calculateAttendancePercentage(studentId, classId) {
   try {
-    // Get all attendance records for this student in the specific class
+    const academicYear = await AcademicYear.findOne().sort({ createdAt: -1 });
+    let semesterFilter = {};
+
+    if (academicYear && academicYear.semesterStartDate && academicYear.semesterEndDate) {
+        semesterFilter = {
+            date: {
+                $gte: academicYear.semesterStartDate.toISOString().split('T')[0],
+                $lte: academicYear.semesterEndDate.toISOString().split('T')[0],
+            }
+        };
+    }
+
+    // Get all attendance records for this student in the specific class within the semester
     const attendanceRecords = await Attendance.find({
       studentId: studentId,
       classId: classId,
+      ...semesterFilter,
     });
     
     if (attendanceRecords.length === 0) {
@@ -160,3 +174,5 @@ export async function DELETE(request) {
         return NextResponse.json({ message: 'Error deleting student', error: error.message }, { status: 400 });
     }
 }
+
+    

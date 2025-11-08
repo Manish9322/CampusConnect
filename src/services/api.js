@@ -5,7 +5,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest', 'Note', 'Timetable', 'Settings', 'Complaint', 'FeeName', 'FeeStructure', 'FeeSettings', 'StudentFeeSettings'],
+  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest', 'Note', 'Timetable', 'Settings', 'Complaint', 'FeeName', 'FeeStructure', 'FeeSettings', 'StudentFeeSettings', 'AcademicYear'],
   endpoints: (builder) => ({
     testDBConnection: builder.query({
       query: () => 'connect',
@@ -269,6 +269,7 @@ export const api = createApi({
             const urlParams = new URLSearchParams();
             if (params.classId) urlParams.append('classId', params.classId);
             if (params.date) urlParams.append('date', params.date);
+            if (params.studentId) urlParams.append('studentId', params.studentId);
             return `attendance?${urlParams.toString()}`;
         },
         providesTags: (result, error, { classId, date }) => [{ type: 'Attendance', id: `${classId}-${date}` }],
@@ -580,6 +581,20 @@ export const api = createApi({
         }),
         invalidatesTags: ['StudentFeeSettings'],
     }),
+
+    // Academic Year Settings
+    getAcademicYearSettings: builder.query({
+        query: () => 'settings/academic-year',
+        providesTags: ['AcademicYear'],
+    }),
+    updateAcademicYearSettings: builder.mutation({
+        query: (settings) => ({
+            url: 'settings/academic-year',
+            method: 'POST',
+            body: settings,
+        }),
+        invalidatesTags: ['AcademicYear'],
+    }),
   }),
 });
 
@@ -658,4 +673,8 @@ export const {
     useGetStudentFeeSettingsQuery,
     useUpdateStudentFeeSettingsMutation,
     useApplyFeeSettingsToAllMutation,
+    useGetAcademicYearSettingsQuery,
+    useUpdateAcademicYearSettingsMutation,
 } = api;
+
+    

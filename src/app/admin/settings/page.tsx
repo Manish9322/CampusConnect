@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PlusCircle, Trash2, Edit, Eye, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useGetSubjectsQuery, useAddSubjectMutation, useDeleteSubjectMutation, useUpdateSubjectMutation, useGetDepartmentsQuery, useAddDepartmentMutation, useDeleteDepartmentMutation, useUpdateDepartmentMutation, useGetDesignationsQuery, useAddDesignationMutation, useDeleteDesignationMutation, useUpdateDesignationMutation, useGetAnnouncementCategoriesQuery, useAddAnnouncementCategoryMutation, useUpdateAnnouncementCategoryMutation, useDeleteAnnouncementCategoryMutation, useGetFeeNamesQuery, useAddFeeNameMutation, useUpdateFeeNameMutation, useDeleteFeeNameMutation, useGetFeeStructureQuery, useAddFeeStructureMutation, useUpdateFeeStructureMutation, useDeleteFeeStructureMutation } from "@/services/api";
+import { useGetSubjectsQuery, useAddSubjectMutation, useDeleteSubjectMutation, useUpdateSubjectMutation, useGetDepartmentsQuery, useAddDepartmentMutation, useDeleteDepartmentMutation, useUpdateDepartmentMutation, useGetDesignationsQuery, useAddDesignationMutation, useDeleteDesignationMutation, useUpdateDesignationMutation, useGetAnnouncementCategoriesQuery, useAddAnnouncementCategoryMutation, useUpdateAnnouncementCategoryMutation, useDeleteAnnouncementCategoryMutation, useGetFeeNamesQuery, useAddFeeNameMutation, useUpdateFeeNameMutation, useDeleteFeeNameMutation, useGetFeeStructureQuery, useAddFeeStructureMutation, useUpdateFeeStructureMutation, useDeleteFeeStructureMutation, useGetAcademicYearSettingsQuery, useUpdateAcademicYearSettingsMutation } from "@/services/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,6 +18,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { format, parseISO } from "date-fns";
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
 
 type Item = {
     _id: string;
@@ -36,6 +41,125 @@ type FeeComponent = {
 
 type ItemToModify = Item | null;
 type ItemType = "subject" | "department" | "designation" | "announcementCategory" | "feeName";
+
+function AcademicYearSettings() {
+    const { data: settings, isLoading, isFetching } = useGetAcademicYearSettingsQuery(undefined);
+    const [updateSettings, { isLoading: isUpdating }] = useUpdateAcademicYearSettingsMutation();
+    const { toast } = useToast();
+
+    const [startDate, setStartDate] = React.useState<Date | undefined>();
+    const [endDate, setEndDate] = React.useState<Date | undefined>();
+
+    React.useEffect(() => {
+        if (settings) {
+            setStartDate(settings.semesterStartDate ? parseISO(settings.semesterStartDate) : undefined);
+            setEndDate(settings.semesterEndDate ? parseISO(settings.semesterEndDate) : undefined);
+        }
+    }, [settings]);
+
+    const handleSave = async () => {
+        if (!startDate || !endDate) {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'Please select both a start and end date for the semester.',
+            });
+            return;
+        }
+
+        try {
+            await updateSettings({
+                semesterStartDate: startDate.toISOString(),
+                semesterEndDate: endDate.toISOString(),
+            }).unwrap();
+            toast({
+                title: 'Settings Saved',
+                description: 'Academic year settings have been updated successfully.',
+            });
+        } catch (error) {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'Failed to save academic year settings.',
+            });
+        }
+    };
+    
+    if (isLoading) {
+        return (
+            <Card>
+                <CardHeader>
+                    <Skeleton className="h-6 w-1/2" />
+                    <Skeleton className="h-4 w-3/4" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-1/3 self-end" />
+                </CardContent>
+            </Card>
+        );
+    }
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Academic Year Settings</CardTitle>
+                <CardDescription>
+                    Define the start and end dates for the current semester. This will be used for attendance calculations.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label>Semester Start Date</Label>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                        "w-full justify-start text-left font-normal",
+                                        !startDate && "text-muted-foreground"
+                                    )}
+                                >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                                <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus />
+                            </PopoverContent>
+                        </Popover>
+                    </div>
+                     <div className="space-y-2">
+                        <Label>Semester End Date</Label>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                        "w-full justify-start text-left font-normal",
+                                        !endDate && "text-muted-foreground"
+                                    )}
+                                >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                                <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus />
+                            </PopoverContent>
+                        </Popover>
+                    </div>
+                </div>
+                <Button onClick={handleSave} disabled={isUpdating || isFetching}>
+                    {isUpdating ? "Saving..." : "Save Academic Dates"}
+                </Button>
+            </CardContent>
+        </Card>
+    )
+}
+
 
 export default function SettingsPage() {
     const [newSubject, setNewSubject] = React.useState({ name: "", description: "", departmentId: "", departmentName: "" });
@@ -764,6 +888,7 @@ export default function SettingsPage() {
             <h1 className="text-xl md:text-2xl font-bold">Settings</h1>
             <span>Manage your account settings and personalize your overall campus connect experience.</span>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+                <AcademicYearSettings />
                 {renderFeeManagement()}
                  {renderMasterTable(
                     "Fee Names Master",
@@ -954,3 +1079,5 @@ export default function SettingsPage() {
         </div>
     );
 }
+
+    
