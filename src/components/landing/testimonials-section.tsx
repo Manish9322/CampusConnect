@@ -60,7 +60,7 @@ export function TestimonialsSection() {
                       “{testimonial.quote}”
                     </blockquote>
                     <div className="mt-6 flex items-center gap-4">
-                      <Avatar>
+                      <Avatar className="border-2 border-primary/10">
                         <AvatarImage src={testimonial.avatar} />
                         <AvatarFallback>{testimonial.initials}</AvatarFallback>
                       </Avatar>
