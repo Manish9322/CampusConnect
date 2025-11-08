@@ -1,11 +1,18 @@
 
+"use client";
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, School, Users2, Briefcase } from 'lucide-react';
+import { ArrowRight, School, Users2, Briefcase, UserCheck } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useGetTeachersQuery } from '@/services/api';
+import { Skeleton } from '../ui/skeleton';
 
 export function HeroSection() {
+  const { data: teachers = [], isLoading } = useGetTeachersQuery(undefined);
+  const totalTeachers = teachers.length;
+
   return (
     <section className="w-full py-12 md:py-20 lg:py-24 bg-gradient-to-br from-background to-muted/50">
       <div className="container px-4 md:px-6">
@@ -33,10 +40,14 @@ export function HeroSection() {
             <div className="grid grid-cols-3 gap-4 pt-6">
               <div className="flex flex-col items-start gap-1">
                 <div className="flex items-center gap-2">
-                  <School className="w-5 h-5 text-accent" />
-                  <span className="text-2xl font-bold">50+</span>
+                  <UserCheck className="w-5 h-5 text-accent" />
+                  {isLoading ? (
+                    <Skeleton className="h-8 w-16" />
+                  ) : (
+                    <span className="text-2xl font-bold">{totalTeachers}+</span>
+                  )}
                 </div>
-                <p className="text-sm text-muted-foreground">Institutions</p>
+                <p className="text-sm text-muted-foreground">Teachers</p>
               </div>
               <div className="flex flex-col items-start gap-1">
                 <div className="flex items-center gap-2">
