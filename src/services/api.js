@@ -5,7 +5,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest', 'Note', 'Timetable', 'Settings', 'Complaint', 'FeeName', 'FeeStructure', 'FeeSettings', 'StudentFeeSettings', 'AcademicYear', 'Testimonial'],
+  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest', 'Note', 'Timetable', 'Settings', 'Complaint', 'FeeName', 'FeeStructure', 'FeeSettings', 'StudentFeeSettings', 'AcademicYear', 'Testimonial', 'News', 'Comment'],
   endpoints: (builder) => ({
     testDBConnection: builder.query({
       query: () => 'connect',
@@ -628,6 +628,57 @@ export const api = createApi({
         }),
         invalidatesTags: ['Testimonial'],
     }),
+    
+    // News endpoints
+    getNews: builder.query({
+      query: () => 'news',
+      providesTags: ['News'],
+    }),
+    getNewsItem: builder.query({
+      query: (slug) => `news/${slug}`,
+      providesTags: (result, error, slug) => [{ type: 'News', id: slug }],
+    }),
+    addNews: builder.mutation({
+      query: (newNews) => ({
+        url: 'news',
+        method: 'POST',
+        body: newNews,
+      }),
+      invalidatesTags: ['News'],
+    }),
+    updateNews: builder.mutation({
+      query: (newsToUpdate) => ({
+        url: 'news',
+        method: 'PUT',
+        body: newsToUpdate,
+      }),
+      invalidatesTags: ['News'],
+    }),
+    deleteNews: builder.mutation({
+      query: (id) => ({
+        url: `news?id=${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['News'],
+    }),
+    updateNewsInteraction: builder.mutation({
+      query: ({ slug, action }) => ({
+        url: `news/${slug}`,
+        method: 'PUT',
+        body: { action },
+      }),
+      invalidatesTags: (result, error, { slug }) => [{ type: 'News', id: slug }],
+    }),
+
+    // Comments endpoints
+    addComment: builder.mutation({
+      query: (newComment) => ({
+        url: 'comments',
+        method: 'POST',
+        body: newComment,
+      }),
+      invalidatesTags: ['Comment'],
+    }),
   }),
 });
 
@@ -712,6 +763,13 @@ export const {
     useAddTestimonialMutation,
     useUpdateTestimonialMutation,
     useDeleteTestimonialMutation,
+    useGetNewsQuery,
+    useGetNewsItemQuery,
+    useAddNewsMutation,
+    useUpdateNewsMutation,
+    useDeleteNewsMutation,
+    useUpdateNewsInteractionMutation,
+    useAddCommentMutation,
 } = api;
 
     
