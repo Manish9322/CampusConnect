@@ -46,20 +46,11 @@ export function ViewStudents({ teacherClasses, teacherStudents, isLoading }: Vie
   const [isProfileOpen, setProfileOpen] = React.useState(false);
   const isMobile = useIsMobile();
 
-  // Use real attendance data from API (no more mock data)
-  const studentsWithAttendance = React.useMemo(() => {
-    return teacherStudents.map(student => ({
-      ...student,
-      attendancePercentage: student.attendancePercentage || 0 // Default to 0 if no attendance recorded
-    }));
-  }, [teacherStudents]);
-
-  const filteredStudents = studentsWithAttendance.filter(
+  const filteredStudents = teacherStudents.filter(
     (student) => {
       const nameMatch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (student.rollNo && student.rollNo.toLowerCase().includes(searchTerm.toLowerCase()));
       
-      // Handle both string and object ID comparisons for classId
       const studentClassId = typeof student.classId === 'object' ? (student.classId as any)?._id : student.classId;
       const classMatch = classFilter === 'all' || studentClassId === classFilter || studentClassId?.toString() === classFilter?.toString();
       
@@ -92,7 +83,6 @@ export function ViewStudents({ teacherClasses, teacherStudents, isLoading }: Vie
   };
   
   const getClassName = (classId: string | any) => {
-    // Handle both string and object ID comparisons
     const actualClassId = typeof classId === 'object' ? classId?._id : classId;
     return teacherClasses.find(c => c._id === actualClassId || c._id?.toString() === actualClassId?.toString())?.name || 'N/A';
   }
@@ -134,7 +124,7 @@ export function ViewStudents({ teacherClasses, teacherStudents, isLoading }: Vie
                 <TableCell>{student.rollNo}</TableCell>
                 <TableCell className="font-medium flex items-center gap-2">
                     {student.name}
-                    {student.attendancePercentage < 75 && (
+                    {(student.attendancePercentage || 0) < 75 && (
                         <AlertTriangle className="h-4 w-4 text-destructive" title="Attendance below 75%" />
                     )}
                 </TableCell>
@@ -143,7 +133,7 @@ export function ViewStudents({ teacherClasses, teacherStudents, isLoading }: Vie
                 <TableCell>
                 <div className="flex items-center gap-2">
                     <Progress value={student.attendancePercentage} className="h-2 w-20" />
-                    <span>{student.attendancePercentage}%</span>
+                    <span>{student.attendancePercentage || 0}%</span>
                 </div>
                 </TableCell>
                 <TableCell className="text-right">
