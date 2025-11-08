@@ -38,12 +38,12 @@ export function AttendanceTool({ teacher, teacherClasses }: AttendanceToolProps)
   const [date, setDate] = React.useState<Date | undefined>(new Date());
 
   React.useEffect(() => {
-    if (teacherClasses.length > 0 && !teacherClasses.some(c => c._id === selectedClassId)) {
+    if (teacherClasses.length > 0 && !selectedClassId) {
         setSelectedClassId(teacherClasses[0]._id!);
-    } else if (teacherClasses.length === 0) {
+    } else if (teacherClasses.length === 0 && selectedClassId) {
         setSelectedClassId("");
     }
-  }, [teacherClasses, selectedClassId]);
+  }, [teacherClasses]);
 
   const { data: studentsInCourse = [], isLoading: isLoadingStudents } = useGetStudentsQuery(
     { classId: selectedClassId }, 
@@ -68,10 +68,27 @@ export function AttendanceTool({ teacher, teacherClasses }: AttendanceToolProps)
             const record = existingAttendance.find((r: any) => r.studentId === student._id);
             newAttendance[student._id!] = record ? record.status : 'present';
         });
-        setAttendance(newAttendance);
-    } else {
-        setAttendance({});
     }
+    
+    // Only update if the attendance has actually changed
+    setAttendance(prev => {
+      const prevKeys = Object.keys(prev).sort();
+      const newKeys = Object.keys(newAttendance).sort();
+      
+      // Check if keys are different
+      if (prevKeys.length !== newKeys.length || 
+          prevKeys.some((key, idx) => key !== newKeys[idx])) {
+        return newAttendance;
+      }
+      
+      // Check if values are different
+      if (prevKeys.some(key => prev[key] !== newAttendance[key])) {
+        return newAttendance;
+      }
+      
+      // No changes, return previous state
+      return prev;
+    });
   }, [studentsInCourse, existingAttendance]);
 
 
@@ -80,7 +97,7 @@ export function AttendanceTool({ teacher, teacherClasses }: AttendanceToolProps)
 
   const handleRowsPerPageChange = (value: string) => {
     if (value === 'all') {
-        setRowsPerPage(studentsInCourse.length);
+        setRowsPerPage(studentsInCourse.length || 10);
     } else {
         setRowsPerPage(Number(value));
     }
@@ -171,7 +188,10 @@ export function AttendanceTool({ teacher, teacherClasses }: AttendanceToolProps)
                   <CardDescription>Select a class and date, then mark student attendance.</CardDescription>
               </div>
                <div className="flex flex-col sm:flex-row items-center gap-2">
-                   <Select value={selectedClassId} onValueChange={setSelectedClassId}>
+                   <Select 
+                      value={selectedClassId || undefined} 
+                      onValueChange={setSelectedClassId}
+                   >
                       <SelectTrigger className="w-full sm:w-[200px]" disabled={teacherClasses.length === 0}>
                           <SelectValue placeholder="Select a class for today" />
                       </SelectTrigger>

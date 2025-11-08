@@ -73,15 +73,17 @@ export function AddClassDialog({
   });
 
   React.useEffect(() => {
-    form.reset({
-        name: classData?.name || "",
-        teacherId: (classData?.teacherId as Teacher)?._id || (classData?.teacherId as string) || "",
-        subjects: classData?.subjects.map(s => ({ label: s, value: s })) || [],
-        studentCount: classData?.studentCount || 0,
-        status: classData?.status === 'active',
-        year: classData?.year || new Date().getFullYear(),
-    });
-  }, [classData, allTeachers, form]);
+    if (open) {
+      form.reset({
+          name: classData?.name || "",
+          teacherId: (classData?.teacherId as Teacher)?._id || (classData?.teacherId as string) || "",
+          subjects: classData?.subjects.map(s => ({ label: s, value: s })) || [],
+          studentCount: classData?.studentCount || 0,
+          status: classData?.status === 'active',
+          year: classData?.year || new Date().getFullYear(),
+      });
+    }
+  }, [open, classData]);
 
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
