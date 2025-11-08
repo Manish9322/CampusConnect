@@ -28,7 +28,7 @@ import {
 export default function NewsDetailsPage() {
   const params = useParams();
   const slug = params.slug as string;
-  const { data, error, isLoading } = useGetNewsItemQuery(slug, { skip: !slug });
+  const { data, error, isLoading, refetch } = useGetNewsItemQuery(slug, { skip: !slug });
   const [updateInteraction] = useUpdateNewsInteractionMutation();
   const [addComment] = useAddCommentMutation();
   const { toast } = useToast();
@@ -51,7 +51,10 @@ export default function NewsDetailsPage() {
         await addComment({ newsId: data.newsItem._id, authorName: commenterName, content: comment }).unwrap();
         setComment("");
         setCommenterName("");
-        toast({ title: "Comment posted!" });
+        toast({ 
+          title: "Comment Submitted!",
+          description: "Your comment is awaiting moderation and will be visible after approval."
+        });
       } catch (err) {
         toast({ title: "Error posting comment", variant: "destructive" });
       }
@@ -171,6 +174,9 @@ export default function NewsDetailsPage() {
                                             </div>
                                         </div>
                                     ))}
+                                    {comments.length === 0 && (
+                                        <p className="text-muted-foreground text-center">Be the first to comment!</p>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>

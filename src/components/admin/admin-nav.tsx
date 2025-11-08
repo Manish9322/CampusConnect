@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Home, Users, UserCheck, CalendarCheck, BookCopy, LogOut, User as UserIcon, PanelLeft, ClipboardCheck, Settings, Megaphone, DollarSign, Calendar, ShieldAlert, Star, Newspaper } from "lucide-react";
+import { Home, Users, UserCheck, CalendarCheck, BookCopy, LogOut, User as UserIcon, PanelLeft, ClipboardCheck, Settings, Megaphone, DollarSign, Calendar, ShieldAlert, Star, Newspaper, MessageSquare } from "lucide-react";
 import * as React from "react";
 
 import {
@@ -59,6 +59,7 @@ export function AdminNav({ user, onLogout }: AdminNavProps) {
     { href: "/admin/news", label: "News", icon: Newspaper },
     { href: "/admin/testimonials", label: "Testimonials", icon: Star },
     { href: "/admin/complaints", label: "Complaints", icon: ShieldAlert },
+    { href: "/admin/comments", label: "Comments", icon: MessageSquare },
     { href: "/admin/attendance-requests", label: "Attendance Requests", icon: ClipboardCheck },
     { href: "/admin/settings", label: "Settings", icon: Settings },
   ];

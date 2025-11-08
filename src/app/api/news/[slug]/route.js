@@ -17,7 +17,7 @@ export async function GET(request, { params }) {
       return NextResponse.json({ message: 'News not found' }, { status: 404 });
     }
 
-    const comments = await Comment.find({ newsId: newsItem._id }).sort({ createdAt: -1 });
+    const comments = await Comment.find({ newsId: newsItem._id, approved: true }).sort({ createdAt: -1 });
 
     // Fetch related news (excluding the current one)
     const relatedNews = await News.find({

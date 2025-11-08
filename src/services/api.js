@@ -671,6 +671,10 @@ export const api = createApi({
     }),
 
     // Comments endpoints
+    getComments: builder.query({
+        query: () => 'comments',
+        providesTags: ['Comment'],
+    }),
     addComment: builder.mutation({
       query: (newComment) => ({
         url: 'comments',
@@ -678,6 +682,21 @@ export const api = createApi({
         body: newComment,
       }),
       invalidatesTags: ['Comment'],
+    }),
+    updateComment: builder.mutation({
+        query: (commentToUpdate) => ({
+            url: 'comments',
+            method: 'PUT',
+            body: commentToUpdate,
+        }),
+        invalidatesTags: ['Comment'],
+    }),
+    deleteComment: builder.mutation({
+        query: (id) => ({
+            url: `comments?id=${id}`,
+            method: 'DELETE',
+        }),
+        invalidatesTags: ['Comment'],
     }),
   }),
 });
@@ -769,7 +788,10 @@ export const {
     useUpdateNewsMutation,
     useDeleteNewsMutation,
     useUpdateNewsInteractionMutation,
+    useGetCommentsQuery,
     useAddCommentMutation,
+    useUpdateCommentMutation,
+    useDeleteCommentMutation,
 } = api;
 
     
