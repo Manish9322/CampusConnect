@@ -9,7 +9,7 @@ import { useGetNewsItemQuery, useUpdateNewsInteractionMutation, useAddCommentMut
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import { Calendar, User, ThumbsUp, Share2, Eye, Folder, Flame } from 'lucide-react';
+import { Calendar, User, ThumbsUp, Share2, Eye, Folder, Flame, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -137,10 +137,10 @@ export default function NewsDetailsPage() {
                           </PopoverTrigger>
                           <PopoverContent className="w-auto">
                               <div className="flex gap-2">
-                                  <FacebookShareButton url={shareUrl} title={newsItem.title}><FacebookIcon size={32} round /></FacebookShareButton>
-                                  <TwitterShareButton url={shareUrl} title={newsItem.title}><TwitterIcon size={32} round /></TwitterShareButton>
-                                  <LinkedinShareButton url={shareUrl} title={newsItem.title}><LinkedinIcon size={32} round /></LinkedinShareButton>
-                                  <WhatsappShareButton url={shareUrl} title={newsItem.title}><WhatsappIcon size={32} round /></WhatsappShareButton>
+                                  <FacebookShareButton url={shareUrl} title={newsItem.title}><FacebookIcon size={32} round bgStyle={{ fill: 'hsl(var(--primary))' }} iconFillColor='hsl(var(--primary-foreground))' /></FacebookShareButton>
+                                  <TwitterShareButton url={shareUrl} title={newsItem.title}><TwitterIcon size={32} round bgStyle={{ fill: 'hsl(var(--primary))' }} iconFillColor='hsl(var(--primary-foreground))' /></TwitterShareButton>
+                                  <LinkedinShareButton url={shareUrl} title={newsItem.title}><LinkedinIcon size={32} round bgStyle={{ fill: 'hsl(var(--primary))' }} iconFillColor='hsl(var(--primary-foreground))' /></LinkedinShareButton>
+                                  <WhatsappShareButton url={shareUrl} title={newsItem.title}><WhatsappIcon size={32} round bgStyle={{ fill: 'hsl(var(--primary))' }} iconFillColor='hsl(var(--primary-foreground))' /></WhatsappShareButton>
                               </div>
                           </PopoverContent>
                         </Popover>
@@ -180,7 +180,10 @@ export default function NewsDetailsPage() {
                 <aside className="lg:col-span-1 space-y-8 sticky top-24 self-start">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Related News</CardTitle>
+                            <CardTitle className="flex items-center gap-2">
+                                <Folder className="h-5 w-5 text-primary" />
+                                Related News
+                            </CardTitle>
                             <CardDescription>More from this category.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -207,7 +210,7 @@ export default function NewsDetailsPage() {
                                 <Flame className="h-5 w-5 text-primary" />
                                 Trending
                             </CardTitle>
-                            <CardDescription>What others are reading.</CardDescription>
+                             <CardDescription>What others are reading.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             {trendingNews.map((trending: any) => (
