@@ -1,4 +1,3 @@
-
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,6 +16,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -25,6 +25,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters."),
@@ -33,6 +34,7 @@ const formSchema = z.object({
   bannerImage: z.any().refine(val => val !== null && val !== undefined && val !== '', "Banner image is required."),
   category: z.string().nonempty("Category is required."),
   date: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Invalid date" }),
+  isPublished: z.boolean(),
 });
 
 interface AddNewsDialogProps {
@@ -60,6 +62,7 @@ export function AddNewsDialog({
       bannerImage: newsData?.bannerImage || "",
       category: newsData?.category || undefined,
       date: newsData ? new Date(newsData.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      isPublished: newsData?.isPublished || false,
     },
   });
 
@@ -71,6 +74,7 @@ export function AddNewsDialog({
       bannerImage: newsData?.bannerImage || "",
       category: newsData?.category || undefined,
       date: newsData ? new Date(newsData.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      isPublished: newsData?.isPublished || false,
     });
   }, [newsData, form]);
 
@@ -188,6 +192,26 @@ export function AddNewsDialog({
                 )}
               />
             </div>
+             <FormField
+              control={form.control}
+              name="isPublished"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                  <div className="space-y-0.5">
+                    <FormLabel>Publish</FormLabel>
+                    <FormDescription>
+                      Make this article visible on the public site.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
             <DialogFooter className="sticky bottom-0 bg-background pt-4">
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
                 Cancel

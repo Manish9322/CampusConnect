@@ -73,24 +73,26 @@ export function LatestNewsSection() {
           <EmptyState title="No News Yet" description="Check back later for the latest updates from campus."/>
         ) : (
           <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-2 lg:gap-16">
-            <div className="group flex flex-col justify-center space-y-6">
-              <Link href={`/news/${latestNews.slug}`} className="space-y-4">
-                <div className="overflow-hidden rounded-lg">
-                  <Image
-                    src={latestNews.bannerImage}
-                    width="600"
-                    height="340"
-                    alt={latestNews.title}
-                    className="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                </div>
-                <h3 className="text-2xl md:text-4xl font-bold tracking-tight group-hover:text-primary transition-colors">{latestNews.title}</h3>
-                <p className="max-w-prose text-muted-foreground md:text-lg">{latestNews.shortDescription}</p>
-                <Button variant="link" className="px-0 text-lg">
-                  Read More <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-            </div>
+            {latestNews && (
+              <div className="group flex flex-col justify-center space-y-6">
+                <Link href={`/news/${latestNews.slug}`} className="space-y-4">
+                  <div className="overflow-hidden rounded-lg">
+                    <Image
+                      src={latestNews.bannerImage}
+                      width="600"
+                      height="340"
+                      alt={latestNews.title}
+                      className="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  </div>
+                  <h3 className="text-2xl md:text-4xl font-bold tracking-tight group-hover:text-primary transition-colors">{latestNews.title}</h3>
+                  <p className="max-w-prose text-muted-foreground md:text-lg">{latestNews.shortDescription}</p>
+                  <Button variant="link" className="px-0 text-lg">
+                    Read More <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+              </div>
+            )}
             <div className="flex flex-col justify-center space-y-8">
               {otherNews.map((item, index) => (
                 <div key={index}>
