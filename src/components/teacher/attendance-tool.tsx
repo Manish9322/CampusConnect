@@ -177,8 +177,8 @@ export function AttendanceTool({ teacher, teacherClasses }: AttendanceToolProps)
                       </SelectTrigger>
                       <SelectContent>
                           {teacherClasses.length === 0 && <div className="p-2 text-sm text-muted-foreground">No classes scheduled today.</div>}
-                          {teacherClasses.map((c: any) => (
-                               <SelectItem key={c._id} value={c._id}>{c.name}</SelectItem>
+                          {teacherClasses.map((c: any, index: number) => (
+                               <SelectItem key={c._id || index} value={c._id}>{c.name}</SelectItem>
                           ))}
                       </SelectContent>
                   </Select>

@@ -39,7 +39,6 @@ export default function TeacherAttendancePage() {
         const teacherId = user?._id || user?.id;
         if (!teacherId) return [];
         
-        // Find all unique class IDs the teacher is scheduled for today from the timetables
         const scheduledClassIds = allTimetables
             .filter((tt: Timetable) => tt.day === today)
             .flatMap((tt: Timetable) => 
@@ -48,13 +47,12 @@ export default function TeacherAttendancePage() {
         
         const uniqueClassIds = [...new Set(scheduledClassIds)];
         
-        // Get the full class details for those IDs
         return allClasses.filter((c: Class) => uniqueClassIds.includes(c._id!));
 
     }, [user, allClasses, allTimetables, today, isLoading]);
 
     const teacherStudents = React.useMemo(() => {
-        if (!teacherClassesForToday.length || !allStudents.length) return [];
+        if (teacherClassesForToday.length === 0 || !allStudents || allStudents.length === 0) return [];
         const classIds = teacherClassesForToday.map(c => c._id);
         return allStudents.filter((s: Student) => {
              const studentClassId = typeof s.classId === 'object' ? (s.classId as any)?._id : s.classId;
@@ -63,7 +61,7 @@ export default function TeacherAttendancePage() {
     }, [teacherClassesForToday, allStudents]);
 
     const stats = React.useMemo(() => {
-        if (isLoading || teacherClassesForToday.length === 0) {
+        if (teacherClassesForToday.length === 0) {
             return {
                 coursesAssigned: 0,
                 totalStudents: 0,
@@ -84,7 +82,7 @@ export default function TeacherAttendancePage() {
             activeCourses,
         };
 
-    }, [isLoading, teacherClassesForToday, teacherStudents]);
+    }, [teacherClassesForToday, teacherStudents]);
 
     const renderStatCards = () => {
         if(isLoading) {
