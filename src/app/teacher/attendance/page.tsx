@@ -34,7 +34,7 @@ export default function TeacherAttendancePage() {
     const isLoading = isLoadingClasses || isLoadingStudents || isLoadingTimetables || !user;
 
     const teacherClassesForToday = React.useMemo(() => {
-        if (isLoading || !allTimetables || !allClasses) return [];
+        if (isLoading || !allTimetables || !allClasses || !user) return [];
         
         const teacherId = user?._id || user?.id;
         if (!teacherId) return [];
