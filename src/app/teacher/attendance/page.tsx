@@ -34,7 +34,7 @@ export default function TeacherAttendancePage() {
     const isLoading = isLoadingClasses || isLoadingStudents || isLoadingTimetables || !user;
 
     const teacherClassesForToday = React.useMemo(() => {
-        if (isLoading || !allTimetables || !allClasses || !user) return [];
+        if (!allTimetables || !allClasses || !user) return [];
         
         const teacherId = user?._id || user?.id;
         if (!teacherId) return [];
@@ -49,7 +49,7 @@ export default function TeacherAttendancePage() {
         
         return allClasses.filter((c: Class) => uniqueClassIds.includes(c._id!));
 
-    }, [user, allClasses, allTimetables, today, isLoading]);
+    }, [user, allClasses, allTimetables, today]);
 
     const teacherStudents = React.useMemo(() => {
         if (teacherClassesForToday.length === 0 || !allStudents || allStudents.length === 0) return [];
