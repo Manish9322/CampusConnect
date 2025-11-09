@@ -13,8 +13,10 @@ export default function ManageStaffPage() {
     const [filteredStaff, setFilteredStaff] = React.useState(staff);
 
     React.useEffect(() => {
-        setFilteredStaff(staff);
-    }, [staff]);
+        if (!isLoading) {
+            setFilteredStaff(staff);
+        }
+    }, [staff, isLoading]);
 
     const totalStaff = staff.length;
     
