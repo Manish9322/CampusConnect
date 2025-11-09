@@ -5,7 +5,7 @@ import { News } from '@/models/news.model';
 export async function GET() {
   await _db();
   try {
-    const news = await News.find({}).sort({ date: -1 });
+    const news = await News.find({}).sort({ order: 1 });
     return NextResponse.json(news, { status: 200 });
   } catch (error) {
     return NextResponse.json({ message: 'Error fetching news', error: error.message }, { status: 500 });
@@ -30,7 +30,9 @@ export async function POST(request) {
       }, { status: 201 });
     } else {
       // Handle single creation
-      const newNews = new News(body);
+       const lastNews = await News.findOne().sort({ order: -1 });
+       const newOrder = lastNews ? lastNews.order + 1 : 0;
+      const newNews = new News({...body, order: newOrder});
       await newNews.save();
       return NextResponse.json(newNews, { status: 201 });
     }
@@ -43,6 +45,19 @@ export async function PUT(request) {
     await _db();
     try {
         const body = await request.json();
+
+        // Handle bulk reordering
+        if (Array.isArray(body)) {
+            const bulkOps = body.map(item => ({
+                updateOne: {
+                    filter: { _id: item._id },
+                    update: { $set: { order: item.order } }
+                }
+            }));
+            await News.bulkWrite(bulkOps);
+            return NextResponse.json({ message: 'News articles reordered successfully' }, { status: 200 });
+        }
+
         const { _id, ...updateData } = body;
         const updatedNews = await News.findByIdAndUpdate(_id, updateData, { new: true });
         if (!updatedNews) {

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Edit, PlusCircle, Trash2, ChevronLeft, ChevronRight, Eye } from "lucide-react";
+import { Edit, PlusCircle, Trash2, ChevronLeft, ChevronRight, Eye, GripVertical } from "lucide-react";
 import { DeleteConfirmationDialog } from "@/components/shared/delete-confirmation-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -26,13 +26,15 @@ import Image from "next/image";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 interface NewsTableProps {
   news: any[];
   isLoading: boolean;
 }
 
-export function NewsTable({ news, isLoading }: NewsTableProps) {
+export function NewsTable({ news: initialNews, isLoading }: NewsTableProps) {
+  const [news, setNews] = React.useState(initialNews);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [isAddDialogOpen, setAddDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
@@ -45,6 +47,11 @@ export function NewsTable({ news, isLoading }: NewsTableProps) {
   const [updateNews] = useUpdateNewsMutation();
   const [deleteNews] = useDeleteNewsMutation();
   const { uploadFile, uploading: isUploadingFile } = useFileUpload({ type: 'announcement' });
+  
+  React.useEffect(() => {
+    const sortedNews = [...initialNews].sort((a, b) => a.order - b.order);
+    setNews(sortedNews);
+  }, [initialNews]);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -122,12 +129,37 @@ export function NewsTable({ news, isLoading }: NewsTableProps) {
     }
   };
 
+  const onDragEnd = (result: any) => {
+    if (!result.destination) {
+      return;
+    }
+
+    const newNews = Array.from(news);
+    const [reorderedItem] = newNews.splice(result.source.index, 1);
+    newNews.splice(result.destination.index, 0, reorderedItem);
+
+    const reorderedNewsWithOrder = newNews.map((n, idx) => ({ ...n, order: idx }));
+    setNews(reorderedNewsWithOrder);
+
+    const updatePayload = reorderedNewsWithOrder.map(n => ({ _id: n._id, order: n.order }));
+    updateNews(updatePayload)
+      .unwrap()
+      .then(() => {
+        toast({ title: "Order Updated", description: "News order has been saved." });
+      })
+      .catch(() => {
+        toast({ title: "Error", description: "Failed to save new order.", variant: "destructive" });
+        setNews(news); // Revert on error
+      });
+  };
+
   const renderContent = () => {
     if (isLoading) {
       return (
         <TableBody>
           {[...Array(5)].map((_, i) => (
             <TableRow key={i}>
+              <TableCell><Skeleton className="h-5 w-8" /></TableCell>
               <TableCell><Skeleton className="h-10 w-16" /></TableCell>
               <TableCell><Skeleton className="h-5 w-48" /></TableCell>
               <TableCell><Skeleton className="h-5 w-20" /></TableCell>
@@ -144,7 +176,7 @@ export function NewsTable({ news, isLoading }: NewsTableProps) {
         return (
             <TableBody>
                 <TableRow>
-                    <TableCell colSpan={6}>
+                    <TableCell colSpan={7}>
                         <EmptyState title="No News Found" description="There are no news articles matching your criteria." />
                     </TableCell>
                 </TableRow>
@@ -153,42 +185,56 @@ export function NewsTable({ news, isLoading }: NewsTableProps) {
     }
 
     return (
-      <TableBody>
-        {paginatedNews.map((item) => (
-          <TableRow key={item._id}>
-            <TableCell>
-              <Image src={item.bannerImage} alt={item.title} width={64} height={40} className="rounded-md object-cover" />
-            </TableCell>
-            <TableCell className="font-medium">{item.title}</TableCell>
-            <TableCell><Badge variant="outline">{item.category}</Badge></TableCell>
-            <TableCell>{new Date(item.date).toLocaleDateString()}</TableCell>
-            <TableCell>
-              <Switch
-                checked={item.isPublished}
-                onCheckedChange={(checked) => handleTogglePublished(item, checked)}
-                aria-label="Toggle published status"
-              />
-            </TableCell>
-            <TableCell className="text-right">
-              <Link href={`/news/${item.slug}`} target="_blank">
-                <Button variant="ghost" size="icon">
-                    <Eye className="h-4 w-4" />
-                </Button>
-              </Link>
-              <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
-                <Edit className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => openDeleteDialog(item)}
-              >
-                <Trash2 className="h-4 w-4 text-destructive" />
-              </Button>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
+        <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="news">
+                {(provided) => (
+                    <TableBody ref={provided.innerRef} {...provided.droppableProps}>
+                        {paginatedNews.map((item, index) => (
+                        <Draggable key={item._id} draggableId={item._id} index={index}>
+                        {(provided) => (
+                            <TableRow ref={provided.innerRef} {...provided.draggableProps}>
+                                <TableCell {...provided.dragHandleProps} className="w-12 text-center">
+                                    <GripVertical className="h-5 w-5 text-muted-foreground" />
+                                </TableCell>
+                                <TableCell>
+                                <Image src={item.bannerImage} alt={item.title} width={64} height={40} className="rounded-md object-cover" />
+                                </TableCell>
+                                <TableCell className="font-medium">{item.title}</TableCell>
+                                <TableCell><Badge variant="outline">{item.category}</Badge></TableCell>
+                                <TableCell>{new Date(item.date).toLocaleDateString()}</TableCell>
+                                <TableCell>
+                                <Switch
+                                    checked={item.isPublished}
+                                    onCheckedChange={(checked) => handleTogglePublished(item, checked)}
+                                    aria-label="Toggle published status"
+                                />
+                                </TableCell>
+                                <TableCell className="text-right">
+                                <Link href={`/news/${item.slug}`} target="_blank">
+                                    <Button variant="ghost" size="icon">
+                                        <Eye className="h-4 w-4" />
+                                    </Button>
+                                </Link>
+                                <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
+                                    <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => openDeleteDialog(item)}
+                                >
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                                </TableCell>
+                            </TableRow>
+                        )}
+                        </Draggable>
+                        ))}
+                    {provided.placeholder}
+                </TableBody>
+                )}
+            </Droppable>
+        </DragDropContext>
     );
   };
 
@@ -213,6 +259,7 @@ export function NewsTable({ news, isLoading }: NewsTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-12"></TableHead>
               <TableHead>Banner</TableHead>
               <TableHead>Title</TableHead>
               <TableHead>Category</TableHead>
