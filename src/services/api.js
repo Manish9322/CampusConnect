@@ -5,7 +5,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest', 'Note', 'Timetable', 'Settings', 'Complaint', 'FeeName', 'FeeStructure', 'FeeSettings', 'StudentFeeSettings', 'AcademicYear', 'Testimonial', 'News', 'Comment', 'Staff', 'FAQ'],
+  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest', 'Note', 'Timetable', 'Settings', 'Complaint', 'FeeName', 'FeeStructure', 'FeeSettings', 'StudentFeeSettings', 'AcademicYear', 'Testimonial', 'News', 'Comment', 'Staff', 'FAQ', 'Journey'],
   endpoints: (builder) => ({
     testDBConnection: builder.query({
       query: () => 'connect',
@@ -759,6 +759,34 @@ export const api = createApi({
         }),
         invalidatesTags: ['FAQ'],
     }),
+    // Journey endpoints
+    getJourney: builder.query({
+        query: () => 'journey',
+        providesTags: ['Journey'],
+    }),
+    addJourney: builder.mutation({
+        query: (newJourney) => ({
+            url: 'journey',
+            method: 'POST',
+            body: newJourney,
+        }),
+        invalidatesTags: ['Journey'],
+    }),
+    updateJourney: builder.mutation({
+        query: (journeyToUpdate) => ({
+            url: 'journey',
+            method: 'PUT',
+            body: journeyToUpdate,
+        }),
+        invalidatesTags: ['Journey'],
+    }),
+    deleteJourney: builder.mutation({
+        query: (id) => ({
+            url: `journey?id=${id}`,
+            method: 'DELETE',
+        }),
+        invalidatesTags: ['Journey'],
+    }),
   }),
 });
 
@@ -861,6 +889,8 @@ export const {
     useAddFaqMutation,
     useUpdateFaqMutation,
     useDeleteFaqMutation,
+    useGetJourneyQuery,
+    useAddJourneyMutation,
+    useUpdateJourneyMutation,
+    useDeleteJourneyMutation,
 } = api;
-
-    

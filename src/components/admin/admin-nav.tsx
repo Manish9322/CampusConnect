@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Home, Users, UserCheck, CalendarCheck, BookCopy, LogOut, User as UserIcon, PanelLeft, ClipboardCheck, Settings, Megaphone, DollarSign, Calendar, ShieldAlert, Star, Newspaper, MessageSquare, Briefcase, HelpCircle } from "lucide-react";
+import { Home, Users, UserCheck, CalendarCheck, BookCopy, LogOut, User as UserIcon, PanelLeft, ClipboardCheck, Settings, Megaphone, DollarSign, Calendar, ShieldAlert, Star, Newspaper, MessageSquare, Briefcase, HelpCircle, Milestone } from "lucide-react";
 import * as React from "react";
 
 import {
@@ -63,6 +63,7 @@ export function AdminNav({ user, onLogout }: AdminNavProps) {
     { href: "/admin/complaints", label: "Complaints", icon: ShieldAlert },
     { href: "/admin/comments", label: "Comments", icon: MessageSquare },
     { href: "/admin/faq", label: "FAQ", icon: HelpCircle },
+    { href: "/admin/journey", label: "Our Journey", icon: Milestone },
     { href: "/admin/attendance-requests", label: "Attendance Requests", icon: ClipboardCheck },
     { href: "/admin/settings", label: "Settings", icon: Settings },
   ];

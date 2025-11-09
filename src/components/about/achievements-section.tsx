@@ -1,7 +1,10 @@
+
 'use client';
 
-import { Award, Briefcase, Smile, TrendingUp } from 'lucide-react';
+import { Award, Briefcase, Smile, TrendingUp, Users, UserCheck } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useGetStudentsQuery, useGetTeachersQuery } from '@/services/api';
+import { Skeleton } from '../ui/skeleton';
 
 function Counter({
   to,
@@ -65,16 +68,20 @@ function useInView(ref: React.RefObject<HTMLElement>, options: { once: boolean; 
 }
 
 export function AchievementsSection() {
+  const { data: students = [], isLoading: isLoadingStudents } = useGetStudentsQuery({});
+  const { data: teachers = [], isLoading: isLoadingTeachers } = useGetTeachersQuery({});
+  const isLoading = isLoadingStudents || isLoadingTeachers;
+
   const achievements = [
     {
-      icon: <Briefcase className="h-8 w-8 text-primary" />,
-      value: 150,
-      label: 'Projects Completed',
+      icon: <Users className="h-8 w-8 text-primary" />,
+      value: students.length,
+      label: 'Students Enrolled',
     },
     {
-      icon: <Smile className="h-8 w-8 text-primary" />,
-      value: 99,
-      label: 'Happy Clients',
+      icon: <UserCheck className="h-8 w-8 text-primary" />,
+      value: teachers.length,
+      label: 'Qualified Teachers',
     },
     {
       icon: <Award className="h-8 w-8 text-primary" />,
@@ -110,7 +117,7 @@ export function AchievementsSection() {
               </div>
               <div className="grid gap-1">
                 <div className="text-4xl font-bold tracking-tighter text-primary">
-                  <Counter to={achievement.value} />+
+                  {isLoading ? <Skeleton className="h-10 w-20" /> : <Counter to={achievement.value} />}
                 </div>
                 <p className="text-sm font-medium text-muted-foreground">
                   {achievement.label}
