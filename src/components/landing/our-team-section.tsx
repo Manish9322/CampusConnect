@@ -22,10 +22,10 @@ export function OurTeamSection() {
         <div className="mx-auto grid max-w-5xl grid-cols-2 gap-y-10 gap-x-6 sm:grid-cols-2 md:grid-cols-4 lg:gap-x-8">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="flex flex-col items-center text-center">
-              <Skeleton className="w-24 h-24 md:w-32 md:h-32 rounded-full" />
+              <Skeleton className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-background/50" />
               <div className="mt-4 space-y-2">
-                <Skeleton className="h-5 w-24 mx-auto" />
-                <Skeleton className="h-4 w-32 mx-auto" />
+                <Skeleton className="h-5 w-24 mx-auto bg-background/50" />
+                <Skeleton className="h-4 w-32 mx-auto bg-background/50" />
               </div>
             </div>
           ))}
