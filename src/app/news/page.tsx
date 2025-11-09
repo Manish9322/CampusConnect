@@ -7,9 +7,10 @@ import { Newspaper } from 'lucide-react';
 import { useGetNewsQuery } from '@/services/api';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/shared/empty-state';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Badge } from '@/components/ui/badge';
 
 export default function NewsListPage() {
   const { data: news = [], isLoading } = useGetNewsQuery(undefined);
@@ -22,21 +23,17 @@ export default function NewsListPage() {
   const renderContent = () => {
     if (isLoading) {
       return (
-        <div className="grid gap-8 md:gap-12 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {[...Array(6)].map((_, i) => (
-                <Card key={i}>
-                    <CardHeader>
-                        <Skeleton className="h-40 w-full" />
-                    </CardHeader>
-                    <CardContent className="space-y-2">
+                <div key={i} className="border rounded-lg overflow-hidden">
+                    <Skeleton className="h-48 w-full" />
+                    <div className="p-4 space-y-3">
                         <Skeleton className="h-5 w-1/4" />
                         <Skeleton className="h-6 w-3/4" />
                         <Skeleton className="h-10 w-full" />
-                    </CardContent>
-                    <CardFooter>
-                        <Skeleton className="h-8 w-24" />
-                    </CardFooter>
-                </Card>
+                        <Skeleton className="h-4 w-24" />
+                    </div>
+                </div>
             ))}
         </div>
       );
@@ -52,21 +49,31 @@ export default function NewsListPage() {
         )
     }
     return (
-        <div className="grid gap-8 md:gap-12 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
         {filteredNews.map((item: any) => (
-            <Link key={item._id} href={`/news/${item.slug}`} className="group">
-                <Card className="h-full flex flex-col">
-                    <CardHeader className="p-0">
-                        <Image src={item.bannerImage} alt={item.title} width={600} height={400} className="rounded-t-lg object-cover aspect-video" />
-                    </CardHeader>
-                    <CardContent className="flex-1 pt-6">
-                        <CardTitle className="text-xl group-hover:text-primary transition-colors">{item.title}</CardTitle>
-                        <CardDescription className="line-clamp-2 mt-2">{item.shortDescription}</CardDescription>
-                    </CardContent>
-                    <CardFooter className="flex justify-between items-center text-sm text-muted-foreground">
-                        <span>{item.category}</span>
-                        <span>{new Date(item.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</span>
-                    </CardFooter>
+            <Link key={item._id} href={`/news/${item.slug}`} className="group block">
+                <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 border hover:border-primary/50 hover:shadow-md">
+                    <div className="aspect-video overflow-hidden">
+                        <Image 
+                            src={item.bannerImage} 
+                            alt={item.title} 
+                            width={600} 
+                            height={400} 
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" 
+                        />
+                    </div>
+                    <div className="p-6 flex flex-col flex-1">
+                        <Badge variant="outline" className="w-fit mb-2">{item.category}</Badge>
+                        <h3 className="text-xl font-semibold leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                            {item.title}
+                        </h3>
+                        <p className="text-sm text-muted-foreground mt-2 line-clamp-3 flex-1">
+                            {item.shortDescription}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-4">
+                            {new Date(item.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                        </p>
+                    </div>
                 </Card>
             </Link>
         ))}
@@ -96,12 +103,16 @@ export default function NewsListPage() {
           <section className="w-full pb-12 md:pb-24 lg:pb-32">
             <div className="container px-4 md:px-6">
                 <div className="flex justify-center mb-8">
-                    <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-2 flex-wrap bg-muted p-1 rounded-full">
                         {categories.map(cat => (
                             <button 
-                                key={cat}
+                                key={cat as string}
                                 onClick={() => setFilter(cat as string)}
-                                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${filter === cat ? 'bg-primary text-primary-foreground' : 'bg-secondary'}`}
+                                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+                                    filter === cat 
+                                    ? 'bg-background text-primary shadow-sm' 
+                                    : 'text-muted-foreground hover:bg-background/50'
+                                }`}
                             >
                                 {cat as string}
                             </button>
