@@ -206,7 +206,7 @@ export default function ManageJourneyPage() {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
             <div>
               <CardTitle>Manage "Our Story"</CardTitle>
-              <CardDescription>Add, edit, and reorder milestones for the "Our Story" timeline on the About page.</CardDescription>
+              <CardDescription className="leading-relaxed">Add, edit, and reorder milestones for the "Our Story" timeline on the About page.</CardDescription>
             </div>
             <Button onClick={handleAdd} className="mt-4 sm:mt-0">
               <PlusCircle className="mr-2 h-4 w-4" /> Add Milestone
