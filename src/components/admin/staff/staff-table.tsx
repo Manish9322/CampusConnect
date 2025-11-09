@@ -28,7 +28,6 @@ import { Card, CardContent } from "@/components/ui/card";
 interface StaffTableProps {
   staff: any[];
   isLoading: boolean;
-  onFilterChange: (filteredStaff: any[]) => void;
 }
 
 const platformIcons: { [key: string]: React.ElementType } = {
@@ -37,7 +36,7 @@ const platformIcons: { [key: string]: React.ElementType } = {
   Twitter: Twitter,
 };
 
-export function StaffTable({ staff, isLoading, onFilterChange }: StaffTableProps) {
+export function StaffTable({ staff, isLoading }: StaffTableProps) {
   const [searchTerm, setSearchTerm] = React.useState("");
   const [roleFilter, setRoleFilter] = React.useState("all");
   const [page, setPage] = React.useState(0);
@@ -64,11 +63,6 @@ export function StaffTable({ staff, isLoading, onFilterChange }: StaffTableProps
         (roleFilter === "all" || item.role === roleFilter)
     );
   }, [staff, searchTerm, roleFilter]);
-
-  React.useEffect(() => {
-    onFilterChange(filteredStaff);
-  }, [filteredStaff, onFilterChange]);
-
 
   const totalPages = Math.ceil(filteredStaff.length / rowsPerPage);
   const paginatedStaff = filteredStaff.slice(page * rowsPerPage, (page + 1) * rowsPerPage);

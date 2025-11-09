@@ -10,13 +10,6 @@ import * as React from "react";
 
 export default function ManageStaffPage() {
     const { data: staff = [], isLoading } = useGetStaffQuery({});
-    const [filteredStaff, setFilteredStaff] = React.useState(staff);
-
-    React.useEffect(() => {
-        if (!isLoading) {
-            setFilteredStaff(staff);
-        }
-    }, [staff, isLoading]);
 
     const totalStaff = staff.length;
     
@@ -27,7 +20,7 @@ export default function ManageStaffPage() {
     return (
         <div className="space-y-4 md:space-y-6 p-4 md:p-6">
             <h1 className="text-xl md:text-2xl font-bold">Staff Management</h1>
-            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-3">
+             <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-3">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Staff Members</CardTitle>
@@ -44,7 +37,7 @@ export default function ManageStaffPage() {
                         <Briefcase className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        {renderCardContent(filteredStaff.length)}
+                        {isLoading ? <Skeleton className="h-8 w-1/3" /> : <div className="text-2xl font-bold">{totalStaff}</div>}
                         <p className="text-xs text-muted-foreground">Based on current filters</p>
                     </CardContent>
                 </Card>
@@ -57,7 +50,7 @@ export default function ManageStaffPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="px-2 md:px-6">
-                    <StaffTable staff={staff} isLoading={isLoading} onFilterChange={setFilteredStaff} />
+                    <StaffTable staff={staff} isLoading={isLoading} />
                 </CardContent>
             </Card>
         </div>
