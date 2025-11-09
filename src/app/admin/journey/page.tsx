@@ -11,7 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, PlusCircle, Trash2, GripVertical, Milestone, Rocket, Building, Users, Briefcase } from "lucide-react";
+import { Edit, PlusCircle, Trash2, GripVertical, Milestone, Rocket, Building, Users, Briefcase, ChevronLeft, ChevronRight } from "lucide-react";
 import { DeleteConfirmationDialog } from "@/components/shared/delete-confirmation-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,6 +20,8 @@ import { useAddJourneyMutation, useDeleteJourneyMutation, useUpdateJourneyMutati
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { AddJourneyDialog } from "@/components/admin/journey/add-journey-dialog";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const iconMap: { [key: string]: React.ElementType } = {
   Milestone: Milestone,
@@ -41,11 +43,30 @@ export default function ManageJourneyPage() {
   const [addJourney, { isLoading: isAdding }] = useAddJourneyMutation();
   const [updateJourney, { isLoading: isUpdating }] = useUpdateJourneyMutation();
   const [deleteJourney] = useDeleteJourneyMutation();
+  
+  const [searchTerm, setSearchTerm] = React.useState("");
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
   React.useEffect(() => {
     const sortedItems = [...initialItems].sort((a, b) => a.order - b.order);
     setItems(sortedItems);
   }, [initialItems]);
+  
+  const filteredItems = React.useMemo(() => {
+    return items.filter(item => 
+      item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [items, searchTerm]);
+
+  const totalPages = Math.ceil(filteredItems.length / rowsPerPage);
+  const paginatedItems = filteredItems.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
+
+  const handleRowsPerPageChange = (value: string) => {
+    setRowsPerPage(Number(value));
+    setPage(0);
+  };
 
   const handleEdit = (item: any) => {
     setItemToAction(item);
@@ -119,6 +140,7 @@ export default function ManageJourneyPage() {
               <TableCell><Skeleton className="h-5 w-20" /></TableCell>
               <TableCell><Skeleton className="h-5 w-32" /></TableCell>
               <TableCell><Skeleton className="h-5 w-full" /></TableCell>
+              <TableCell><Skeleton className="h-5 w-8" /></TableCell>
               <TableCell className="text-right"><Skeleton className="h-8 w-24 ml-auto" /></TableCell>
             </TableRow>
           ))}
@@ -126,12 +148,12 @@ export default function ManageJourneyPage() {
       );
     }
     
-    if (items.length === 0) {
+    if (paginatedItems.length === 0) {
       return (
         <TableBody>
           <TableRow>
-            <TableCell colSpan={5}>
-              <EmptyState title="No Journey Items" description="Add items to build your company's story timeline." />
+            <TableCell colSpan={6}>
+              <EmptyState title="No Journey Items Found" description={searchTerm ? "No items match your search." : "Add items to build your company's story timeline."} />
             </TableCell>
           </TableRow>
         </TableBody>
@@ -143,7 +165,7 @@ export default function ManageJourneyPage() {
         <Droppable droppableId="journey-items">
           {(provided) => (
             <TableBody ref={provided.innerRef} {...provided.droppableProps}>
-              {items.map((item, index) => {
+              {paginatedItems.map((item, index) => {
                 const Icon = iconMap[item.icon] || Milestone;
                 return (
                   <Draggable key={item._id} draggableId={item._id} index={index}>
@@ -192,6 +214,14 @@ export default function ManageJourneyPage() {
           </div>
         </CardHeader>
         <CardContent>
+           <div className="mb-4">
+              <Input 
+                placeholder="Search by title or description..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="max-w-sm"
+              />
+           </div>
           <div className="rounded-md border">
             <Table>
               <TableHeader>
@@ -207,6 +237,44 @@ export default function ManageJourneyPage() {
               {renderContent()}
             </Table>
           </div>
+           {filteredItems.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-4">
+                <div className="flex items-center space-x-2">
+                    <span className="text-sm text-muted-foreground">Rows per page</span>
+                    <Select onValueChange={handleRowsPerPageChange} defaultValue={`${rowsPerPage}`}>
+                        <SelectTrigger className="w-20">
+                            <SelectValue placeholder={`${rowsPerPage}`} />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="5">5</SelectItem>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="20">20</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="flex items-center space-x-2">
+                    <span className="text-sm text-muted-foreground">
+                        Page {page + 1} of {totalPages || 1}
+                    </span>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setPage(p => Math.max(0, p - 1))}
+                        disabled={page === 0}
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                        disabled={page >= totalPages - 1}
+                    >
+                        <ChevronRight className="h-4 w-4" />
+                    </Button>
+                </div>
+            </div>
+          )}
         </CardContent>
       </Card>
       
