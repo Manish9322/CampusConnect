@@ -19,6 +19,10 @@ const faqSchema = new mongoose.Schema({
     type: String,
     required: true,
     default: 'General'
+  },
+  order: {
+    type: Number,
+    default: 0,
   }
 }, { timestamps: true });
 

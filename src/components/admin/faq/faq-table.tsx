@@ -5,7 +5,7 @@ import * as React from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Edit, PlusCircle, Trash2, ChevronLeft, ChevronRight, Eye } from "lucide-react";
+import { Edit, PlusCircle, Trash2, ChevronLeft, ChevronRight, Eye, ArrowUp, ArrowDown } from "lucide-react";
 import { DeleteConfirmationDialog } from "@/components/shared/delete-confirmation-dialog";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -22,7 +22,8 @@ interface FaqTableProps {
   isLoading: boolean;
 }
 
-export function FaqTable({ faqs, isLoading }: FaqTableProps) {
+export function FaqTable({ faqs: initialFaqs, isLoading }: FaqTableProps) {
+  const [faqs, setFaqs] = React.useState(initialFaqs);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("all");
   const [page, setPage] = React.useState(0);
@@ -38,6 +39,12 @@ export function FaqTable({ faqs, isLoading }: FaqTableProps) {
   const [addFaq, { isLoading: isAdding }] = useAddFaqMutation();
   const [updateFaq, { isLoading: isUpdating }] = useUpdateFaqMutation();
   const [deleteFaq] = useDeleteFaqMutation();
+
+  React.useEffect(() => {
+    // Sort initial faqs by order
+    const sortedFaqs = [...initialFaqs].sort((a, b) => a.order - b.order);
+    setFaqs(sortedFaqs);
+  }, [initialFaqs]);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -115,12 +122,37 @@ export function FaqTable({ faqs, isLoading }: FaqTableProps) {
     }
   };
 
+  const handleReorder = async (index: number, direction: 'up' | 'down') => {
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= faqs.length) return;
+
+    const newFaqs = [...faqs];
+    const item = newFaqs.splice(index, 1)[0];
+    newFaqs.splice(newIndex, 0, item);
+
+    const reorderedFaqsWithOrder = newFaqs.map((faq, idx) => ({ ...faq, order: idx }));
+    setFaqs(reorderedFaqsWithOrder);
+
+    // Prepare for bulk update
+    const updatePayload = reorderedFaqsWithOrder.map(faq => ({ _id: faq._id, order: faq.order }));
+    try {
+        await updateFaq(updatePayload).unwrap();
+        toast({ title: "Order Updated", description: "FAQ order has been saved." });
+    } catch (error) {
+        toast({ title: "Error", description: "Failed to save new order.", variant: "destructive" });
+        // Revert UI on error
+        setFaqs(faqs);
+    }
+  };
+
+
   const renderContent = () => {
     if (isLoading) {
       return (
         <TableBody>
           {[...Array(5)].map((_, i) => (
             <TableRow key={i}>
+              <TableCell><Skeleton className="h-5 w-12" /></TableCell>
               <TableCell><Skeleton className="h-5 w-full" /></TableCell>
               <TableCell><Skeleton className="h-6 w-11" /></TableCell>
               <TableCell className="text-right"><Skeleton className="h-8 w-24 ml-auto" /></TableCell>
@@ -130,11 +162,11 @@ export function FaqTable({ faqs, isLoading }: FaqTableProps) {
       );
     }
     
-    if (paginatedFaqs.length === 0) {
+    if (filteredFaqs.length === 0) {
       return (
         <TableBody>
           <TableRow>
-            <TableCell colSpan={3}>
+            <TableCell colSpan={4}>
               <EmptyState title="No FAQs Found" description="No FAQs match your current filters." />
             </TableCell>
           </TableRow>
@@ -144,33 +176,46 @@ export function FaqTable({ faqs, isLoading }: FaqTableProps) {
 
     return (
       <TableBody>
-        {paginatedFaqs.map((item) => (
-          <TableRow key={item._id}>
-            <TableCell className="font-medium max-w-md truncate">{item.question}</TableCell>
-            <TableCell>
-              <Switch
-                checked={item.approved}
-                onCheckedChange={(checked) => handleToggleApproved(item, checked)}
-                aria-label="Toggle approved status"
-              />
-            </TableCell>
-            <TableCell className="text-right">
-              <Button variant="ghost" size="icon" onClick={() => handleView(item)}>
-                <Eye className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
-                <Edit className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => openDeleteDialog(item)}
-              >
-                <Trash2 className="h-4 w-4 text-destructive" />
-              </Button>
-            </TableCell>
-          </TableRow>
-        ))}
+        {paginatedFaqs.map((item, paginatedIndex) => {
+          const originalIndex = faqs.findIndex(f => f._id === item._id);
+          return (
+            <TableRow key={item._id}>
+              <TableCell>
+                  <div className="flex flex-col gap-1">
+                      <Button variant="ghost" size="icon" className="h-6 w-6" disabled={originalIndex === 0} onClick={() => handleReorder(originalIndex, 'up')}>
+                          <ArrowUp className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" disabled={originalIndex === faqs.length - 1} onClick={() => handleReorder(originalIndex, 'down')}>
+                          <ArrowDown className="h-4 w-4" />
+                      </Button>
+                  </div>
+              </TableCell>
+              <TableCell className="font-medium max-w-md truncate">{item.question}</TableCell>
+              <TableCell>
+                <Switch
+                  checked={item.approved}
+                  onCheckedChange={(checked) => handleToggleApproved(item, checked)}
+                  aria-label="Toggle approved status"
+                />
+              </TableCell>
+              <TableCell className="text-right">
+                <Button variant="ghost" size="icon" onClick={() => handleView(item)}>
+                  <Eye className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => openDeleteDialog(item)}
+                >
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </TableCell>
+            </TableRow>
+          );
+        })}
       </TableBody>
     );
   };
@@ -205,7 +250,8 @@ export function FaqTable({ faqs, isLoading }: FaqTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[70%]">Question</TableHead>
+              <TableHead className="w-[5%]">Order</TableHead>
+              <TableHead className="w-[65%]">Question</TableHead>
               <TableHead>Approved</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -230,32 +276,41 @@ export function FaqTable({ faqs, isLoading }: FaqTableProps) {
         ) : paginatedFaqs.length === 0 ? (
           <EmptyState title="No FAQs Found" description="There are no FAQs matching your criteria." />
         ) : (
-          paginatedFaqs.map((item) => (
-            <Card key={item._id}>
-                <CardContent className="p-4 space-y-3">
-                    <p className="font-semibold line-clamp-2">{item.question}</p>
-                    <div className="flex justify-between items-center pt-2 border-t">
-                        <div className="flex items-center gap-2">
-                             <Switch
-                                checked={item.approved}
-                                onCheckedChange={(checked) => handleToggleApproved(item, checked)}
-                                id={`switch-${item._id}`}
-                            />
-                            <label htmlFor={`switch-${item._id}`} className="text-sm">
-                                {item.approved ? 'Approved' : 'Pending'}
-                            </label>
-                        </div>
-                        <div className="flex items-center">
-                            <Button variant="ghost" size="sm" onClick={() => handleView(item)}>View</Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleEdit(item)}>Edit</Button>
-                            <Button variant="ghost" size="icon" onClick={() => openDeleteDialog(item)}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-          ))
+          paginatedFaqs.map((item, paginatedIndex) => {
+            const originalIndex = faqs.findIndex(f => f._id === item._id);
+            return (
+              <Card key={item._id}>
+                  <CardContent className="p-4 space-y-3">
+                      <p className="font-semibold line-clamp-2">{item.question}</p>
+                      <div className="flex justify-between items-center pt-2 border-t">
+                          <div className="flex items-center gap-2">
+                              <Switch
+                                  checked={item.approved}
+                                  onCheckedChange={(checked) => handleToggleApproved(item, checked)}
+                                  id={`switch-mobile-${item._id}`}
+                              />
+                              <label htmlFor={`switch-mobile-${item._id}`} className="text-sm">
+                                  {item.approved ? 'Approved' : 'Pending'}
+                              </label>
+                          </div>
+                          <div className="flex items-center">
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleReorder(originalIndex, 'up')} disabled={originalIndex === 0}>
+                                <ArrowUp className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleReorder(originalIndex, 'down')} disabled={originalIndex === faqs.length - 1}>
+                                <ArrowDown className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="sm" onClick={() => handleView(item)}>View</Button>
+                              <Button variant="ghost" size="sm" onClick={() => handleEdit(item)}>Edit</Button>
+                              <Button variant="ghost" size="icon" onClick={() => openDeleteDialog(item)}>
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                          </div>
+                      </div>
+                  </CardContent>
+              </Card>
+            )
+          })
         )}
       </div>
 
