@@ -6,9 +6,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useGetStaffQuery } from "@/services/api";
 import { Briefcase, Users } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import * as React from "react";
 
 export default function ManageStaffPage() {
     const { data: staff = [], isLoading } = useGetStaffQuery({});
+    const [filteredStaff, setFilteredStaff] = React.useState(staff);
+
+    React.useEffect(() => {
+        setFilteredStaff(staff);
+    }, [staff]);
 
     const totalStaff = staff.length;
     
@@ -30,6 +36,16 @@ export default function ManageStaffPage() {
                         <p className="text-xs text-muted-foreground">All non-teaching staff</p>
                     </CardContent>
                 </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Showing</CardTitle>
+                        <Briefcase className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        {renderCardContent(filteredStaff.length)}
+                        <p className="text-xs text-muted-foreground">Based on current filters</p>
+                    </CardContent>
+                </Card>
             </div>
             <Card>
                 <CardHeader className="space-y-1.5">
@@ -39,7 +55,7 @@ export default function ManageStaffPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="px-2 md:px-6">
-                    <StaffTable staff={staff} isLoading={isLoading} />
+                    <StaffTable staff={staff} isLoading={isLoading} onFilterChange={setFilteredStaff} />
                 </CardContent>
             </Card>
         </div>
