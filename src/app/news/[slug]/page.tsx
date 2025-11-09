@@ -9,9 +9,9 @@ import { useGetNewsItemQuery, useUpdateNewsInteractionMutation, useAddCommentMut
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import { Calendar, User, ThumbsUp, Share2, Eye, Folder, Flame, Clock } from 'lucide-react';
+import { Calendar, User, ThumbsUp, Share2, Eye, Folder, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -42,6 +42,9 @@ export default function NewsDetailsPage() {
   const [comment, setComment] = React.useState("");
   const [commenterName, setCommenterName] = React.useState("");
   
+  const wordCount = comment.split(/\s+/).filter(Boolean).length;
+  const MAX_WORDS = 25;
+
   const handleLike = () => {
     updateInteraction({ slug, action: 'like' });
   };
@@ -52,6 +55,14 @@ export default function NewsDetailsPage() {
 
   const handlePostComment = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (wordCount > MAX_WORDS) {
+      toast({
+        title: "Comment is too long",
+        description: `Please limit your comment to ${MAX_WORDS} words.`,
+        variant: "destructive"
+      });
+      return;
+    }
     if (comment.trim() && commenterName.trim()) {
       try {
         await addComment({ newsId: data.newsItem._id, authorName: commenterName, content: comment }).unwrap();
@@ -178,9 +189,10 @@ export default function NewsDetailsPage() {
                                 <form onSubmit={handlePostComment} className="space-y-4">
                                     <Input value={commenterName} onChange={(e) => setCommenterName(e.target.value)} placeholder="Your Name" required />
                                     <Textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Write a comment..." required />
-                                    <Button type="submit">
-                                        Post Comment
-                                    </Button>
+                                    <div className="flex justify-between items-center">
+                                      <Button type="submit">Post Comment</Button>
+                                      <p className={`text-sm ${wordCount > MAX_WORDS ? 'text-red-500' : 'text-muted-foreground'}`}>{wordCount}/{MAX_WORDS} words</p>
+                                    </div>
                                 </form>
                                 <Separator className="my-6" />
                                 <div className="space-y-6">
@@ -208,7 +220,7 @@ export default function NewsDetailsPage() {
                 <aside className="lg:col-span-1 space-y-8 sticky top-24 self-start">
                     <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
+                            <CardTitle className="flex items-center gap-2 text-lg">
                                 <Folder className="h-5 w-5 text-primary" />
                                 Related News
                             </CardTitle>
@@ -221,7 +233,7 @@ export default function NewsDetailsPage() {
                                     <div className="flex items-center gap-4">
                                         <Image src={related.bannerImage} alt={related.title} width={80} height={80} className="rounded-md object-cover w-20 h-20"/>
                                         <div>
-                                            <p className="font-medium text-sm leading-snug group-hover:text-primary">{related.title}</p>
+                                            <p className="font-medium text-sm leading-snug group-hover:text-primary transition-colors">{related.title}</p>
                                             <p className="text-xs text-muted-foreground mt-1">{new Date(related.date).toLocaleDateString()}</p>
                                         </div>
                                     </div>
@@ -234,7 +246,7 @@ export default function NewsDetailsPage() {
                     </Card>
                      <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
+                            <CardTitle className="flex items-center gap-2 text-lg">
                                 <Flame className="h-5 w-5 text-primary" />
                                 Trending
                             </CardTitle>
@@ -243,7 +255,7 @@ export default function NewsDetailsPage() {
                         <CardContent className="space-y-4">
                             {trendingNews.map((trending: any) => (
                                 <Link key={trending._id} href={`/news/${trending.slug}`} className="block group">
-                                    <p className="font-medium text-sm leading-snug group-hover:text-primary">{trending.title}</p>
+                                    <p className="font-medium text-sm leading-snug group-hover:text-primary transition-colors">{trending.title}</p>
                                     <p className="text-xs text-muted-foreground">{trending.visitCount} views</p>
                                 </Link>
                             ))}
@@ -251,7 +263,7 @@ export default function NewsDetailsPage() {
                     </Card>
                     <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
+                            <CardTitle className="flex items-center gap-2 text-lg">
                                 <Folder className="h-5 w-5 text-primary" />
                                 Categories
                             </CardTitle>
