@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Edit, PlusCircle, Trash2, ChevronLeft, ChevronRight, Check, X } from "lucide-react";
+import { Edit, PlusCircle, Trash2, ChevronLeft, ChevronRight, Check, X, GripVertical } from "lucide-react";
 import { DeleteConfirmationDialog } from "@/components/shared/delete-confirmation-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -23,13 +23,15 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { useAddTestimonialMutation, useDeleteTestimonialMutation, useUpdateTestimonialMutation } from "@/services/api";
 import { AddTestimonialDialog } from "./add-testimonial-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 interface TestimonialsTableProps {
   testimonials: any[];
   isLoading: boolean;
 }
 
-export function TestimonialsTable({ testimonials, isLoading }: TestimonialsTableProps) {
+export function TestimonialsTable({ testimonials: initialTestimonials, isLoading }: TestimonialsTableProps) {
+  const [testimonials, setTestimonials] = React.useState(initialTestimonials);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [isAddDialogOpen, setAddDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
@@ -41,6 +43,11 @@ export function TestimonialsTable({ testimonials, isLoading }: TestimonialsTable
   const [addTestimonial] = useAddTestimonialMutation();
   const [updateTestimonial] = useUpdateTestimonialMutation();
   const [deleteTestimonial] = useDeleteTestimonialMutation();
+
+  React.useEffect(() => {
+    const sortedTestimonials = [...initialTestimonials].sort((a, b) => a.order - b.order);
+    setTestimonials(sortedTestimonials);
+  }, [initialTestimonials]);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -101,10 +108,10 @@ export function TestimonialsTable({ testimonials, isLoading }: TestimonialsTable
   const handleSave = async (data: any) => {
     try {
       if (testimonialToAction) {
-        await updateTestimonial({ ...data, _id: testimonialToAction._id }).unwrap();
+        await updateTestimonial({ ...data, _id: testimonialToAction._id, order: testimonialToAction.order }).unwrap();
         toast({ title: "Testimonial Updated" });
       } else {
-        await addTestimonial(data).unwrap();
+        await addTestimonial({...data, order: testimonials.length}).unwrap();
         toast({ title: "Testimonial Added" });
       }
       setAddDialogOpen(false);
@@ -113,12 +120,35 @@ export function TestimonialsTable({ testimonials, isLoading }: TestimonialsTable
     }
   };
 
+  const onDragEnd = (result: any) => {
+    if (!result.destination) return;
+
+    const newTestimonials = Array.from(testimonials);
+    const [reorderedItem] = newTestimonials.splice(result.source.index, 1);
+    newTestimonials.splice(result.destination.index, 0, reorderedItem);
+
+    const reorderedTestimonialsWithOrder = newTestimonials.map((t, idx) => ({ ...t, order: idx }));
+    setTestimonials(reorderedTestimonialsWithOrder);
+
+    const updatePayload = reorderedTestimonialsWithOrder.map(t => ({ _id: t._id, order: t.order }));
+    updateTestimonial(updatePayload)
+      .unwrap()
+      .then(() => {
+        toast({ title: "Order Updated", description: "Testimonial order has been saved." });
+      })
+      .catch(() => {
+        toast({ title: "Error", description: "Failed to save new order.", variant: "destructive" });
+        setTestimonials(testimonials); // Revert on error
+      });
+  };
+
   const renderContent = () => {
     if (isLoading) {
       return (
         <TableBody>
           {[...Array(5)].map((_, i) => (
             <TableRow key={i}>
+              <TableCell><Skeleton className="h-5 w-8" /></TableCell>
               <TableCell><Skeleton className="h-5 w-48" /></TableCell>
               <TableCell><Skeleton className="h-5 w-20" /></TableCell>
               <TableCell><Skeleton className="h-5 w-24" /></TableCell>
@@ -134,7 +164,7 @@ export function TestimonialsTable({ testimonials, isLoading }: TestimonialsTable
         return (
             <TableBody>
                 <TableRow>
-                    <TableCell colSpan={5}>
+                    <TableCell colSpan={6}>
                         <EmptyState title="No Testimonials Found" description="There are no testimonials matching your criteria." />
                     </TableCell>
                 </TableRow>
@@ -143,40 +173,54 @@ export function TestimonialsTable({ testimonials, isLoading }: TestimonialsTable
     }
 
     return (
-      <TableBody>
-        {paginatedTestimonials.map((item) => (
-          <TableRow key={item._id}>
-            <TableCell className="flex items-center gap-3">
-              <Avatar>
-                <AvatarImage src={item.avatar} />
-                <AvatarFallback>{item.initials}</AvatarFallback>
-              </Avatar>
-              <div className="font-medium">{item.name}</div>
-            </TableCell>
-            <TableCell className="text-muted-foreground">{item.designation}</TableCell>
-            <TableCell className="max-w-xs truncate">{item.quote}</TableCell>
-            <TableCell>
-              <Switch
-                checked={item.approved}
-                onCheckedChange={(checked) => handleToggleApproved(item, checked)}
-                aria-label="Toggle approved status"
-              />
-            </TableCell>
-            <TableCell className="text-right">
-              <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
-                <Edit className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => openDeleteDialog(item)}
-              >
-                <Trash2 className="h-4 w-4 text-destructive" />
-              </Button>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Droppable droppableId="testimonials">
+          {(provided) => (
+            <TableBody ref={provided.innerRef} {...provided.droppableProps}>
+              {paginatedTestimonials.map((item, index) => (
+                <Draggable key={item._id} draggableId={item._id} index={index}>
+                  {(provided) => (
+                  <TableRow ref={provided.innerRef} {...provided.draggableProps}>
+                    <TableCell {...provided.dragHandleProps} className="w-12 text-center">
+                      <GripVertical className="h-5 w-5 text-muted-foreground" />
+                    </TableCell>
+                    <TableCell className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarImage src={item.avatar} />
+                        <AvatarFallback>{item.initials}</AvatarFallback>
+                      </Avatar>
+                      <div className="font-medium">{item.name}</div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{item.designation}</TableCell>
+                    <TableCell className="max-w-xs truncate">{item.quote}</TableCell>
+                    <TableCell>
+                      <Switch
+                        checked={item.approved}
+                        onCheckedChange={(checked) => handleToggleApproved(item, checked)}
+                        aria-label="Toggle approved status"
+                      />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => openDeleteDialog(item)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </TableBody>
+          )}
+        </Droppable>
+      </DragDropContext>
     );
   };
 
@@ -198,6 +242,7 @@ export function TestimonialsTable({ testimonials, isLoading }: TestimonialsTable
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-12"></TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Designation</TableHead>
               <TableHead>Quote</TableHead>

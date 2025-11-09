@@ -14,7 +14,7 @@ export async function GET(request) {
       filter.approved = true;
     }
 
-    const testimonials = await Testimonial.find(filter).sort({ createdAt: -1 });
+    const testimonials = await Testimonial.find(filter).sort({ order: 1 });
     return NextResponse.json(testimonials, { status: 200 });
   } catch (error) {
     return NextResponse.json({ message: 'Error fetching testimonials', error: error.message }, { status: 500 });
@@ -25,7 +25,9 @@ export async function POST(request) {
   await _db();
   try {
     const body = await request.json();
-    const newTestimonial = new Testimonial(body);
+    const lastTestimonial = await Testimonial.findOne().sort({ order: -1 });
+    const newOrder = lastTestimonial ? lastTestimonial.order + 1 : 0;
+    const newTestimonial = new Testimonial({ ...body, order: newOrder });
     await newTestimonial.save();
     return NextResponse.json(newTestimonial, { status: 201 });
   } catch (error) {
@@ -37,6 +39,19 @@ export async function PUT(request) {
     await _db();
     try {
         const body = await request.json();
+
+        // Handle bulk reordering
+        if (Array.isArray(body)) {
+            const bulkOps = body.map(item => ({
+                updateOne: {
+                    filter: { _id: item._id },
+                    update: { $set: { order: item.order } }
+                }
+            }));
+            await Testimonial.bulkWrite(bulkOps);
+            return NextResponse.json({ message: 'Testimonials reordered successfully' }, { status: 200 });
+        }
+
         const { _id, ...updateData } = body;
         const updatedTestimonial = await Testimonial.findByIdAndUpdate(_id, updateData, { new: true });
         if (!updatedTestimonial) {
