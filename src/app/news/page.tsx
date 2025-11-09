@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from 'react';
@@ -27,7 +26,7 @@ export default function NewsListPage() {
     const matchesSearch = searchTerm === "" || 
                           item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           item.shortDescription.toLowerCase().includes(searchTerm.toLowerCase());
-    return item.isPublished && matchesCategory && matchesSearch;
+    return matchesCategory && matchesSearch;
   });
 
   const renderContent = () => {
