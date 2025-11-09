@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Edit, PlusCircle, Trash2, ChevronLeft, ChevronRight, Github, Linkedin, Twitter, Filter, X } from "lucide-react";
+import { Edit, PlusCircle, Trash2, ChevronLeft, ChevronRight, Github, Linkedin, Twitter, Filter, X, Eye, GripVertical } from "lucide-react";
 import { DeleteConfirmationDialog } from "@/components/shared/delete-confirmation-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,6 +24,7 @@ import { AddStaffDialog } from "./add-staff-dialog";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Card, CardContent } from "@/components/ui/card";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 interface StaffTableProps {
   staff: any[];
@@ -36,7 +37,8 @@ const platformIcons: { [key: string]: React.ElementType } = {
   Twitter: Twitter,
 };
 
-export function StaffTable({ staff, isLoading }: StaffTableProps) {
+export function StaffTable({ staff: initialStaff, isLoading }: StaffTableProps) {
+  const [staff, setStaff] = React.useState(initialStaff);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [roleFilter, setRoleFilter] = React.useState("all");
   const [page, setPage] = React.useState(0);
@@ -49,9 +51,14 @@ export function StaffTable({ staff, isLoading }: StaffTableProps) {
 
   const [addStaff, { isLoading: isAdding }] = useAddStaffMutation();
   const [updateStaff, { isLoading: isUpdating }] = useUpdateStaffMutation();
-  const [deleteStaff, { isLoading: isDeleting }] = useDeleteStaffMutation();
+  const [deleteStaff] = useDeleteStaffMutation();
   const { uploadFile, uploading: isUploadingFile } = useFileUpload({ type: 'profile' });
   const isMobile = useIsMobile();
+
+  React.useEffect(() => {
+    const sortedStaff = [...initialStaff].sort((a, b) => a.order - b.order);
+    setStaff(sortedStaff);
+  }, [initialStaff]);
 
   const roles = React.useMemo(() => ["all", ...Array.from(new Set(staff.map(s => s.role)))], [staff]);
 
@@ -140,12 +147,35 @@ export function StaffTable({ staff, isLoading }: StaffTableProps) {
     }
   };
 
+  const onDragEnd = (result: any) => {
+    if (!result.destination) return;
+
+    const newStaff = Array.from(staff);
+    const [reorderedItem] = newStaff.splice(result.source.index, 1);
+    newStaff.splice(result.destination.index, 0, reorderedItem);
+
+    const reorderedStaffWithOrder = newStaff.map((s, idx) => ({ ...s, order: idx }));
+    setStaff(reorderedStaffWithOrder);
+    
+    const updatePayload = reorderedStaffWithOrder.map(s => ({ _id: s._id, order: s.order }));
+    updateStaff(updatePayload)
+      .unwrap()
+      .then(() => {
+        toast({ title: "Order Updated", description: "Staff order has been saved." });
+      })
+      .catch(() => {
+        toast({ title: "Error", description: "Failed to save new order.", variant: "destructive" });
+        setStaff(staff); // Revert on error
+      });
+  };
+
   const renderContent = () => {
     if (isLoading) {
       return (
         <TableBody>
           {[...Array(5)].map((_, i) => (
             <TableRow key={i}>
+              <TableCell><Skeleton className="h-5 w-8" /></TableCell>
               <TableCell><Skeleton className="h-10 w-10 rounded-full" /></TableCell>
               <TableCell><Skeleton className="h-5 w-32" /></TableCell>
               <TableCell><Skeleton className="h-5 w-24" /></TableCell>
@@ -161,7 +191,7 @@ export function StaffTable({ staff, isLoading }: StaffTableProps) {
         return (
             <TableBody>
                 <TableRow>
-                    <TableCell colSpan={5}>
+                    <TableCell colSpan={6}>
                         <EmptyState title="No Staff Found" description="There are no staff members matching your criteria." />
                     </TableCell>
                 </TableRow>
@@ -170,44 +200,54 @@ export function StaffTable({ staff, isLoading }: StaffTableProps) {
     }
 
     return (
-      <TableBody>
-        {paginatedStaff.map((item) => (
-            <TableRow key={item._id}>
-                <TableCell>
-                <Avatar>
-                    <AvatarImage src={item.image} />
-                    <AvatarFallback>{item.initials}</AvatarFallback>
-                </Avatar>
-                </TableCell>
-                <TableCell className="font-medium">{item.name}</TableCell>
-                <TableCell>{item.role}</TableCell>
-                <TableCell>
-                <div className="flex gap-2">
-                    {item.socials.map((social: {platform: string; url: string}, index: number) => {
-                        const Icon = platformIcons[social.platform];
-                        return Icon ? (
-                            <a key={index} href={social.url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Droppable droppableId="staff">
+          {(provided) => (
+            <TableBody ref={provided.innerRef} {...provided.droppableProps}>
+              {paginatedStaff.map((item, index) => (
+                <Draggable key={item._id} draggableId={item._id} index={index}>
+                  {(provided) => (
+                    <TableRow ref={provided.innerRef} {...provided.draggableProps}>
+                      <TableCell {...provided.dragHandleProps} className="w-12 text-center">
+                        <GripVertical className="h-5 w-5 text-muted-foreground" />
+                      </TableCell>
+                      <TableCell>
+                        <Avatar>
+                          <AvatarImage src={item.image} />
+                          <AvatarFallback>{item.initials}</AvatarFallback>
+                        </Avatar>
+                      </TableCell>
+                      <TableCell className="font-medium">{item.name}</TableCell>
+                      <TableCell>{item.role}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          {item.socials.map((social: { platform: string; url: string }, index: number) => {
+                            const Icon = platformIcons[social.platform];
+                            return Icon ? (
+                              <a key={index} href={social.url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
                                 <Icon className="h-5 w-5" />
-                            </a>
-                        ) : null;
-                    })}
-                </div>
-                </TableCell>
-                <TableCell className="text-right">
-                <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
-                    <Edit className="h-4 w-4" />
-                </Button>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => openDeleteDialog(item)}
-                >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
-                </TableCell>
-            </TableRow>
-        ))}
-      </TableBody>
+                              </a>
+                            ) : null;
+                          })}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => openDeleteDialog(item)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </TableBody>
+          )}
+        </Droppable>
+      </DragDropContext>
     );
   };
 
@@ -292,6 +332,7 @@ export function StaffTable({ staff, isLoading }: StaffTableProps) {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-12"></TableHead>
                 <TableHead>Image</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Role</TableHead>

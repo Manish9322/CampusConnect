@@ -33,6 +33,10 @@ const staffSchema = new mongoose.Schema({
     required: true,
   },
   socials: [socialLinkSchema],
+  order: {
+    type: Number,
+    default: 0,
+  }
 }, { timestamps: true });
 
 export const Staff = mongoose.models.Staff || mongoose.model('Staff', staffSchema);
