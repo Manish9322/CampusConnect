@@ -259,36 +259,34 @@ export function FaqTable({ faqs, isLoading }: FaqTableProps) {
         )}
       </div>
 
-      {filteredFaqs.length > rowsPerPage && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 mt-4">
-            <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
-                <span className="text-sm text-muted-foreground whitespace-nowrap">Rows per page</span>
-                <Select onValueChange={handleRowsPerPageChange} defaultValue={`${rowsPerPage}`}>
-                    <SelectTrigger className="w-20">
-                        <SelectValue placeholder={`${rowsPerPage}`} />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="5">5</SelectItem>
-                        <SelectItem value="10">10</SelectItem>
-                        <SelectItem value="20">20</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-            <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-end">
-                <span className="text-sm text-muted-foreground whitespace-nowrap">
-                    Page {page + 1} of {totalPages || 1}
-                </span>
-                <div className="flex gap-1">
-                    <Button variant="outline" size="icon" onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}>
-                        <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="icon" onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}>
-                        <ChevronRight className="h-4 w-4" />
-                    </Button>
-                </div>
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 mt-4">
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
+            <span className="text-sm text-muted-foreground whitespace-nowrap">Rows per page</span>
+            <Select onValueChange={handleRowsPerPageChange} defaultValue={`${rowsPerPage}`}>
+                <SelectTrigger className="w-20">
+                    <SelectValue placeholder={`${rowsPerPage}`} />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="5">5</SelectItem>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                </SelectContent>
+            </Select>
+        </div>
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-end">
+            <span className="text-sm text-muted-foreground whitespace-nowrap">
+                Page {page + 1} of {totalPages || 1}
+            </span>
+            <div className="flex gap-1">
+                <Button variant="outline" size="icon" onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}>
+                    <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="icon" onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}>
+                    <ChevronRight className="h-4 w-4" />
+                </Button>
             </div>
         </div>
-      )}
+      </div>
 
       <AddFaqDialog
         open={isAddDialogOpen}
