@@ -1,9 +1,10 @@
+
 "use client"
 
 import * as React from 'react';
 import { PublicHeader } from '@/components/shared/public-header';
 import { PublicFooter } from '@/components/shared/public-footer';
-import { Newspaper, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useGetNewsQuery } from '@/services/api';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/shared/empty-state';
@@ -12,6 +13,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 export default function NewsListPage() {
   const { data: news = [], isLoading } = useGetNewsQuery(undefined);
@@ -25,7 +27,7 @@ export default function NewsListPage() {
     const matchesSearch = searchTerm === "" || 
                           item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           item.shortDescription.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
+    return item.isPublished && matchesCategory && matchesSearch;
   });
 
   const renderContent = () => {
@@ -60,7 +62,7 @@ export default function NewsListPage() {
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
         {filteredNews.map((item: any) => (
             <Link key={item._id} href={`/news/${item.slug}`} className="group block">
-                <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 border hover:border-primary/50 hover:shadow-md">
+                <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 border hover:border-primary/50">
                     <div className="aspect-video overflow-hidden">
                         <Image 
                             src={item.bannerImage} 
@@ -96,9 +98,14 @@ export default function NewsListPage() {
         <main className="flex-1">
           <section className="relative w-full py-20 md:py-28 lg:py-36 bg-cover bg-center" style={{backgroundImage: "url('https://picsum.photos/seed/news-hero/1200/600')"}}>
              <div className="absolute inset-0 bg-primary/80" />
+             <div
+                className="absolute inset-0 bg-repeat opacity-5"
+                style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                }}
+            ></div>
             <div className="relative container px-4 md:px-6">
               <div className="flex flex-col items-center space-y-6 text-center text-primary-foreground">
-                <Newspaper className="h-12 w-12" />
                 <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
                   Campus News
                 </h1>
@@ -126,17 +133,14 @@ export default function NewsListPage() {
                 <div className="flex justify-center mb-12">
                     <div className="flex items-center gap-2 flex-wrap bg-muted p-1 rounded-full">
                         {categories.map(cat => (
-                            <button 
+                            <Button 
                                 key={cat as string}
+                                variant={filter === cat ? 'default' : 'ghost'}
                                 onClick={() => setFilter(cat as string)}
-                                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
-                                    filter === cat 
-                                    ? 'bg-background text-primary shadow-sm' 
-                                    : 'text-muted-foreground hover:bg-background/50'
-                                }`}
+                                className="rounded-full px-4 py-2 text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                             >
                                 {cat as string}
-                            </button>
+                            </Button>
                         ))}
                     </div>
                 </div>
