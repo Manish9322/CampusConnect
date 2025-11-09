@@ -24,6 +24,8 @@ import { AddNewsDialog } from "./add-news-dialog";
 import Link from "next/link";
 import Image from "next/image";
 import { useFileUpload } from "@/hooks/use-file-upload";
+import { Card, CardContent } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 
 interface NewsTableProps {
   news: any[];
@@ -89,6 +91,15 @@ export function NewsTable({ news, isLoading }: NewsTableProps) {
     }
   };
   
+  const handleTogglePublished = async (newsItem: any, isPublished: boolean) => {
+    try {
+        await updateNews({ ...newsItem, isPublished }).unwrap();
+        toast({ title: "Status Updated", description: `"${newsItem.title}" has been ${isPublished ? 'published' : 'unpublished'}.` });
+    } catch(error) {
+        toast({ title: "Error", description: "Failed to update status.", variant: "destructive" });
+    }
+  };
+
   const handleSave = async (data: any) => {
     try {
       let bannerImageUrl = data.bannerImage;
@@ -121,6 +132,7 @@ export function NewsTable({ news, isLoading }: NewsTableProps) {
               <TableCell><Skeleton className="h-5 w-48" /></TableCell>
               <TableCell><Skeleton className="h-5 w-20" /></TableCell>
               <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+              <TableCell><Skeleton className="h-6 w-11" /></TableCell>
               <TableCell className="text-right"><Skeleton className="h-8 w-24 ml-auto" /></TableCell>
             </TableRow>
           ))}
@@ -132,7 +144,7 @@ export function NewsTable({ news, isLoading }: NewsTableProps) {
         return (
             <TableBody>
                 <TableRow>
-                    <TableCell colSpan={5}>
+                    <TableCell colSpan={6}>
                         <EmptyState title="No News Found" description="There are no news articles matching your criteria." />
                     </TableCell>
                 </TableRow>
@@ -150,6 +162,13 @@ export function NewsTable({ news, isLoading }: NewsTableProps) {
             <TableCell className="font-medium">{item.title}</TableCell>
             <TableCell><Badge variant="outline">{item.category}</Badge></TableCell>
             <TableCell>{new Date(item.date).toLocaleDateString()}</TableCell>
+            <TableCell>
+              <Switch
+                checked={item.isPublished}
+                onCheckedChange={(checked) => handleTogglePublished(item, checked)}
+                aria-label="Toggle published status"
+              />
+            </TableCell>
             <TableCell className="text-right">
               <Link href={`/news/${item.slug}`} target="_blank">
                 <Button variant="ghost" size="icon">
@@ -189,7 +208,8 @@ export function NewsTable({ news, isLoading }: NewsTableProps) {
         </Button>
       </div>
       
-      <div className="rounded-md border">
+      {/* Desktop Table View */}
+      <div className="hidden md:block rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -197,12 +217,94 @@ export function NewsTable({ news, isLoading }: NewsTableProps) {
               <TableHead>Title</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Date</TableHead>
+              <TableHead>Published</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           {renderContent()}
         </Table>
       </div>
+      
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-4">
+        {isLoading ? (
+          [...Array(5)].map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-4 space-y-3">
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-5 w-3/4" />
+                <div className="flex gap-2">
+                  <Skeleton className="h-6 w-20" />
+                  <Skeleton className="h-6 w-24" />
+                </div>
+                <Skeleton className="h-10 w-full" />
+              </CardContent>
+            </Card>
+          ))
+        ) : paginatedNews.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <EmptyState title="No News Found" description="There are no news articles matching your criteria." />
+            </CardContent>
+          </Card>
+        ) : (
+          paginatedNews.map((item) => (
+            <Card key={item._id}>
+              <CardContent className="p-4 space-y-4">
+                <Image src={item.bannerImage} alt={item.title} width={600} height={300} className="rounded-md object-cover w-full aspect-video" />
+                
+                <div className="space-y-1">
+                  <h3 className="font-semibold text-base line-clamp-2">{item.title}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {new Date(item.date).toLocaleDateString()}
+                  </p>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <Badge variant="outline">{item.category}</Badge>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">
+                      {item.isPublished ? 'Published' : 'Draft'}
+                    </span>
+                    <Switch
+                      checked={item.isPublished}
+                      onCheckedChange={(checked) => handleTogglePublished(item, checked)}
+                      aria-label="Toggle published status"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <Link href={`/news/${item.slug}`} target="_blank" className="flex-1">
+                    <Button variant="outline" size="sm" className="w-full">
+                      <Eye className="h-4 w-4 mr-1 flex-shrink-0" />
+                      <span className="truncate">View</span>
+                    </Button>
+                  </Link>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => handleEdit(item)}
+                  >
+                    <Edit className="h-4 w-4 mr-1" />
+                    Edit
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="flex-shrink-0"
+                    onClick={() => openDeleteDialog(item)}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 mt-4">
         <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
             <span className="text-sm text-muted-foreground whitespace-nowrap">Rows per page</span>
