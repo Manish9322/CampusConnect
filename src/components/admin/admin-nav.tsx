@@ -1,9 +1,10 @@
 
+
 "use client"
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Home, Users, UserCheck, CalendarCheck, BookCopy, LogOut, User as UserIcon, PanelLeft, ClipboardCheck, Settings, Megaphone, DollarSign, Calendar, ShieldAlert, Star, Newspaper, MessageSquare } from "lucide-react";
+import { Home, Users, UserCheck, CalendarCheck, BookCopy, LogOut, User as UserIcon, PanelLeft, ClipboardCheck, Settings, Megaphone, DollarSign, Calendar, ShieldAlert, Star, Newspaper, MessageSquare, Briefcase } from "lucide-react";
 import * as React from "react";
 
 import {
@@ -51,6 +52,7 @@ export function AdminNav({ user, onLogout }: AdminNavProps) {
     { href: "/admin", label: "Dashboard", icon: Home },
     { href: "/admin/students", label: "Students", icon: Users },
     { href: "/admin/teachers", label: "Teachers", icon: UserCheck },
+    { href: "/admin/staff", label: "Staff", icon: Briefcase },
     { href: "/admin/classes", label: "Classes", icon: BookCopy },
     { href: "/admin/attendance", label: "Attendance", icon: CalendarCheck },
     { href: "/admin/timetable", label: "Timetable", icon: Calendar },

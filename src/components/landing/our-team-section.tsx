@@ -1,14 +1,70 @@
+
+"use client";
+
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Linkedin, Github } from 'lucide-react';
+import { Linkedin, Github, Twitter } from 'lucide-react';
+import { useGetStaffQuery } from '@/services/api';
+import { Skeleton } from '../ui/skeleton';
+
+const platformIcons: { [key: string]: React.ElementType } = {
+  LinkedIn: Linkedin,
+  GitHub: Github,
+  Twitter: Twitter,
+};
 
 export function OurTeamSection() {
-  const teamMembers = [
-    { name: 'John Doe', role: 'CEO & Founder', initials: 'JD', aiHint: 'man ceo', linkedin: '#', github: '#' },
-    { name: 'Jane Smith', role: 'Lead Developer', initials: 'JS', aiHint: 'woman developer', linkedin: '#', github: '#' },
-    { name: 'Mike Brown', role: 'UX/UI Designer', initials: 'MB', aiHint: 'man designer', linkedin: '#', github: '#' },
-    { name: 'Sarah Wilson', role: 'Marketing Head', initials: 'SW', aiHint: 'woman marketing', linkedin: '#', github: '#' },
-  ];
+  const { data: teamMembers = [], isLoading } = useGetStaffQuery({});
+
+  const renderContent = () => {
+    if(isLoading) {
+      return (
+        <div className="mx-auto grid max-w-5xl grid-cols-2 gap-y-10 gap-x-6 sm:grid-cols-2 md:grid-cols-4 lg:gap-x-8">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="flex flex-col items-center text-center">
+              <Skeleton className="w-24 h-24 md:w-32 md:h-32 rounded-full" />
+              <div className="mt-4 space-y-2">
+                <Skeleton className="h-5 w-24 mx-auto" />
+                <Skeleton className="h-4 w-32 mx-auto" />
+              </div>
+            </div>
+          ))}
+        </div>
+      )
+    }
+
+    return (
+      <div className="mx-auto grid max-w-5xl grid-cols-2 gap-y-10 gap-x-6 sm:grid-cols-2 md:grid-cols-4 lg:gap-x-8">
+        {teamMembers.map((member: any) => {
+          return (
+            <div key={member.name} className="flex flex-col items-center text-center group">
+              <div className="relative">
+                <Avatar className="w-24 h-24 md:w-32 md:h-32 transition-transform duration-300 ease-in-out group-hover:scale-105">
+                  <AvatarImage src={member.image} />
+                  <AvatarFallback>{member.initials}</AvatarFallback>
+                </Avatar>
+                <div className="absolute inset-0 rounded-full border-2 border-transparent transition-all duration-300 group-hover:border-primary"></div>
+              </div>
+              <div className="mt-4">
+                <h3 className="text-lg font-bold text-primary">{member.name}</h3>
+                <p className="text-sm font-medium text-muted-foreground">{member.role}</p>
+                <div className="mt-2 flex justify-center gap-4">
+                  {member.socials.map((social: any, index: number) => {
+                    const Icon = platformIcons[social.platform];
+                    return Icon ? (
+                      <a key={index} href={social.url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                        <Icon className="h-5 w-5" />
+                      </a>
+                    ) : null
+                  })}
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    );
+  }
 
   return (
     <section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
@@ -24,31 +80,7 @@ export function OurTeamSection() {
             The passionate minds dedicated to improving education through technology.
           </p>
         </div>
-        <div className="mx-auto grid max-w-5xl grid-cols-2 gap-y-10 gap-x-6 sm:grid-cols-2 md:grid-cols-4 lg:gap-x-8">
-          {teamMembers.map((member) => (
-            <div key={member.name} className="flex flex-col items-center text-center group">
-              <div className="relative">
-                <Avatar className="w-24 h-24 md:w-32 md:h-32 transition-transform duration-300 ease-in-out group-hover:scale-105">
-                  <AvatarImage src={`https://placehold.co/128x128.png`} data-ai-hint={member.aiHint} />
-                  <AvatarFallback>{member.initials}</AvatarFallback>
-                </Avatar>
-                <div className="absolute inset-0 rounded-full border-2 border-transparent transition-all duration-300 group-hover:border-primary"></div>
-              </div>
-              <div className="mt-4">
-                <h3 className="text-lg font-bold text-primary">{member.name}</h3>
-                <p className="text-sm font-medium text-muted-foreground">{member.role}</p>
-                <div className="mt-2 flex justify-center gap-4">
-                  <a href={member.linkedin} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                    <Linkedin className="h-5 w-5" />
-                  </a>
-                  <a href={member.github} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                    <Github className="h-5 w-5" />
-                  </a>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        {renderContent()}
       </div>
     </section>
   );

@@ -5,7 +5,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest', 'Note', 'Timetable', 'Settings', 'Complaint', 'FeeName', 'FeeStructure', 'FeeSettings', 'StudentFeeSettings', 'AcademicYear', 'Testimonial', 'News', 'Comment'],
+  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest', 'Note', 'Timetable', 'Settings', 'Complaint', 'FeeName', 'FeeStructure', 'FeeSettings', 'StudentFeeSettings', 'AcademicYear', 'Testimonial', 'News', 'Comment', 'Staff'],
   endpoints: (builder) => ({
     testDBConnection: builder.query({
       query: () => 'connect',
@@ -698,6 +698,35 @@ export const api = createApi({
         }),
         invalidatesTags: ['Comment'],
     }),
+
+    // Staff endpoints
+    getStaff: builder.query({
+        query: () => 'staff',
+        providesTags: ['Staff'],
+    }),
+    addStaff: builder.mutation({
+        query: (newStaff) => ({
+            url: 'staff',
+            method: 'POST',
+            body: newStaff,
+        }),
+        invalidatesTags: ['Staff'],
+    }),
+    updateStaff: builder.mutation({
+        query: (staffToUpdate) => ({
+            url: 'staff',
+            method: 'PUT',
+            body: staffToUpdate,
+        }),
+        invalidatesTags: ['Staff'],
+    }),
+    deleteStaff: builder.mutation({
+        query: (id) => ({
+            url: `staff?id=${id}`,
+            method: 'DELETE',
+        }),
+        invalidatesTags: ['Staff'],
+    }),
   }),
 });
 
@@ -792,6 +821,10 @@ export const {
     useAddCommentMutation,
     useUpdateCommentMutation,
     useDeleteCommentMutation,
+    useGetStaffQuery,
+    useAddStaffMutation,
+    useUpdateStaffMutation,
+    useDeleteStaffMutation,
 } = api;
 
     
