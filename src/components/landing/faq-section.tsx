@@ -1,6 +1,54 @@
+
+"use client";
+
+import * as React from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { useGetFaqsQuery } from "@/services/api";
+import { Skeleton } from "../ui/skeleton";
+import { EmptyState } from "../shared/empty-state";
 
 export function FaqSection() {
+  const { data: faqs = [], isLoading } = useGetFaqsQuery({ approvedOnly: true });
+  const [faqLimit, setFaqLimit] = React.useState(5);
+
+  React.useEffect(() => {
+    const savedLimit = localStorage.getItem('faq_limit');
+    if (savedLimit && !isNaN(parseInt(savedLimit, 10))) {
+      setFaqLimit(parseInt(savedLimit, 10));
+    }
+  }, []);
+
+  const displayedFaqs = faqs.slice(0, faqLimit);
+
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className="space-y-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-14 w-full" />
+          ))}
+        </div>
+      );
+    }
+    
+    if (displayedFaqs.length === 0) {
+      return <EmptyState title="No FAQs Available" description="Check back later for frequently asked questions."/>
+    }
+    
+    return (
+      <Accordion type="single" collapsible className="w-full">
+        {displayedFaqs.map((faq: any, index: number) => (
+          <AccordionItem key={faq._id} value={`item-${index}`}>
+            <AccordionTrigger>{faq.question}</AccordionTrigger>
+            <AccordionContent>
+              {faq.answer}
+            </AccordionContent>
+          </AccordionItem>
+        ))}
+      </Accordion>
+    );
+  }
+
   return (
     <section className="w-full py-12 md:py-24 lg:py-32 bg-background">
       <div className="container px-4 md:px-6">
@@ -10,32 +58,7 @@ export function FaqSection() {
           </h2>
         </div>
         <div className="mx-auto max-w-3xl">
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="item-1">
-              <AccordionTrigger>Is CampusConnect suitable for large universities?</AccordionTrigger>
-              <AccordionContent>
-                Yes, CampusConnect is built to scale and can support institutions of all sizes, from small colleges to large universities with thousands of users.
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="item-2">
-              <AccordionTrigger>What kind of support do you offer?</AccordionTrigger>
-              <AccordionContent>
-                We offer 24/7 email support, along with dedicated onboarding and training for administrators and teachers to ensure a smooth transition.
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="item-3">
-              <AccordionTrigger>Can we integrate CampusConnect with our existing systems?</AccordionTrigger>
-              <AccordionContent>
-                Absolutely. We provide APIs and support for integrating with various Student Information Systems (SIS) and other campus software.
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="item-4">
-              <AccordionTrigger>Is my data secure?</AccordionTrigger>
-              <AccordionContent>
-                Data security is our top priority. We use industry-standard encryption and security protocols to protect all your information.
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+          {renderContent()}
         </div>
       </div>
     </section>

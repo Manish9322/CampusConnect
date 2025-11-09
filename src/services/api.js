@@ -5,7 +5,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest', 'Note', 'Timetable', 'Settings', 'Complaint', 'FeeName', 'FeeStructure', 'FeeSettings', 'StudentFeeSettings', 'AcademicYear', 'Testimonial', 'News', 'Comment', 'Staff'],
+  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest', 'Note', 'Timetable', 'Settings', 'Complaint', 'FeeName', 'FeeStructure', 'FeeSettings', 'StudentFeeSettings', 'AcademicYear', 'Testimonial', 'News', 'Comment', 'Staff', 'FAQ'],
   endpoints: (builder) => ({
     testDBConnection: builder.query({
       query: () => 'connect',
@@ -727,6 +727,38 @@ export const api = createApi({
         }),
         invalidatesTags: ['Staff'],
     }),
+    // FAQ endpoints
+    getFaqs: builder.query({
+        query: (params = {}) => {
+            const urlParams = new URLSearchParams();
+            if (params.approvedOnly) urlParams.append('approvedOnly', 'true');
+            return `faq?${urlParams.toString()}`;
+        },
+        providesTags: ['FAQ'],
+    }),
+    addFaq: builder.mutation({
+        query: (newFaq) => ({
+            url: 'faq',
+            method: 'POST',
+            body: newFaq,
+        }),
+        invalidatesTags: ['FAQ'],
+    }),
+    updateFaq: builder.mutation({
+        query: (faqToUpdate) => ({
+            url: 'faq',
+            method: 'PUT',
+            body: faqToUpdate,
+        }),
+        invalidatesTags: ['FAQ'],
+    }),
+    deleteFaq: builder.mutation({
+        query: (id) => ({
+            url: `faq?id=${id}`,
+            method: 'DELETE',
+        }),
+        invalidatesTags: ['FAQ'],
+    }),
   }),
 });
 
@@ -825,6 +857,10 @@ export const {
     useAddStaffMutation,
     useUpdateStaffMutation,
     useDeleteStaffMutation,
+    useGetFaqsQuery,
+    useAddFaqMutation,
+    useUpdateFaqMutation,
+    useDeleteFaqMutation,
 } = api;
 
     
