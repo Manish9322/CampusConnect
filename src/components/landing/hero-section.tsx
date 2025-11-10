@@ -1,3 +1,4 @@
+
 "use client";
 
 import Image from 'next/image';
@@ -30,10 +31,10 @@ export function HeroSection() {
                 The Future of Education Management
               </div>
               <h1 className="text-4xl font-bold tracking-tighter text-primary sm:text-5xl xl:text-6xl/none">
-                Empowering Educational Institutions with AI
+                Empowering Educational Institutions
               </h1>
               <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                CampusConnect is an all-in-one, AI-driven platform that seamlessly connects students, teachers, and administrators to create a more efficient and engaging learning environment.
+                CampusConnect is an all-in-one platform that seamlessly connects students, teachers, and administrators to create a more efficient and engaging learning environment.
               </p>
             </div>
             <div className="flex flex-col gap-4 min-[400px]:flex-row">
