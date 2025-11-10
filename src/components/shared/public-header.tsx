@@ -6,11 +6,12 @@ import { ThemeToggle } from './theme-toggle';
 
 interface PublicHeaderProps {
   active?: 'about' | 'contact' | 'announcements' | 'news';
+  className?: string;
 }
 
-export function PublicHeader({ active }: PublicHeaderProps) {
+export function PublicHeader({ active, className }: PublicHeaderProps) {
   return (
-    <header className="bg-primary text-primary-foreground sticky top-0 z-50">
+    <header className={cn("bg-primary text-primary-foreground sticky top-0 z-50", className)}>
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
         <Link href="/" className="flex items-center gap-2 font-semibold">
           <Building2 className="h-6 w-6" />

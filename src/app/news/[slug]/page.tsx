@@ -9,7 +9,7 @@ import { useGetNewsItemQuery, useUpdateNewsInteractionMutation, useAddCommentMut
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import { Calendar, User, ThumbsUp, Share2, Eye, Folder, Flame, Clipboard } from 'lucide-react';
+import { Calendar, User, ThumbsUp, Share2, Eye, Folder, Flame, Clipboard, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle, CardDescription, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -58,6 +58,10 @@ export default function NewsDetailsPage() {
     navigator.clipboard.writeText(url).then(() => {
       toast({ title: "Link Copied!", description: "The article link has been copied to your clipboard." });
     });
+  };
+
+  const handlePrint = () => {
+    window.print();
   };
 
   const handlePostComment = async (e: React.FormEvent) => {
@@ -113,10 +117,10 @@ export default function NewsDetailsPage() {
 
   return (
     <>
-      <PublicHeader active="news"/>
+      <PublicHeader active="news" className="no-print"/>
       <main>
-        <article>
-          <header className="relative">
+        <article className="article-print">
+          <header className="relative no-print">
             <Image src={newsItem.bannerImage} alt={newsItem.title} width={1600} height={800} className="w-full h-[60vh] object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 text-white">
@@ -140,7 +144,7 @@ export default function NewsDetailsPage() {
                             <Calendar className="h-4 w-4" />
                             <span>{new Date(newsItem.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 no-print">
                             <Eye className="h-4 w-4" />
                             <span>{newsItem.visitCount} views</span>
                         </div>
@@ -152,7 +156,7 @@ export default function NewsDetailsPage() {
                     
                     <Separator className="my-8" />
                     
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 no-print">
                         <Button variant="outline" onClick={handleLike}>
                             <ThumbsUp className="mr-2 h-4 w-4" /> Like ({newsItem.likes})
                         </Button>
@@ -190,9 +194,12 @@ export default function NewsDetailsPage() {
                               </div>
                           </PopoverContent>
                         </Popover>
+                         <Button variant="outline" onClick={handlePrint}>
+                            <Printer className="mr-2 h-4 w-4" /> Print
+                        </Button>
                     </div>
 
-                    <section className="mt-12">
+                    <section className="mt-12 no-print">
                         <h2 className="text-2xl font-bold mb-6">Comments ({comments.length})</h2>
                         <Card>
                             <CardContent className="p-6">
@@ -227,7 +234,7 @@ export default function NewsDetailsPage() {
                     </section>
                 </div>
                 
-                <aside className="lg:col-span-1 space-y-8 sticky top-24 self-start">
+                <aside className="lg:col-span-1 space-y-8 sticky top-24 self-start no-print">
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-lg">
@@ -292,7 +299,7 @@ export default function NewsDetailsPage() {
           </div>
         </article>
       </main>
-      <PublicFooter />
+      <PublicFooter className="no-print"/>
     </>
   );
 }

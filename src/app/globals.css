@@ -99,3 +99,26 @@ body {
     scrollbar-width: none;  /* Firefox */
   }
 }
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body, .article-print {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  main {
+    padding: 0 !important;
+  }
+
+  article header, .prose {
+    padding: 0 !important;
+  }
+}

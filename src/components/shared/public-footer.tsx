@@ -4,13 +4,18 @@ import * as React from 'react';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 import { FeedbackModal } from './feedback-modal';
+import { cn } from '@/lib/utils';
 
-export function PublicFooter() {
+interface PublicFooterProps {
+  className?: string;
+}
+
+export function PublicFooter({ className }: PublicFooterProps) {
   const [isFeedbackModalOpen, setFeedbackModalOpen] = React.useState(false);
 
   return (
     <>
-      <footer className="flex flex-col gap-4 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
+      <footer className={cn("flex flex-col gap-4 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t", className)}>
         <p className="text-xs text-muted-foreground">
           &copy; {new Date().getFullYear()} CampusConnect. All rights reserved.
         </p>
