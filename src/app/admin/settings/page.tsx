@@ -91,6 +91,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+
 
 type Item = {
   _id: string;
@@ -188,7 +197,9 @@ function ContactSettings() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Contact Email</FormLabel>
-                <Input {...field} placeholder="contact@example.com" />
+                <FormControl>
+                  <Input {...field} placeholder="contact@example.com" />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -199,7 +210,9 @@ function ContactSettings() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Contact Phone</FormLabel>
-                <Input {...field} placeholder="(123) 456-7890" />
+                 <FormControl>
+                  <Input {...field} placeholder="(123) 456-7890" />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -211,7 +224,9 @@ function ContactSettings() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Address</FormLabel>
-              <Textarea {...field} placeholder="123 University Ave, Learnington, ED 54321" />
+              <FormControl>
+                <Textarea {...field} placeholder="123 University Ave, Learnington, ED 54321" />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -222,7 +237,9 @@ function ContactSettings() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Google Maps Embed URL</FormLabel>
-              <Input {...field} placeholder="https://www.google.com/maps/embed?pb=..." />
+              <FormControl>
+                <Input {...field} placeholder="https://www.google.com/maps/embed?pb=..." />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -261,7 +278,9 @@ function ContactSettings() {
                   render={({ field }) => (
                     <FormItem className="flex-1">
                       <FormLabel>URL</FormLabel>
-                      <Input {...field} placeholder="https://..." />
+                      <FormControl>
+                        <Input {...field} placeholder="https://..." />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
