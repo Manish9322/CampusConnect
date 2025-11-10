@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import Link from "next/link";
@@ -63,7 +62,7 @@ export function AdminNav({ user, onLogout }: AdminNavProps) {
     { href: "/admin/complaints", label: "Complaints", icon: ShieldAlert },
     { href: "/admin/comments", label: "Comments", icon: MessageSquare },
     { href: "/admin/faq", label: "FAQ", icon: HelpCircle },
-    { href: "/admin/journey", label: "Our Journey", icon: Milestone },
+    { href: "/admin/journey", label: "Our Story", icon: Milestone },
     { href: "/admin/attendance-requests", label: "Attendance Requests", icon: ClipboardCheck },
     { href: "/admin/settings", label: "Settings", icon: Settings },
   ];
@@ -161,3 +160,5 @@ export function AdminNav({ user, onLogout }: AdminNavProps) {
     </>
   );
 }
+
+    

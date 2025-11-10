@@ -5,7 +5,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest', 'Note', 'Timetable', 'Settings', 'Complaint', 'FeeName', 'FeeStructure', 'FeeSettings', 'StudentFeeSettings', 'AcademicYear', 'Testimonial', 'News', 'Comment', 'Staff', 'FAQ', 'Journey'],
+  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest', 'Note', 'Timetable', 'Settings', 'Complaint', 'FeeName', 'FeeStructure', 'FeeSettings', 'StudentFeeSettings', 'AcademicYear', 'Testimonial', 'News', 'Comment', 'Staff', 'FAQ', 'Journey', 'ContactSettings'],
   endpoints: (builder) => ({
     testDBConnection: builder.query({
       query: () => 'connect',
@@ -787,6 +787,21 @@ export const api = createApi({
         }),
         invalidatesTags: ['Journey'],
     }),
+
+    // Contact Settings
+    getContactSettings: builder.query({
+        query: () => 'settings/contact',
+        providesTags: ['ContactSettings'],
+    }),
+    updateContactSettings: builder.mutation({
+        query: (settings) => ({
+            url: 'settings/contact',
+            method: 'POST', // Using POST for upsert
+            body: settings,
+        }),
+        invalidatesTags: ['ContactSettings'],
+    }),
+
   }),
 });
 
@@ -893,4 +908,8 @@ export const {
     useAddJourneyMutation,
     useUpdateJourneyMutation,
     useDeleteJourneyMutation,
+    useGetContactSettingsQuery,
+    useUpdateContactSettingsMutation,
 } = api;
+
+    

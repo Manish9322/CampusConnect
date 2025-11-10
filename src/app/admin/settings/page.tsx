@@ -1,46 +1,296 @@
 
-"use client"
+"use client";
 
 import * as React from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PlusCircle, Trash2, Edit, Eye, DollarSign } from "lucide-react";
+import {
+  PlusCircle,
+  Trash2,
+  Edit,
+  Eye,
+  DollarSign,
+  Linkedin,
+  Twitter,
+  Github,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useGetSubjectsQuery, useAddSubjectMutation, useDeleteSubjectMutation, useUpdateSubjectMutation, useGetDepartmentsQuery, useAddDepartmentMutation, useDeleteDepartmentMutation, useUpdateDepartmentMutation, useGetDesignationsQuery, useAddDesignationMutation, useDeleteDesignationMutation, useUpdateDesignationMutation, useGetAnnouncementCategoriesQuery, useAddAnnouncementCategoryMutation, useUpdateAnnouncementCategoryMutation, useDeleteAnnouncementCategoryMutation, useGetFeeNamesQuery, useAddFeeNameMutation, useUpdateFeeNameMutation, useDeleteFeeNameMutation, useGetFeeStructureQuery, useAddFeeStructureMutation, useUpdateFeeStructureMutation, useDeleteFeeStructureMutation, useGetAcademicYearSettingsQuery, useUpdateAcademicYearSettingsMutation } from "@/services/api";
+import {
+  useGetSubjectsQuery,
+  useAddSubjectMutation,
+  useDeleteSubjectMutation,
+  useUpdateSubjectMutation,
+  useGetDepartmentsQuery,
+  useAddDepartmentMutation,
+  useDeleteDepartmentMutation,
+  useUpdateDepartmentMutation,
+  useGetDesignationsQuery,
+  useAddDesignationMutation,
+  useDeleteDesignationMutation,
+  useUpdateDesignationMutation,
+  useGetAnnouncementCategoriesQuery,
+  useAddAnnouncementCategoryMutation,
+  useUpdateAnnouncementCategoryMutation,
+  useDeleteAnnouncementCategoryMutation,
+  useGetFeeNamesQuery,
+  useAddFeeNameMutation,
+  useUpdateFeeNameMutation,
+  useDeleteFeeNameMutation,
+  useGetFeeStructureQuery,
+  useAddFeeStructureMutation,
+  useUpdateFeeStructureMutation,
+  useDeleteFeeStructureMutation,
+  useGetAcademicYearSettingsQuery,
+  useUpdateAcademicYearSettingsMutation,
+  useGetContactSettingsQuery,
+  useUpdateContactSettingsMutation,
+} from "@/services/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { ItemPreviewDialog } from "@/components/admin/settings/item-preview-dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { format, parseISO } from "date-fns";
-import { Calendar as CalendarIcon } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
+import { Calendar as CalendarIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useForm, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
 type Item = {
-    _id: string;
-    name: string;
-    description?: string;
-    status?: 'active' | 'inactive' | boolean;
-}
+  _id: string;
+  name: string;
+  description?: string;
+  status?: "active" | "inactive" | boolean;
+};
 
 type FeeComponent = {
-    _id: string;
-    name: string;
-    category: 'Academic' | 'Hostel' | 'Transportation' | 'Miscellaneous';
-    amount: number;
-    isActive: boolean;
+  _id: string;
+  name: string;
+  category: "Academic" | "Hostel" | "Transportation" | "Miscellaneous";
+  amount: number;
+  isActive: boolean;
 };
 
 type ItemToModify = Item | null;
 type ItemType = "subject" | "department" | "designation" | "announcementCategory" | "feeName";
+
+// --- Contact Settings ---
+const socialLinkSchema = z.object({
+  platform: z.enum(["LinkedIn", "GitHub", "Twitter"]),
+  url: z.string().url("Please enter a valid URL."),
+});
+
+const contactSettingsSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  phone: z.string().min(10, "Phone number is too short"),
+  address: z.string().min(10, "Address is too short"),
+  mapUrl: z.string().url("Invalid map embed URL"),
+  socials: z.array(socialLinkSchema),
+});
+
+function ContactSettings() {
+  const { data: settings, isLoading, isFetching } = useGetContactSettingsQuery(undefined);
+  const [updateSettings, { isLoading: isUpdating }] = useUpdateContactSettingsMutation();
+  const { toast } = useToast();
+
+  const form = useForm<z.infer<typeof contactSettingsSchema>>({
+    resolver: zodResolver(contactSettingsSchema),
+    defaultValues: {
+      email: "",
+      phone: "",
+      address: "",
+      mapUrl: "",
+      socials: [],
+    },
+  });
+  
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "socials",
+  });
+
+  React.useEffect(() => {
+    if (settings) {
+      form.reset(settings);
+    }
+  }, [settings, form]);
+  
+  const onSubmit = async (values: z.infer<typeof contactSettingsSchema>) => {
+    try {
+      await updateSettings(values).unwrap();
+      toast({
+        title: "Settings Saved",
+        description: "Contact information has been updated.",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save contact settings.",
+      });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-10 w-32" />
+      </div>
+    );
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Contact Email</FormLabel>
+                <Input {...field} placeholder="contact@example.com" />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="phone"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Contact Phone</FormLabel>
+                <Input {...field} placeholder="(123) 456-7890" />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <FormField
+          control={form.control}
+          name="address"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Address</FormLabel>
+              <Textarea {...field} placeholder="123 University Ave, Learnington, ED 54321" />
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="mapUrl"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Google Maps Embed URL</FormLabel>
+              <Input {...field} placeholder="https://www.google.com/maps/embed?pb=..." />
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div>
+          <h3 className="text-lg font-medium mb-2">Social Media Links</h3>
+          <div className="space-y-4">
+            {fields.map((field, index) => (
+              <div key={field.id} className="flex flex-col sm:flex-row items-end gap-2 p-3 border rounded-lg">
+                <FormField
+                  control={form.control}
+                  name={`socials.${index}.platform`}
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <FormLabel>Platform</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select platform" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="LinkedIn">LinkedIn</SelectItem>
+                          <SelectItem value="GitHub">GitHub</SelectItem>
+                          <SelectItem value="Twitter">Twitter</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name={`socials.${index}.url`}
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <FormLabel>URL</FormLabel>
+                      <Input {...field} placeholder="https://..." />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => append({ platform: 'LinkedIn', url: '' })}
+            >
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Social Link
+            </Button>
+          </div>
+        </div>
+        
+        <Button type="submit" disabled={isUpdating || isFetching}>
+          {isUpdating ? "Saving..." : "Save Contact Settings"}
+        </Button>
+      </form>
+    </Form>
+  )
+}
+
 
 function AcademicYearSettings() {
     const { data: settings, isLoading, isFetching } = useGetAcademicYearSettingsQuery(undefined);
@@ -886,68 +1136,96 @@ export default function SettingsPage() {
     return (
         <div className="space-y-4 md:space-y-6 p-4 md:p-6">
             <h1 className="text-xl md:text-2xl font-bold">Settings</h1>
-            <span>Manage your account settings and personalize your overall campus connect experience.</span>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-                <AcademicYearSettings />
-                {renderFeeManagement()}
-                 {renderMasterTable(
-                    "Fee Names Master",
-                    "Add or remove fee names for selection.",
-                    feeNames,
-                    isLoadingFeeNames,
-                    isAddingFeeName,
-                    handleAddFeeName,
-                    handleRemoveFeeName,
-                    (item) => openEditDialog(item, "feeName"),
-                    (item) => openPreviewDialog(item, "feeName"),
-                    "feeName",
-                    newFeeName,
-                    setNewFeeName
-                )}
-                {renderSubjectTable()}
-                {renderMasterTable(
-                    "Manage Departments",
-                    "Add or remove academic departments.",
-                    departments,
-                    isLoadingDepartments,
-                    isAddingDepartment,
-                    handleAddDepartment,
-                    handleRemoveDepartment,
-                    (item) => openEditDialog(item, "department"),
-                    (item) => openPreviewDialog(item, "department"),
-                    "department",
-                    newDepartment,
-                    setNewDepartment
-                )}
-                {renderMasterTable(
-                    "Manage Designations",
-                    "Add or remove teacher designations.",
-                    designations,
-                    isLoadingDesignations,
-                    isAddingDesignation,
-                    handleAddDesignation,
-                    handleRemoveDesignation,
-                    (item) => openEditDialog(item, "designation"),
-                    (item) => openPreviewDialog(item, "designation"),
-                    "designation",
-                    newDesignation,
-                    setNewDesignation
-                )}
-                {renderMasterTable(
-                    "Announcement Categories",
-                    "Manage announcement categories.",
-                    announcementCategories,
-                    isLoadingAnnouncementCategories,
-                    isAddingAnnouncementCategory,
-                    handleAddAnnouncementCategory,
-                    handleRemoveAnnouncementCategory,
-                    (item) => openEditDialog(item, "announcementCategory"),
-                    (item) => openPreviewDialog(item, "announcementCategory"),
-                    "announcementCategory",
-                    newAnnouncementCategory,
-                    setNewAnnouncementCategory
-                )}
-            </div>
+            <p className="text-muted-foreground">Manage your account settings and personalize your overall campus connect experience.</p>
+            
+            <Tabs defaultValue="general">
+                <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
+                    <TabsTrigger value="general">General</TabsTrigger>
+                    <TabsTrigger value="contact">Contact Info</TabsTrigger>
+                    <TabsTrigger value="fees">Fees</TabsTrigger>
+                    <TabsTrigger value="masters">Masters</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="general" className="mt-6 space-y-6">
+                     <AcademicYearSettings />
+                </TabsContent>
+
+                <TabsContent value="contact" className="mt-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Contact Page Settings</CardTitle>
+                            <CardDescription>Manage the information displayed on the public contact page.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <ContactSettings />
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                <TabsContent value="fees" className="mt-6 space-y-6">
+                    {renderFeeManagement()}
+                    {renderMasterTable(
+                        "Fee Names Master",
+                        "Add or remove fee names for selection.",
+                        feeNames,
+                        isLoadingFeeNames,
+                        isAddingFeeName,
+                        handleAddFeeName,
+                        handleRemoveFeeName,
+                        (item) => openEditDialog(item, "feeName"),
+                        (item) => openPreviewDialog(item, "feeName"),
+                        "feeName",
+                        newFeeName,
+                        setNewFeeName
+                    )}
+                </TabsContent>
+
+                 <TabsContent value="masters" className="mt-6 space-y-6">
+                    {renderSubjectTable()}
+                    {renderMasterTable(
+                        "Manage Departments",
+                        "Add or remove academic departments.",
+                        departments,
+                        isLoadingDepartments,
+                        isAddingDepartment,
+                        handleAddDepartment,
+                        handleRemoveDepartment,
+                        (item) => openEditDialog(item, "department"),
+                        (item) => openPreviewDialog(item, "department"),
+                        "department",
+                        newDepartment,
+                        setNewDepartment
+                    )}
+                    {renderMasterTable(
+                        "Manage Designations",
+                        "Add or remove teacher designations.",
+                        designations,
+                        isLoadingDesignations,
+                        isAddingDesignation,
+                        handleAddDesignation,
+                        handleRemoveDesignation,
+                        (item) => openEditDialog(item, "designation"),
+                        (item) => openPreviewDialog(item, "designation"),
+                        "designation",
+                        newDesignation,
+                        setNewDesignation
+                    )}
+                    {renderMasterTable(
+                        "Announcement Categories",
+                        "Manage announcement categories.",
+                        announcementCategories,
+                        isLoadingAnnouncementCategories,
+                        isAddingAnnouncementCategory,
+                        handleAddAnnouncementCategory,
+                        handleRemoveAnnouncementCategory,
+                        (item) => openEditDialog(item, "announcementCategory"),
+                        (item) => openPreviewDialog(item, "announcementCategory"),
+                        "announcementCategory",
+                        newAnnouncementCategory,
+                        setNewAnnouncementCategory
+                    )}
+                </TabsContent>
+            </Tabs>
 
             <Dialog open={!!itemToEdit} onOpenChange={closeEditDialog}>
                 <DialogContent>
