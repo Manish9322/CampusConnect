@@ -24,6 +24,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { SocialFollowCard } from '@/components/news/social-follow-card';
 
 const SocialIconWrapper = ({ children, className }: { children: React.ReactNode, className?: string }) => (
   <div className={`w-8 h-8 rounded-full flex items-center justify-center ${className}`}>
@@ -278,6 +279,7 @@ export default function NewsDetailsPage() {
                             ))}
                         </CardContent>
                     </Card>
+                    <SocialFollowCard />
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-lg">
