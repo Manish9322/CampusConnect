@@ -18,7 +18,7 @@ const categoryColors: Record<AnnouncementCategory, string> = {
 
 export function HighlightedAnnouncementCard({ announcement }: HighlightedAnnouncementCardProps) {
   return (
-    <Card className="flex flex-col h-full bg-gradient-to-br from-card to-muted/50 border-2 border-primary/20 shadow-xl transition-shadow duration-300">
+    <Card className="flex flex-col h-full bg-gradient-to-br from-card to-muted/50 border-2 border-primary/20 transition-shadow duration-300">
       <CardHeader>
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
