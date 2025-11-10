@@ -8,6 +8,7 @@ import { ArrowRight, School, Users2, Briefcase, UserCheck } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useGetTeachersQuery, useGetStudentsQuery, useGetClassesQuery } from '@/services/api';
 import { Skeleton } from '../ui/skeleton';
+import heroImage from '../../../public/images/hero-section-right-image.png';
 
 export function HeroSection() {
   const { data: teachers = [], isLoading: isLoadingTeachers } = useGetTeachersQuery(undefined);
@@ -83,7 +84,7 @@ export function HeroSection() {
           </div>
           <div className="relative flex items-center justify-center">
             <Image
-              src="https://placehold.co/450x450.png"
+              src={heroImage}
               width="450"
               height="450"
               alt="Campus"
