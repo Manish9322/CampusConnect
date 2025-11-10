@@ -21,7 +21,6 @@ import {
   Eye,
 } from "lucide-react";
 import { DeleteConfirmationDialog } from "@/components/shared/delete-confirmation-dialog";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -37,6 +36,8 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface InquiriesTableProps {
   inquiries: any[];
@@ -45,6 +46,7 @@ interface InquiriesTableProps {
 
 export function InquiriesTable({ inquiries, isLoading }: InquiriesTableProps) {
   const [searchTerm, setSearchTerm] = React.useState("");
+  const [readFilter, setReadFilter] = React.useState<"all" | "read" | "unread">("all");
   const [isDeleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [isViewDialogOpen, setViewDialogOpen] = React.useState(false);
   const [inquiryToAction, setInquiryToAction] = React.useState<any | null>(
@@ -64,9 +66,10 @@ export function InquiriesTable({ inquiries, isLoading }: InquiriesTableProps) {
 
   const filteredInquiries = inquiries.filter(
     (item) =>
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.message.toLowerCase().includes(searchTerm.toLowerCase())
+      item.message.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (readFilter === "all" || (readFilter === "read" && item.isRead) || (readFilter === "unread" && !item.isRead))
   );
 
   const totalPages = Math.ceil(filteredInquiries.length / rowsPerPage);
@@ -210,6 +213,50 @@ export function InquiriesTable({ inquiries, isLoading }: InquiriesTableProps) {
       </TableBody>
     );
   };
+  
+  const renderMobileCards = () => {
+    if (isLoading) {
+      return (
+        <div className="space-y-4">
+          {[...Array(5)].map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-4">
+                <Skeleton className="h-24 w-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )
+    }
+
+     if (paginatedInquiries.length === 0) {
+      return <EmptyState title="No Inquiries Found" description="There are no inquiries matching your criteria." />
+    }
+    
+    return (
+      <div className="space-y-4">
+        {paginatedInquiries.map(item => (
+          <Card key={item._id} className={!item.isRead ? "border-primary" : ""}>
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="font-semibold">{item.name}</h3>
+                  <p className="text-sm text-muted-foreground">{new Date(item.createdAt).toLocaleDateString()}</p>
+                </div>
+                {!item.isRead && <div className="h-3 w-3 rounded-full bg-primary mt-1" />}
+              </div>
+              <p className="text-sm text-muted-foreground line-clamp-2">{item.message}</p>
+              <div className="flex gap-2 pt-2 border-t">
+                <Button variant="outline" size="sm" className="flex-1" onClick={() => handleView(item)}>View</Button>
+                <Button variant="outline" size="sm" className="flex-1" onClick={() => handleToggleRead(item)}>{item.isRead ? 'Mark Unread' : 'Mark Read'}</Button>
+                <Button variant="destructive" size="icon" onClick={() => openDeleteDialog(item)}><Trash2 className="h-4 w-4" /></Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    )
+  }
 
   return (
     <>
@@ -220,8 +267,19 @@ export function InquiriesTable({ inquiries, isLoading }: InquiriesTableProps) {
           onChange={handleSearch}
           className="w-full md:max-w-sm"
         />
+        <Select value={readFilter} onValueChange={(value) => setReadFilter(value as any)}>
+          <SelectTrigger className="w-full sm:w-48">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="read">Read</SelectItem>
+            <SelectItem value="unread">Unread</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
-      <div className="rounded-md border">
+
+      <div className="hidden md:block rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -235,6 +293,11 @@ export function InquiriesTable({ inquiries, isLoading }: InquiriesTableProps) {
           {renderContent()}
         </Table>
       </div>
+
+      <div className="md:hidden">
+        {renderMobileCards()}
+      </div>
+
       <div className="flex flex-col sm:flex-row items-center justify-end mt-4">
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground whitespace-nowrap">

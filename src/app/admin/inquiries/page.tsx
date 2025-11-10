@@ -20,7 +20,7 @@ export default function InquiriesPage() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 p-4 md:p-6">
             <h1 className="text-2xl font-bold">Contact Form Inquiries</h1>
              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <Card>
