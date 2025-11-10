@@ -50,22 +50,22 @@ export function AdminNav({ user, onLogout }: AdminNavProps) {
 
   const menuItems = [
     { href: "/admin", label: "Dashboard", icon: Home },
-    { href: "/admin/inquiries", label: "Inquiries", icon: Mail },
-    { href: "/admin/students", label: "Students", icon: Users },
     { href: "/admin/teachers", label: "Teachers", icon: UserCheck },
-    { href: "/admin/staff", label: "Staff", icon: Briefcase },
+    { href: "/admin/students", label: "Students", icon: Users },
     { href: "/admin/classes", label: "Classes", icon: BookCopy },
     { href: "/admin/attendance", label: "Attendance", icon: CalendarCheck },
+    { href: "/admin/attendance-requests", label: "Attendance Requests", icon: ClipboardCheck },
     { href: "/admin/timetable", label: "Timetable", icon: Calendar },
     { href: "/admin/fees", label: "Fee Management", icon: DollarSign },
     { href: "/admin/announcements", label: "Announcements", icon: Megaphone },
     { href: "/admin/news", label: "News", icon: Newspaper },
+    { href: "/admin/inquiries", label: "Inquiries", icon: Mail },
     { href: "/admin/testimonials", label: "Testimonials", icon: Star },
     { href: "/admin/complaints", label: "Complaints", icon: ShieldAlert },
     { href: "/admin/comments", label: "Comments", icon: MessageSquare },
     { href: "/admin/faq", label: "FAQ", icon: HelpCircle },
     { href: "/admin/journey", label: "Our Story", icon: Milestone },
-    { href: "/admin/attendance-requests", label: "Attendance Requests", icon: ClipboardCheck },
+    { href: "/admin/staff", label: "Staff", icon: Briefcase },
     { href: "/admin/settings", label: "Settings", icon: Settings },
   ];
 
