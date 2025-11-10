@@ -254,7 +254,7 @@ function ContactSettings() {
                   control={form.control}
                   name={`socials.${index}.platform`}
                   render={({ field }) => (
-                    <FormItem className="flex-1">
+                    <FormItem className="flex-1 w-full sm:w-auto">
                       <FormLabel>Platform</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
@@ -276,7 +276,7 @@ function ContactSettings() {
                   control={form.control}
                   name={`socials.${index}.url`}
                   render={({ field }) => (
-                    <FormItem className="flex-1">
+                    <FormItem className="flex-1 w-full sm:w-auto">
                       <FormLabel>URL</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="https://..." />
@@ -285,7 +285,7 @@ function ContactSettings() {
                     </FormItem>
                   )}
                 />
-                <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}>
+                <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)} className="shrink-0">
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
@@ -456,7 +456,7 @@ export default function SettingsPage() {
 
     const [isFeeDialogOpen, setFeeDialogOpen] = React.useState(false);
     const [feeToEdit, setFeeToEdit] = React.useState<FeeComponent | null>(null);
-    const [newFee, setNewFee] = React.useState({ name: "", category: "Miscellaneous" as FeeComponent['category'], amount: "", isActive: true });
+    const [newFee, setNewFee] = React.useState<{name: string, category: FeeComponent['category'], amount: string | number, isActive: boolean}>({ name: "", category: "Miscellaneous", amount: "", isActive: true });
 
     const { toast } = useToast();
 
@@ -674,7 +674,7 @@ export default function SettingsPage() {
         const feeData = {
             name: newFee.name.trim(),
             category: newFee.category,
-            amount: parseFloat(newFee.amount),
+            amount: parseFloat(newFee.amount as string),
             isActive: newFee.isActive,
         };
 
@@ -728,7 +728,6 @@ export default function SettingsPage() {
                 <CardDescription className="text-sm">Add or remove subjects offered.</CardDescription>
             </CardHeader>
             <CardContent className="px-4 md:px-6">
-                {/* Add New Subject Form - Responsive */}
                 <div className="flex flex-col gap-2 mb-4">
                     <div className="flex flex-col sm:flex-row gap-2">
                         <Input
@@ -793,7 +792,6 @@ export default function SettingsPage() {
                     </div>
                 </div>
 
-                {/* Desktop Table View */}
                 <div className="hidden md:block rounded-md border">
                     <div className="max-h-96 overflow-y-auto scrollbar-hide">
                         <Table>
@@ -855,7 +853,6 @@ export default function SettingsPage() {
                     </div>
                 </div>
 
-                {/* Mobile Card View */}
                 <div className="md:hidden space-y-3">
                     {isLoadingSubjects ? (
                         [...Array(3)].map((_, i) => (
@@ -961,12 +958,11 @@ export default function SettingsPage() {
                             <Label htmlFor={`add-status-${type}`}>Active</Label>
                         </div>
                     )}
-                    <Button onClick={onAdd} disabled={isAdding || !newItem.name.trim()} className="w-full sm:w-auto shrink-0 self-end">
+                    <Button onClick={onAdd} disabled={isAdding || !newItem.name.trim()} className="w-full sm:w-auto sm:self-end">
                         <PlusCircle className="mr-2 h-4 w-4" /> {isAdding ? "Adding..." : "Add"}
                     </Button>
                 </div>
 
-                {/* Desktop Table View */}
                 <div className="hidden md:block rounded-md border">
                     <div className="max-h-96 overflow-y-auto scrollbar-hide">
                         <Table>
@@ -1057,7 +1053,7 @@ export default function SettingsPage() {
                             value={newFee.name}
                             onValueChange={(value) => setNewFee({ ...newFee, name: value })}
                         >
-                            <SelectTrigger className="md:col-span-1">
+                            <SelectTrigger className="w-full md:col-span-1">
                                 <SelectValue placeholder="Select Fee Name" />
                             </SelectTrigger>
                             <SelectContent>
@@ -1070,7 +1066,7 @@ export default function SettingsPage() {
                             value={newFee.category}
                             onValueChange={(value) => setNewFee({ ...newFee, category: value as FeeComponent['category'] })}
                         >
-                            <SelectTrigger className="md:col-span-1">
+                            <SelectTrigger className="w-full md:col-span-1">
                                 <SelectValue placeholder="Select Category" />
                             </SelectTrigger>
                             <SelectContent>
@@ -1085,7 +1081,7 @@ export default function SettingsPage() {
                             value={newFee.amount}
                             onChange={(e) => setNewFee({ ...newFee, amount: e.target.value })}
                             placeholder="Amount (₹)"
-                            className="md:col-span-1"
+                            className="w-full md:col-span-1"
                         />
                          <Button onClick={handleAddOrUpdateFee} className="w-full md:col-span-1">
                             <PlusCircle className="mr-2 h-4 w-4" /> Add Fee
@@ -1153,12 +1149,14 @@ export default function SettingsPage() {
     );
 
     return (
-        <div className="space-y-4 md:space-y-6 p-4 md:p-6">
-            <h1 className="text-xl md:text-2xl font-bold">Settings</h1>
-            <p className="text-muted-foreground">Manage your account settings and personalize your overall campus connect experience.</p>
+        <div className="space-y-4 md:space-y-6">
+             <div className="space-y-1.5">
+                <h1 className="text-xl md:text-2xl font-bold">Settings</h1>
+                <p className="text-muted-foreground leading-relaxed">Manage your account settings and personalize your overall campus connect experience.</p>
+            </div>
             
             <Tabs defaultValue="general">
-                <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
+                <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-4 h-auto">
                     <TabsTrigger value="general">General</TabsTrigger>
                     <TabsTrigger value="contact">Contact Info</TabsTrigger>
                     <TabsTrigger value="fees">Fees</TabsTrigger>
@@ -1376,5 +1374,3 @@ export default function SettingsPage() {
         </div>
     );
 }
-
-    
