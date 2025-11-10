@@ -2,7 +2,7 @@
 
 **CampusConnect** is a full-stack application designed to empower educational administrators, support teachers, and enhance the student experience by providing a scalable, maintainable, and high-performance architecture. It combines a public-facing website, a student portal, and a teacher/admin dashboard into a single, cohesive system.
 
-The platform is built with a modern technology stack, including **Next.js 15**, **React**, **TypeScript**, **Tailwind CSS**, **Shadcn UI**, **Mongoose**, and **Genkit** for AI-powered features. This ensures a highly modular and efficient application.
+The platform is built with a modern technology stack, including **Next.js 15**, **React**, **TypeScript**, **Tailwind CSS**, **Shadcn UI** and **Mongoose**. This ensures a highly modular and efficient application.
 
 ![CampusConnect](./public/images/CampusConnect.png)
 
