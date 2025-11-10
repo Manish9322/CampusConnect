@@ -5,7 +5,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest', 'Note', 'Timetable', 'Settings', 'Complaint', 'FeeName', 'FeeStructure', 'FeeSettings', 'StudentFeeSettings', 'AcademicYear', 'Testimonial', 'News', 'Comment', 'Staff', 'FAQ', 'Journey', 'ContactSettings'],
+  tagTypes: ['Connection', 'Subject', 'Department', 'Designation', 'Teacher', 'Class', 'Student', 'Announcement', 'AnnouncementCategory', 'Attendance', 'Assignment', 'Grade', 'AttendanceRequest', 'Note', 'Timetable', 'Settings', 'Complaint', 'FeeName', 'FeeStructure', 'FeeSettings', 'StudentFeeSettings', 'AcademicYear', 'Testimonial', 'News', 'Comment', 'Staff', 'FAQ', 'Journey', 'ContactSettings', 'ContactInquiry'],
   endpoints: (builder) => ({
     testDBConnection: builder.query({
       query: () => 'connect',
@@ -802,6 +802,35 @@ export const api = createApi({
         invalidatesTags: ['ContactSettings'],
     }),
 
+    // Contact Inquiry endpoints
+    getContactInquiries: builder.query({
+        query: () => 'contact-inquiries',
+        providesTags: ['ContactInquiry'],
+    }),
+    addContactInquiry: builder.mutation({
+      query: (newInquiry) => ({
+        url: 'contact-inquiries',
+        method: 'POST',
+        body: newInquiry,
+      }),
+      invalidatesTags: ['ContactInquiry'],
+    }),
+    updateContactInquiry: builder.mutation({
+      query: (inquiryToUpdate) => ({
+        url: 'contact-inquiries',
+        method: 'PUT',
+        body: inquiryToUpdate,
+      }),
+      invalidatesTags: ['ContactInquiry'],
+    }),
+    deleteContactInquiry: builder.mutation({
+      query: (id) => ({
+        url: `contact-inquiries?id=${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['ContactInquiry'],
+    }),
+
   }),
 });
 
@@ -910,6 +939,8 @@ export const {
     useDeleteJourneyMutation,
     useGetContactSettingsQuery,
     useUpdateContactSettingsMutation,
+    useGetContactInquiriesQuery,
+    useAddContactInquiryMutation,
+    useUpdateContactInquiryMutation,
+    useDeleteContactInquiryMutation,
 } = api;
-
-    

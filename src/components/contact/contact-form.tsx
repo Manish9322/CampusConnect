@@ -11,6 +11,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '../ui/form';
+import { useAddContactInquiryMutation } from '@/services/api';
+import { Loader2 } from 'lucide-react';
 
 const formSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -22,19 +24,28 @@ type FormValues = z.infer<typeof formSchema>;
 
 export function ContactForm() {
   const { toast } = useToast();
+  const [addContactInquiry, { isLoading }] = useAddContactInquiryMutation();
+  
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: { name: '', email: '', message: '' },
   });
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
-    // Here you would typically send the data to your backend
-    console.log(data);
-    toast({
-      title: 'Message Sent!',
-      description: "Thanks for reaching out. We'll get back to you shortly.",
-    });
-    form.reset();
+    try {
+      await addContactInquiry(data).unwrap();
+      toast({
+        title: 'Message Sent!',
+        description: "Thanks for reaching out. We'll get back to you shortly.",
+      });
+      form.reset();
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Submission Failed',
+        description: 'There was an error sending your message. Please try again.',
+      });
+    }
   };
 
   return (
@@ -85,8 +96,15 @@ export function ContactForm() {
                             </FormItem>
                         )}
                     />
-                    <Button type="submit" className="w-full">
-                        Send Message
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        "Send Message"
+                      )}
                     </Button>
                 </form>
             </Form>
@@ -94,5 +112,3 @@ export function ContactForm() {
     </Card>
   );
 }
-
-    
