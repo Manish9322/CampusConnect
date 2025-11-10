@@ -24,6 +24,10 @@ const announcementSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  order: {
+    type: Number,
+    default: 0,
+  },
 }, { timestamps: true });
 
 export const Announcement = mongoose.models.Announcement || mongoose.model('Announcement', announcementSchema);

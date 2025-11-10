@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Announcement } from "@/lib/types";
-import { Edit, PlusCircle, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Edit, PlusCircle, Trash2, ChevronLeft, ChevronRight, GripVertical } from "lucide-react";
 import { DeleteConfirmationDialog } from "@/components/shared/delete-confirmation-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -24,13 +24,15 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Card, CardContent } from "@/components/ui/card";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 interface AnnouncementsTableProps {
   announcements: Announcement[];
   isLoading: boolean;
 }
 
-export function AnnouncementsTable({ announcements, isLoading }: AnnouncementsTableProps) {
+export function AnnouncementsTable({ announcements: initialAnnouncements, isLoading }: AnnouncementsTableProps) {
+  const [announcements, setAnnouncements] = React.useState(initialAnnouncements);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [isAddDialogOpen, setAddDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
@@ -42,6 +44,11 @@ export function AnnouncementsTable({ announcements, isLoading }: AnnouncementsTa
   const [addAnnouncement] = useAddAnnouncementMutation();
   const [updateAnnouncement] = useUpdateAnnouncementMutation();
   const [deleteAnnouncement] = useDeleteAnnouncementMutation();
+  
+  React.useEffect(() => {
+    const sortedAnnouncements = [...initialAnnouncements].sort((a, b) => a.order - b.order);
+    setAnnouncements(sortedAnnouncements);
+  }, [initialAnnouncements]);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -100,10 +107,10 @@ export function AnnouncementsTable({ announcements, isLoading }: AnnouncementsTa
   const handleSave = async (data: { title: string; content: string; category: string; isPublished: boolean; }) => {
     try {
       if (announcementToAction) {
-        await updateAnnouncement({ ...data, _id: announcementToAction._id }).unwrap();
+        await updateAnnouncement({ ...data, _id: announcementToAction._id, order: announcementToAction.order }).unwrap();
         toast({ title: "Announcement Updated" });
       } else {
-        await addAnnouncement({ ...data, author: "Admin User" }).unwrap();
+        await addAnnouncement({ ...data, author: "Admin User", order: announcements.length }).unwrap();
         toast({ title: "Announcement Created" });
       }
       setAddDialogOpen(false);
@@ -112,12 +119,33 @@ export function AnnouncementsTable({ announcements, isLoading }: AnnouncementsTa
     }
   };
 
+  const onDragEnd = (result: any) => {
+    if (!result.destination) return;
+
+    const newAnnouncements = Array.from(announcements);
+    const [reorderedItem] = newAnnouncements.splice(result.source.index, 1);
+    newAnnouncements.splice(result.destination.index, 0, reorderedItem);
+
+    const reorderedAnnouncementsWithOrder = newAnnouncements.map((item, idx) => ({ ...item, order: idx }));
+    setAnnouncements(reorderedAnnouncementsWithOrder);
+
+    const updatePayload = reorderedAnnouncementsWithOrder.map(item => ({ _id: item._id, order: item.order }));
+    updateAnnouncement(updatePayload)
+      .unwrap()
+      .then(() => toast({ title: "Order Updated" }))
+      .catch(() => {
+        toast({ title: "Error", description: "Failed to save new order.", variant: "destructive" });
+        setAnnouncements(announcements); // Revert on error
+      });
+  };
+
   const renderContent = () => {
     if (isLoading) {
       return (
         <TableBody>
           {[...Array(5)].map((_, i) => (
             <TableRow key={i}>
+              <TableCell><Skeleton className="h-5 w-8" /></TableCell>
               <TableCell><Skeleton className="h-5 w-48" /></TableCell>
               <TableCell><Skeleton className="h-5 w-20" /></TableCell>
               <TableCell><Skeleton className="h-5 w-24" /></TableCell>
@@ -133,7 +161,7 @@ export function AnnouncementsTable({ announcements, isLoading }: AnnouncementsTa
         return (
             <TableBody>
                 <TableRow>
-                    <TableCell colSpan={5}>
+                    <TableCell colSpan={6}>
                         <EmptyState title="No Announcements Found" description="There are no announcements matching your criteria." />
                     </TableCell>
                 </TableRow>
@@ -142,34 +170,48 @@ export function AnnouncementsTable({ announcements, isLoading }: AnnouncementsTa
     }
 
     return (
-      <TableBody>
-        {paginatedAnnouncements.map((item) => (
-          <TableRow key={item._id}>
-            <TableCell className="font-medium">{item.title}</TableCell>
-            <TableCell><Badge variant="outline">{item.category}</Badge></TableCell>
-            <TableCell>{new Date(item.createdAt).toLocaleDateString()}</TableCell>
-            <TableCell>
-              <Switch
-                checked={item.isPublished}
-                onCheckedChange={(checked) => handleTogglePublished(item, checked)}
-                aria-label="Toggle published status"
-              />
-            </TableCell>
-            <TableCell className="text-right">
-              <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
-                <Edit className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => openDeleteDialog(item)}
-              >
-                <Trash2 className="h-4 w-4 text-destructive" />
-              </Button>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Droppable droppableId="announcements">
+          {(provided) => (
+            <TableBody ref={provided.innerRef} {...provided.droppableProps}>
+              {paginatedAnnouncements.map((item, index) => (
+                <Draggable key={item._id} draggableId={item._id} index={index}>
+                  {(provided) => (
+                    <TableRow ref={provided.innerRef} {...provided.draggableProps}>
+                      <TableCell {...provided.dragHandleProps} className="w-12 text-center">
+                          <GripVertical className="h-5 w-5 text-muted-foreground" />
+                      </TableCell>
+                      <TableCell className="font-medium">{item.title}</TableCell>
+                      <TableCell><Badge variant="outline">{item.category}</Badge></TableCell>
+                      <TableCell>{new Date(item.createdAt).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={item.isPublished}
+                          onCheckedChange={(checked) => handleTogglePublished(item, checked)}
+                          aria-label="Toggle published status"
+                        />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openDeleteDialog(item)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </TableBody>
+          )}
+        </Droppable>
+      </DragDropContext>
     );
   };
 
@@ -194,6 +236,7 @@ export function AnnouncementsTable({ announcements, isLoading }: AnnouncementsTa
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-12"></TableHead>
               <TableHead>Title</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Created At</TableHead>
