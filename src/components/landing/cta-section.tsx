@@ -24,8 +24,8 @@ export function CtaSection() {
             <Button asChild size="lg" variant="secondary" className="text-base font-semibold px-8 py-6 shadow-lg transition-transform duration-300 hover:scale-105">
               <Link href="/login">Get Started for Free <ArrowRight className="ml-2 h-5 w-5" /></Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="text-base font-semibold px-8 py-6 text-primary-foreground border-primary-foreground/50 hover:bg-primary-foreground/10 hover:text-primary-foreground shadow-lg transition-transform duration-300 hover:scale-105">
-              <Link href="/contact">Request a Demo</Link>
+            <Button asChild size="lg" variant="secondary" className="text-base font-semibold px-8 py-6 shadow-lg transition-transform duration-300 hover:scale-105">
+              <Link href="/contact">Request a Demo  </Link>
             </Button>
           </div>
         </div>
