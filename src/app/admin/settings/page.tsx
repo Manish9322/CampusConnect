@@ -930,25 +930,23 @@ export default function SettingsPage() {
                 <CardDescription className="text-sm">{description}</CardDescription>
             </CardHeader>
             <CardContent className="px-4 md:px-6">
-                <div className="flex flex-col gap-2 mb-4">
-                    <div className="flex flex-col sm:flex-row gap-2">
-                        <Input
-                            value={newItem.name}
-                            onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                            placeholder={`New ${type.replace(/([A-Z])/g, ' $1').toLowerCase()} name`}
-                            disabled={isAdding}
-                            className="w-full sm:flex-1"
-                        />
-                        <Input
-                            value={newItem.description}
-                            onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
-                            placeholder="Description (optional)"
-                            disabled={isAdding}
-                            className="w-full sm:flex-1"
-                        />
-                    </div>
-                     {type === 'feeName' && (
-                        <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row gap-2 mb-4">
+                    <Input
+                        value={newItem.name}
+                        onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+                        placeholder={`New ${type.replace(/([A-Z])/g, ' $1').toLowerCase()} name`}
+                        disabled={isAdding}
+                        className="w-full sm:flex-1"
+                    />
+                    <Input
+                        value={newItem.description}
+                        onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
+                        placeholder="Description (optional)"
+                        disabled={isAdding}
+                        className="w-full sm:flex-1"
+                    />
+                    {type === 'feeName' && (
+                        <div className="flex items-center gap-2 sm:self-center">
                             <Switch
                                 checked={newItem.status}
                                 onCheckedChange={(checked) => setNewItem({ ...newItem, status: checked })}
@@ -958,11 +956,10 @@ export default function SettingsPage() {
                             <Label htmlFor={`add-status-${type}`}>Active</Label>
                         </div>
                     )}
-                    <Button onClick={onAdd} disabled={isAdding || !newItem.name.trim()} className="w-full sm:w-auto sm:self-end">
+                    <Button onClick={onAdd} disabled={isAdding || !newItem.name.trim()} className="w-full sm:w-auto shrink-0">
                         <PlusCircle className="mr-2 h-4 w-4" /> {isAdding ? "Adding..." : "Add"}
                     </Button>
                 </div>
-
                 <div className="hidden md:block rounded-md border">
                     <div className="max-h-96 overflow-y-auto scrollbar-hide">
                         <Table>
@@ -1027,7 +1024,49 @@ export default function SettingsPage() {
                         </Table>
                     </div>
                 </div>
-                {/* Mobile view omitted for brevity, assuming similar pattern */}
+                 <div className="md:hidden space-y-3 mt-4">
+                    {isLoading ? (
+                        [...Array(3)].map((_, i) => (
+                            <Card key={i}><CardContent className="p-4"><Skeleton className="h-20 w-full"/></CardContent></Card>
+                        ))
+                    ) : items.length === 0 ? (
+                        <EmptyState 
+                            title={`No ${type}s`} 
+                            description={`No ${type.replace(/([A-Z])/g, ' $1').toLowerCase()}s have been added yet.`} 
+                        />
+                    ) : (
+                        items.map((item) => (
+                            <Card key={item._id}>
+                                <CardContent className="p-4 space-y-3">
+                                    <div>
+                                        <h4 className="font-semibold text-base truncate">{item.name}</h4>
+                                        <p className="text-sm text-muted-foreground mt-1 truncate">
+                                            {item.description || <span className="italic text-muted-foreground/50">No description</span>}
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        {type === 'feeName' && (
+                                            <Badge variant={(item.status === 'active' || item.status === true) ? 'default' : 'secondary'}>
+                                                {(item.status === 'active' || item.status === true) ? 'Active' : 'Inactive'}
+                                            </Badge>
+                                        )}
+                                        <div className="flex gap-1 ml-auto">
+                                            <Button variant="ghost" size="icon" onClick={() => onView(item)}>
+                                                <Eye className="h-4 w-4" />
+                                            </Button>
+                                            <Button variant="ghost" size="icon" onClick={() => onEdit(item)}>
+                                                <Edit className="h-4 w-4" />
+                                            </Button>
+                                            <Button variant="ghost" size="icon" onClick={() => onRemove(item)}>
+                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))
+                    )}
+                </div>
             </CardContent>
         </Card>
     );
@@ -1089,7 +1128,7 @@ export default function SettingsPage() {
                     </div>
                 </div>
 
-                <div className="rounded-md border">
+                <div className="hidden md:block rounded-md border">
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -1143,6 +1182,47 @@ export default function SettingsPage() {
                             )}
                         </TableBody>
                     </Table>
+                </div>
+                <div className="md:hidden space-y-3 mt-4">
+                    {isLoadingFeeComponents ? (
+                        [...Array(3)].map((_, i) => (
+                            <Card key={i}><CardContent className="p-4"><Skeleton className="h-24 w-full"/></CardContent></Card>
+                        ))
+                    ) : feeComponents.length === 0 ? (
+                        <EmptyState title="No Fee Components" description="Add fee components using the form above." />
+                    ) : (
+                        (feeComponents as FeeComponent[]).map((fee) => (
+                            <Card key={fee._id}>
+                                <CardContent className="p-4 space-y-3">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <h4 className="font-semibold text-base">{fee.name}</h4>
+                                            <Badge variant="outline" className="mt-1">{fee.category}</Badge>
+                                        </div>
+                                        <span className="font-bold text-lg">₹{fee.amount.toLocaleString()}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center pt-2 border-t">
+                                        <div className="flex items-center gap-2">
+                                            <Label htmlFor={`switch-${fee._id}`} className="text-sm">Active</Label>
+                                            <Switch
+                                                id={`switch-${fee._id}`}
+                                                checked={fee.isActive}
+                                                onCheckedChange={(checked) => handleToggleFeeStatus(fee, checked)}
+                                            />
+                                        </div>
+                                        <div className="flex gap-1">
+                                            <Button variant="ghost" size="icon" onClick={() => handleEditFee(fee)}>
+                                                <Edit className="h-4 w-4" />
+                                            </Button>
+                                            <Button variant="ghost" size="icon" onClick={() => handleRemoveFee(fee._id)}>
+                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))
+                    )}
                 </div>
             </CardContent>
         </Card>
