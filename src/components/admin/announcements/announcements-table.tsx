@@ -108,10 +108,10 @@ export function AnnouncementsTable({ announcements: initialAnnouncements, isLoad
     try {
       if (announcementToAction) {
         await updateAnnouncement({ ...data, _id: announcementToAction._id, order: announcementToAction.order }).unwrap();
-        toast({ title: "Announcement Updated" });
+        toast({ title: "Announcement Updated", description: `The announcement "${data.title}" has been successfully updated.` });
       } else {
         await addAnnouncement({ ...data, author: "Admin User", order: announcements.length }).unwrap();
-        toast({ title: "Announcement Created" });
+        toast({ title: "Announcement Created", description: `The announcement "${data.title}" has been successfully created.` });
       }
       setAddDialogOpen(false);
     } catch (error) {
@@ -132,7 +132,7 @@ export function AnnouncementsTable({ announcements: initialAnnouncements, isLoad
     const updatePayload = reorderedAnnouncementsWithOrder.map(item => ({ _id: item._id, order: item.order }));
     updateAnnouncement(updatePayload)
       .unwrap()
-      .then(() => toast({ title: "Order Updated" }))
+      .then(() => toast({ title: "Order Updated", description: "The new announcement order has been saved." }))
       .catch(() => {
         toast({ title: "Error", description: "Failed to save new order.", variant: "destructive" });
         setAnnouncements(announcements); // Revert on error
