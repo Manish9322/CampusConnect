@@ -12,7 +12,7 @@ The platform is built with a modern technology stack, including **Next.js 15**, 
 
 **CampusConnect**
 
-Copyright © 2024. All rights reserved.
+Copyright © 2025. All rights reserved.
 
 This project, **CampusConnect**, is a demonstration of a full-stack campus management system. Unauthorized use, modification, or distribution of the software or its components is prohibited unless explicitly stated under the terms of the license.
 
